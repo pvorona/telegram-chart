@@ -5,7 +5,7 @@
   <title>Document</title>
 </head>
 <body>
-  <script type="text/javascript" src="./data.js"></script>
+  <!-- <script type="text/javascript" src="./data.js"></script> -->
   <style>
     body {
       margin: 0;
@@ -21,8 +21,10 @@
   ></canvas>
   <script>
     const LIMIT = 100000
-    data1 = data.slice(0, 60)
-    data2 = data.slice(LIMIT, LIMIT + 60)
+    data1 = [10, 8, 15, 13, 5, 8, 9, 4]
+    // data1 = data.slice(0, 60)
+    data2 = [7, 5, 9, 13, 18, 21, 24, 20]
+    // data2 = data.slice(LIMIT, LIMIT + 60)
 
     // const path = {
     //   points, color,
@@ -41,12 +43,21 @@
 
     function render (input) {
       console.time('render')
-      const max = Math.max(...input[0].data, ...input[1].data)
+      const max = findMaxValue([...input[0].data, ...input[1].data])
       renderLattice(max, 5)
       renderPaths(input, max)
       console.timeEnd('render')
     }
 
+    // O(n)
+    function findMaxValue (data) {
+      const max = Math.max(...data)
+      if (max % 10 === 0) return max
+      if (max % 5 === 0) return max
+      return max + (5 - max % 5)
+    }
+
+    // O(1)
     function renderLattice (max, numberOfLines) {
       const step = geometry.height / numberOfLines
 
@@ -59,6 +70,7 @@
       }
     }
 
+    // O(n) + O(n)
     function renderPaths (input, max) {
       for (const { data, color } of input) {
         const points = mapDataToCoords(data, max)
@@ -66,12 +78,12 @@
       }
     }
 
+    // O(n)
     function mapDataToCoords (data, max) {
-      // const max = 1000000
       const coords = []
       for (let i = 0; i < data.length; i++) {
         coords.push({
-          x: geometry.width / data.length * i,
+          x: geometry.width / (data.length - 1) * i,
           y: geometry.height - geometry.height / max * data[i],
         })
       }
