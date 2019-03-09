@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+  <script type="text/javascript" src="./data.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+  <canvas
+    id="canvas"
+    width="1024"
+    height="480"
+  ></canvas>
+  <script>
+    const LIMIT = 100000
+    data1 = data.slice(0, 60)
+    data2 = data.slice(LIMIT, LIMIT + 60)
+
+    // const path = {
+    //   points, color,
+    // }
+
+
+    const context = canvas.getContext('2d')
+    const geometry = {
+      width: canvas.width,
+      height: canvas.height,
+    }
+    render([
+      { data: data1, color: '#FF684D' },
+      { data: data2, color: '#47B44D' },
+    ])
+
+    function render (input) {
+      console.time('render')
+      const max = Math.max(...input[0].data, ...input[1].data)
+      renderLattice(max, 5)
+      renderPaths(input, max)
+      console.timeEnd('render')
+    }
+
+    function renderLattice (max, numberOfLines) {
+      const step = geometry.height / numberOfLines
+
+      context.strokeStyle = '#F5F5F5'
+      for (let i = 0; i < numberOfLines; i++) {
+        context.beginPath();
+        context.moveTo(0, geometry.height - step * i - 1);
+        context.lineTo(geometry.width, geometry.height - step * i - 1)
+        context.stroke();
+      }
+    }
+
+    function renderPaths (input, max) {
+      for (const { data, color } of input) {
+        const points = mapDataToCoords(data, max)
+        renderPath({ points, color })
+      }
+    }
+
+    function mapDataToCoords (data, max) {
+      // const max = 1000000
+      const coords = []
+      for (let i = 0; i < data.length; i++) {
+        coords.push({
+          x: geometry.width / data.length * i,
+          y: geometry.height - geometry.height / max * data[i],
+        })
+      }
+      return coords
+    }
+
+    function renderPath ({ points, color }) {
+      context.beginPath();
+      context.moveTo(0, 0);
+      context.strokeStyle = color
+
+      for (const { x, y } of points) {
+        context.lineTo(x, y);
+      }
+
+      context.stroke();
+    }
+  </script>
+</body>
+</html>
