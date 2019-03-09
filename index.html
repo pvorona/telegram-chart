@@ -67,7 +67,8 @@
     function render (input) {
       console.time('render')
       const max = findMaxValue([...input[0].data, ...input[1].data])
-      renderLattice(max, 5)
+      renderLattice(5)
+      renderVerticalLegend(max, 5)
       renderPaths(input, max)
       console.timeEnd('render')
     }
@@ -81,9 +82,8 @@
     }
 
     // O(1)
-    function renderLattice (max, numberOfLines) {
+    function renderLattice (numberOfLines) {
       const screenStep = geometry.height / numberOfLines
-      const valueStep = max / numberOfLines
       const legendItems = [...document.querySelectorAll('.legend__item')]
 
       context.strokeStyle = '#F5F5F5'
@@ -92,6 +92,15 @@
         context.moveTo(0, geometry.height - screenStep * i - 1);
         context.lineTo(geometry.width, geometry.height - screenStep * i - 1)
         context.stroke();
+      }
+    }
+
+    function renderVerticalLegend (max,numberOfLines) {
+      const valueStep = max / numberOfLines
+      const screenStep = geometry.height / numberOfLines
+      const legendItems = [...document.querySelectorAll('.legend__item')]
+
+      for (let i = 0; i < numberOfLines; i++) {
         legendItems[i].innerText = valueStep * i
         legendItems[i].style = `top: ${geometry.height - screenStep * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
       }
