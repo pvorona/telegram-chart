@@ -13,13 +13,36 @@
       width: 100vw;
       height: 100vh;
     }
+
+    .legend {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 480px;
+    }
+
+    .legend__item {
+      position: absolute;
+      color: #A4AAB0;
+      font-size: 13px;
+    }
   </style>
+  <div class="legend">
+    <div class="legend__item">1</div>
+    <div class="legend__item">2</div>
+    <div class="legend__item">3</div>
+    <div class="legend__item">4</div>
+    <div class="legend__item">5</div>
+  </div>
   <canvas
     id="canvas"
     width="1024"
     height="480"
   ></canvas>
   <script>
+    const LEGEND_FONT_SIZE = 13
+    const LEGEND_PADDING = 5
     const LIMIT = 100000
     data1 = [10, 8, 15, 13, 5, 8, 9, 4]
     // data1 = data.slice(0, 60)
@@ -60,6 +83,7 @@
     // O(1)
     function renderLattice (max, numberOfLines) {
       const step = geometry.height / numberOfLines
+      const legendItems = [...document.querySelectorAll('.legend__item')]
 
       context.strokeStyle = '#F5F5F5'
       for (let i = 0; i < numberOfLines; i++) {
@@ -67,6 +91,8 @@
         context.moveTo(0, geometry.height - step * i - 1);
         context.lineTo(geometry.width, geometry.height - step * i - 1)
         context.stroke();
+        legendItems[i].innerText = step * i
+        legendItems[i].style = `top: ${geometry.height - step * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
       }
     }
 
