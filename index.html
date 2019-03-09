@@ -9,7 +9,7 @@
   <style>
     body {
       margin: 0;
-      padding: 0;
+      padding: 40px;
       width: 100vw;
       height: 100vh;
     }
@@ -82,17 +82,18 @@
 
     // O(1)
     function renderLattice (max, numberOfLines) {
-      const step = geometry.height / numberOfLines
+      const screenStep = geometry.height / numberOfLines
+      const valueStep = max / numberOfLines
       const legendItems = [...document.querySelectorAll('.legend__item')]
 
       context.strokeStyle = '#F5F5F5'
       for (let i = 0; i < numberOfLines; i++) {
         context.beginPath();
-        context.moveTo(0, geometry.height - step * i - 1);
-        context.lineTo(geometry.width, geometry.height - step * i - 1)
+        context.moveTo(0, geometry.height - screenStep * i - 1);
+        context.lineTo(geometry.width, geometry.height - screenStep * i - 1)
         context.stroke();
-        legendItems[i].innerText = step * i
-        legendItems[i].style = `top: ${geometry.height - step * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
+        legendItems[i].innerText = valueStep * i
+        legendItems[i].style = `top: ${geometry.height - screenStep * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
       }
     }
 
@@ -118,7 +119,6 @@
 
     function renderPath ({ points, color }) {
       context.beginPath();
-      context.moveTo(0, 0);
       context.strokeStyle = color
 
       for (const { x, y } of points) {
