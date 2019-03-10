@@ -7,6 +7,8 @@
 <body>
   <!-- <script type="text/javascript" src="./data.js"></script> -->
   <script type="text/javascript" src="./util.js"></script>
+  <script type="text/javascript" src="./input.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -148,10 +150,12 @@
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
     // const LIMIT = 1000000
-    data1 = [10, 8, 15, 13, 5, 8, 9, 4, 13, 4, 18, 45]
+    // data1 = [10, 8, 15, 13, 5, 8, 9, 4, 13, 4, 18, 45]
     // data1 = data.slice(0, LIMIT)
+    data1 = data.columns[1].slice(1)
+    data2 = data.columns[2].slice(1)
     // data1 = data.slice(0, 60)
-    data2 = [7, 5, 9, 13, 18, 21, 24, 20, 36, 48, 45, 53]
+    // data2 = [7, 5, 9, 13, 18, 21, 24, 20, 36, 48, 45, 53]
     // data2 = data.slice(LIMIT, LIMIT * 2)
 
     // const path = {
@@ -169,8 +173,10 @@
       frameHeight: frame.height,
     }
     render([
-      { data: data1, color: '#FF684D' },
-      { data: data2, color: '#47B44D' },
+      { data: data1, color: data.colors['y0'] },
+      { data: data2, color: data.colors['y1'] },
+      // { data: data1, color: '#FF684D' },
+      // { data: data2, color: '#47B44D' },
     ])
 
     function render (input) {
