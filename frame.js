@@ -1,6 +1,8 @@
 const frameConfig = {
   resizerWidthPixels: 8,
+  minimalPixelsBetweenResizers: 40,
   canvas: document.querySelector('#frame'),
+  framer: document.querySelector('#framer'),
   resizer: {
     left: document.querySelector('.frame__resizer-left'),
     right: document.querySelector('.frame__resizer-right'),
@@ -17,14 +19,16 @@ const frameConfig = {
 
 const frameState = {
   left: 0,
-  right: 0,
+  right: frameConfig.canvas.width,
   cursorResizerDelta: 0,
+  cursorFramerDelta: 0,
 }
 
 
 function initFrame () {
   frameConfig.resizer.left.addEventListener('mousedown', onLeftResizerMouseDown)
   frameConfig.resizer.right.addEventListener('mousedown', onRightResizerMouseDown)
+  frameConfig.framer.addEventListener('mousedown', onFramerMouseDown)
 }
 
 function onLeftResizerMouseDown (e) {
@@ -41,10 +45,11 @@ function removeLeftResizerListener () {
 }
 
 function onLeftResizerMouseMove (e) {
-  const left = ensureInFrameBounds(getX(e))
-  frameState.left = left - frameState.cursorResizerDelta
-  frameConfig.resizer.left.style.left = `${frameState.left}px`
+  const left = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
+  frameState.left = left > frameState.right - frameConfig.minimalPixelsBetweenResizers ? (frameState.right - frameConfig.minimalPixelsBetweenResizers) : left
+  // frameConfig.resizer.left.style.left = `${frameState.left}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
+  frameConfig.framer.style.left = `${frameState.left}px`
 }
 
 function onRightResizerMouseDown (e) {
@@ -61,10 +66,13 @@ function removeRightResizerListener () {
 }
 
 function onRightResizerMouseMove (e) {
-  const left = ensureInFrameBounds(getX(e))
-  // frameState.right = frameConfig.canvas..
-  frameConfig.resizer.right.style.left = `${left - frameState.cursorResizerDelta}px`
-  frameConfig.background.right.style.left = `${left - frameState.cursorResizerDelta + frameConfig.resizerWidthPixels}px`
+  const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
+  frameState.right = right < frameState.left + frameConfig.minimalPixelsBetweenResizers ? (frameState.left + frameConfig.minimalPixelsBetweenResizers) : right
+  // frameConfig.resizer.right.style.left = `${left}px`
+  frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
+  // framer.style.width = `${frameState.right - frameState.left}px`
+  frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
+  // framer.style.right = `calc(100% - ${frameState.right + frameConfig.resizerWidthPixels}px)`
 }
 
 function getX (event) {
@@ -73,7 +81,23 @@ function getX (event) {
 }
 
 function ensureInFrameBounds (x) {
-  if (x > frameConfig.canvas.width) return frameConfig.canvas.width
+  if (x > frameConfig.canvas.width - frameConfig.resizerWidthPixels) return frameConfig.canvas.width - frameConfig.resizerWidthPixels
   if (x < 0) return 0
   return x
+}
+
+function onFramerMouseDown (e) {
+  frameState.cursorFramerDelta = getX(e) - (frameConfig.framer.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
+  document.addEventListener('mouseup', onFramerMouseUp)
+  document.addEventListener('mousemove', onFramerMouseMove)
+}
+
+function onFramerMouseUp () {
+  document.removeEventListener('mouseup', onFramerMouseUp)
+  document.removeEventListener('mousemove', onFramerMouseMove)
+}
+
+function onFramerMouseMove (e) {
+  const left = getX(e)
+  // frameConfig.framer.style.left = `${left}px`
 }

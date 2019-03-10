@@ -13,6 +13,7 @@
     body {
       margin: 0;
       padding: 40px;
+      user-select: none;
     }
 
     .container {
@@ -103,6 +104,17 @@
     .cursor-e-resize {
       cursor: e-resize !important;
     }
+
+    .framer {
+      border-top: 4px solid #E3ECF2;
+      border-bottom: 4px solid #E3ECF2;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      opacity: .8;
+    }
   </style>
   <div class="container">
     <div class="vertical-legend">
@@ -140,9 +152,11 @@
     ></canvas>
     <!-- <div class="frame"> -->
       <div class="frame__background-left"></div>
-      <div class="frame__resizer frame__resizer-left"></div>
-      <div class="frame__resizer frame__resizer-right"></div>
       <div class="frame__background-right"></div>
+      <div class="framer" id="framer">
+        <div class="frame__resizer frame__resizer-left"></div>
+        <div class="frame__resizer frame__resizer-right"></div>
+      </div>
     <!-- </div> -->
   </div>
 
