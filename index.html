@@ -5,7 +5,7 @@
   <title>Document</title>
 </head>
 <body>
-  <script type="text/javascript" src="./data.js"></script>
+  <!-- <script type="text/javascript" src="./data.js"></script> -->
   <script type="text/javascript" src="./util.js"></script>
   <style>
     body {
@@ -75,6 +75,24 @@
       width: 8px;
       cursor: e-resize;
     }
+
+    .frame__background-left {
+      position: absolute;
+      background: #F6FAFC;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      opacity: .8;
+    }
+
+    .frame__background-right {
+      position: absolute;
+      background: #F6FAFC;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      opacity: .8;
+    }
   </style>
   <div class="container">
     <div class="vertical-legend">
@@ -111,8 +129,10 @@
       height="100"
     ></canvas>
     <!-- <div class="frame"> -->
+      <div class="frame__background-left"></div>
       <div class="frame__resizer frame__resizer-left"></div>
       <div class="frame__resizer frame__resizer-right"></div>
+      <div class="frame__background-right"></div>
     <!-- </div> -->
   </div>
 
@@ -234,55 +254,10 @@
       frameContext.stroke()
     }
 
-    const leftResizer = document.querySelector('.frame__resizer-left')
-    const rightResizer = document.querySelector('.frame__resizer-right')
+  </script>
+  <script type="text/javascript" src="./frame.js"></script>
+  <script>
     initFrame()
-
-    function initFrame () {
-      leftResizer.addEventListener('mousedown', onLeftResizerMouseDown)
-      rightResizer.addEventListener('mousedown', onRightResizerMouseDown)
-    }
-
-    function onLeftResizerMouseDown () {
-      document.addEventListener('mouseup', removeLeftResizerListener)
-      document.addEventListener('mousemove', onLeftResizerMouseMove)
-    }
-
-    function removeLeftResizerListener () {
-      document.removeEventListener('mouseup', removeLeftResizerListener)
-      document.removeEventListener('mousemove', onLeftResizerMouseMove)
-    }
-
-    function onLeftResizerMouseMove (e) {
-      const left = ensureInFrameBounds(getX(e, frame))
-      leftResizer.style.left = `${left}px`
-    }
-
-    function onRightResizerMouseDown () {
-      document.addEventListener('mouseup', removeRightResizerListener)
-      document.addEventListener('mousemove', onRightResizerMouseMove)
-    }
-
-    function removeRightResizerListener () {
-      document.removeEventListener('mouseup', removeRightResizerListener)
-      document.removeEventListener('mousemove', onRightResizerMouseMove)
-    }
-
-    function onRightResizerMouseMove (e) {
-      const left = ensureInFrameBounds(getX(e, frame))
-      rightResizer.style.left = `${left}px`
-    }
-
-    function getX (event, parent) {
-      const { left } = frame.getBoundingClientRect()
-      return event.clientX - left + window.scrollX - document.documentElement.scrollLeft
-    }
-
-    function ensureInFrameBounds (x) {
-      if (x > geometry.frameWidth) return geometry.frameWidth
-      if (x < 0) return 0
-      return x
-    }
   </script>
 </body>
 </html>
