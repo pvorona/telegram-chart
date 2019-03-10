@@ -5,7 +5,8 @@
   <title>Document</title>
 </head>
 <body>
-  <!-- <script type="text/javascript" src="./data.js"></script> -->
+  <script type="text/javascript" src="./data.js"></script>
+  <script type="text/javascript" src="./util.js"></script>
   <style>
     body {
       margin: 0;
@@ -72,7 +73,7 @@
       right: 0;
       bottom: 0;
       width: 8px;
-      cursor: w-resize;
+      cursor: e-resize;
     }
   </style>
   <div class="container">
@@ -118,11 +119,12 @@
   <script>
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
-    const LIMIT = 100000
+    // const LIMIT = 1000000
     data1 = [10, 8, 15, 13, 5, 8, 9, 4, 13, 4, 18, 45]
+    // data1 = data.slice(0, LIMIT)
     // data1 = data.slice(0, 60)
     data2 = [7, 5, 9, 13, 18, 21, 24, 20, 36, 48, 45, 53]
-    // data2 = data.slice(LIMIT, LIMIT + 60)
+    // data2 = data.slice(LIMIT, LIMIT * 2)
 
     // const path = {
     //   points, color,
@@ -155,7 +157,7 @@
 
     // O(n)
     function findMaxValue (data) {
-      const max = Math.max(...data)
+      const max = findMaxElement(data)
       if (max % 10 === 0) return max
       if (max % 5 === 0) return max
       return max + (5 - max % 5)
@@ -217,15 +219,15 @@
       frameContext.beginPath();
       frameContext.strokeStyle = color
 
-      const legendItems = [...document.querySelectorAll('.horizontal-legend__item')]
+      // const legendItems = [...document.querySelectorAll('.horizontal-legend__item')]
 
       for (let i = 0; i < points.length; i++) {
         const { x, y, frameX, frameY } = points[i]
         context.lineTo(x, y)
         frameContext.lineTo(frameX, frameY)
 
-        legendItems[i].innerText = i
-        legendItems[i].style = `left: ${x}px;`
+        // legendItems[i].innerText = i
+        // legendItems[i].style = `left: ${x}px;`
       }
 
       context.stroke()
