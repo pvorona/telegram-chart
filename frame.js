@@ -19,7 +19,7 @@ const frameConfig = {
 
 const frameState = {
   left: 0,
-  right: frameConfig.canvas.width,
+  right: frameConfig.canvas.width - frameConfig.resizerWidthPixels,
   cursorResizerDelta: 0,
   cursorFramerDelta: 0,
 }
@@ -100,10 +100,11 @@ function onFramerMouseUp () {
 }
 
 function onFramerMouseMove (e) {
-  const left = getX(e) - frameState.cursorFramerDelta
   const width = frameState.right - frameState.left
-  frameConfig.framer.style.left = `${left}px`
-  frameConfig.framer.style.right = `${frameConfig.canvas.width - (left + width)}px`
-  frameConfig.background.left.style.width = `${left}px`
-  frameConfig.background.right.style.left = `${left + width}px`
+  frameState.left = getX(e) - frameState.cursorFramerDelta
+  frameState.right = frameState.left + width
+  frameConfig.framer.style.left = `${frameState.left}px`
+  frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
+  frameConfig.background.left.style.width = `${frameState.left}px`
+  frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
 }
