@@ -14,6 +14,7 @@ const frameConfig = {
   classes: {
     left: 'cursor-w-resize',
     right: 'cursor-e-resize',
+    grabbing: 'cursor-grabbing',
   },
 }
 
@@ -90,18 +91,29 @@ function ensureInFrameBounds (x) {
 
 function onFramerMouseDown (e) {
   frameState.cursorFramerDelta = getX(e) - (frameConfig.framer.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
+  frameConfig.framer.classList.add(frameConfig.classes.grabbing)
+  document.body.classList.add(frameConfig.classes.grabbing)
   document.addEventListener('mouseup', onFramerMouseUp)
   document.addEventListener('mousemove', onFramerMouseMove)
 }
 
 function onFramerMouseUp () {
+  document.body.classList.remove(frameConfig.classes.grabbing)
+  frameConfig.framer.classList.remove(frameConfig.classes.grabbing)
   document.removeEventListener('mouseup', onFramerMouseUp)
   document.removeEventListener('mousemove', onFramerMouseMove)
 }
 
 function onFramerMouseMove (e) {
   const width = frameState.right - frameState.left
-  frameState.left = getX(e) - frameState.cursorFramerDelta
+  const nextLeft = getX(e) - frameState.cursorFramerDelta
+  if (nextLeft < 0) {
+    frameState.left = 0
+  } else if (nextLeft + width > frameConfig.canvas.width - frameConfig.resizerWidthPixels) {
+    frameState.left = frameConfig.canvas.width - width - frameConfig.resizerWidthPixels
+  } else {
+    frameState.left = nextLeft
+  }
   frameState.right = frameState.left + width
   frameConfig.framer.style.left = `${frameState.left}px`
   frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
