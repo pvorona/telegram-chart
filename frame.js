@@ -32,6 +32,7 @@ function initFrame () {
 }
 
 function onLeftResizerMouseDown (e) {
+  e.stopPropagation()
   document.body.classList.add(frameConfig.classes.left)
   frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.left.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
   document.addEventListener('mouseup', removeLeftResizerListener)
@@ -53,6 +54,7 @@ function onLeftResizerMouseMove (e) {
 }
 
 function onRightResizerMouseDown (e) {
+  e.stopPropagation()
   document.body.classList.add(frameConfig.classes.right)
   frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.right.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
   document.addEventListener('mouseup', removeRightResizerListener)
@@ -98,6 +100,10 @@ function onFramerMouseUp () {
 }
 
 function onFramerMouseMove (e) {
-  const left = getX(e)
-  // frameConfig.framer.style.left = `${left}px`
+  const left = getX(e) - frameState.cursorFramerDelta
+  const width = frameState.right - frameState.left
+  frameConfig.framer.style.left = `${left}px`
+  frameConfig.framer.style.right = `${frameConfig.canvas.width - (left + width)}px`
+  frameConfig.background.left.style.width = `${left}px`
+  frameConfig.background.right.style.left = `${left + width}px`
 }
