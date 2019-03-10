@@ -181,14 +181,18 @@
     //   points, color,
     // }
 
+    const renderWindow = {
+      startIndex: 0,
+      endIndex: data1.length - 1,
+      total: data1.length - 1,
+    }
+
     const context = canvas.getContext('2d')
     const frameContext = frame.getContext('2d')
 
     const geometry = {
       width: canvas.width,
       height: canvas.height,
-      frameWidth: frame.width,
-      frameHeight: frame.height,
     }
     render()
 
@@ -199,7 +203,7 @@
       // { data: data2, color: '#47B44D' },
     ], renderWindow) {
       console.time('render')
-      canvas.clearRect(0, 0,)
+      context.clearRect(0, 0, canvas.width, canvas.height);
       const max = findMaxValue([...input[0].data, ...input[1].data])
       renderLattice(5)
       renderVerticalLegend(max, 5)

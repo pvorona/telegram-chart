@@ -52,10 +52,10 @@ function onLeftResizerMouseMove (e) {
   // frameConfig.resizer.left.style.left = `${frameState.left}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.framer.style.left = `${frameState.left}px`
-  console.log(frameState.left / frameConfig.canvas.width * 113)
+  renderWindow.startIndex = Math.round(frameState.left / frameConfig.canvas.width * renderWindow.total)
   render(
     undefined,
-    { startIndex: Math.floor(frameState.left / frameConfig.canvas.width * 113), endIndex: 112 },
+    renderWindow,
   )
 }
 
@@ -76,11 +76,13 @@ function removeRightResizerListener () {
 function onRightResizerMouseMove (e) {
   const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
   frameState.right = right < frameState.left + frameConfig.minimalPixelsBetweenResizers ? (frameState.left + frameConfig.minimalPixelsBetweenResizers) : right
-  // frameConfig.resizer.right.style.left = `${left}px`
   frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
-  // framer.style.width = `${frameState.right - frameState.left}px`
   frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
-  // framer.style.right = `calc(100% - ${frameState.right + frameConfig.resizerWidthPixels}px)`
+  renderWindow.endIndex = Math.round(frameState.right / frameConfig.canvas.width * renderWindow.total)
+  render(
+    undefined,
+    renderWindow,
+  )
 }
 
 function getX (event) {
@@ -124,4 +126,11 @@ function onFramerMouseMove (e) {
   frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
+  renderWindow.startIndex = Math.round(frameState.left / frameConfig.canvas.width * renderWindow.total)
+  renderWindow.endIndex = Math.round(frameState.right / frameConfig.canvas.width * renderWindow.total)
+  console.log(renderWindow.endIndex - renderWindow.startIndex)
+  render(
+    undefined,
+    renderWindow,
+  )
 }
