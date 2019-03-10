@@ -10,43 +10,118 @@
     body {
       margin: 0;
       padding: 40px;
-      width: 100vw;
-      height: 100vh;
     }
 
-    .legend {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 480px;
+    .container {
+      position: relative;
     }
 
-    .legend__item {
+    .vertical-legend {
+      position: relative;
+    }
+
+    .vertical-legend__item {
       position: absolute;
       color: #A4AAB0;
       font-size: 13px;
     }
+
+    .horizontal-legend {
+      position: absolute;
+      bottom: 0;
+    }
+
+    .horizontal-legend__item {
+      position: absolute;
+      color: #A4AAB0;
+      font-size: 13px;
+    }
+
+    .frame__container {
+      margin-top: 40px;
+      position: relative;
+      width: 1024px;
+    }
+
+    .frame {
+      width: 1024px;
+      position: absolute;
+      top: 0;
+      border: 1px solid black;
+      bottom: 0;
+      right: 0;
+      left: 0;
+    }
+
+    .frame__resizer {
+      background-color: #E3ECF2;
+    }
+
+    .frame__resizer-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 8px;
+      cursor: w-resize;
+    }
+
+    .frame__resizer-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 8px;
+      cursor: w-resize;
+    }
   </style>
-  <div class="legend">
-    <div class="legend__item">1</div>
-    <div class="legend__item">2</div>
-    <div class="legend__item">3</div>
-    <div class="legend__item">4</div>
-    <div class="legend__item">5</div>
+  <div class="container">
+    <div class="vertical-legend">
+      <div class="vertical-legend__item">1</div>
+      <div class="vertical-legend__item">2</div>
+      <div class="vertical-legend__item">3</div>
+      <div class="vertical-legend__item">4</div>
+      <div class="vertical-legend__item">5</div>
+    </div>
+    <div class="horizontal-legend">
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+      <div class="horizontal-legend__item"></div>
+    </div>
+    <canvas
+      id="canvas"
+      width="1024"
+      height="480"
+    ></canvas>
   </div>
-  <canvas
-    id="canvas"
-    width="1024"
-    height="480"
-  ></canvas>
+  <div class="frame__container">
+    <canvas
+      id="frame"
+      width="1024"
+      height="100"
+    ></canvas>
+    <!-- <div class="frame"> -->
+      <div class="frame__resizer frame__resizer-left"></div>
+      <div class="frame__resizer frame__resizer-right"></div>
+    <!-- </div> -->
+  </div>
+
   <script>
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
     const LIMIT = 100000
-    data1 = [10, 8, 15, 13, 5, 8, 9, 4]
+    data1 = [10, 8, 15, 13, 5, 8, 9, 4, 13, 4, 18, 45]
     // data1 = data.slice(0, 60)
-    data2 = [7, 5, 9, 13, 18, 21, 24, 20]
+    data2 = [7, 5, 9, 13, 18, 21, 24, 20, 36, 48, 45, 53]
     // data2 = data.slice(LIMIT, LIMIT + 60)
 
     // const path = {
@@ -55,9 +130,13 @@
 
 
     const context = canvas.getContext('2d')
+    const frameContext = frame.getContext('2d')
+
     const geometry = {
       width: canvas.width,
       height: canvas.height,
+      frameWidth: frame.width,
+      frameHeight: frame.height,
     }
     render([
       { data: data1, color: '#FF684D' },
@@ -69,6 +148,7 @@
       const max = findMaxValue([...input[0].data, ...input[1].data])
       renderLattice(5)
       renderVerticalLegend(max, 5)
+      renderHorizontalLegend()
       renderPaths(input, max)
       console.timeEnd('render')
     }
@@ -84,7 +164,6 @@
     // O(1)
     function renderLattice (numberOfLines) {
       const screenStep = geometry.height / numberOfLines
-      const legendItems = [...document.querySelectorAll('.legend__item')]
 
       context.strokeStyle = '#F5F5F5'
       for (let i = 0; i < numberOfLines; i++) {
@@ -95,16 +174,19 @@
       }
     }
 
-    function renderVerticalLegend (max,numberOfLines) {
+    // O(1)
+    function renderVerticalLegend (max, numberOfLines) {
       const valueStep = max / numberOfLines
       const screenStep = geometry.height / numberOfLines
-      const legendItems = [...document.querySelectorAll('.legend__item')]
+      const legendItems = [...document.querySelectorAll('.vertical-legend__item')]
 
       for (let i = 0; i < numberOfLines; i++) {
         legendItems[i].innerText = valueStep * i
         legendItems[i].style = `top: ${geometry.height - screenStep * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
       }
     }
+
+    function renderHorizontalLegend () {}
 
     // O(n) + O(n)
     function renderPaths (input, max) {
@@ -121,6 +203,8 @@
         coords.push({
           x: geometry.width / (data.length - 1) * i,
           y: geometry.height - geometry.height / max * data[i],
+          frameX: geometry.frameWidth / (data.length - 1) * i,
+          frameY: geometry.frameHeight - geometry.frameHeight / max * data[i],
         })
       }
       return coords
@@ -130,11 +214,72 @@
       context.beginPath();
       context.strokeStyle = color
 
-      for (const { x, y } of points) {
-        context.lineTo(x, y);
+      frameContext.beginPath();
+      frameContext.strokeStyle = color
+
+      const legendItems = [...document.querySelectorAll('.horizontal-legend__item')]
+
+      for (let i = 0; i < points.length; i++) {
+        const { x, y, frameX, frameY } = points[i]
+        context.lineTo(x, y)
+        frameContext.lineTo(frameX, frameY)
+
+        legendItems[i].innerText = i
+        legendItems[i].style = `left: ${x}px;`
       }
 
-      context.stroke();
+      context.stroke()
+      frameContext.stroke()
+    }
+
+    const leftResizer = document.querySelector('.frame__resizer-left')
+    const rightResizer = document.querySelector('.frame__resizer-right')
+    initFrame()
+
+    function initFrame () {
+      leftResizer.addEventListener('mousedown', onLeftResizerMouseDown)
+      rightResizer.addEventListener('mousedown', onRightResizerMouseDown)
+    }
+
+    function onLeftResizerMouseDown () {
+      document.addEventListener('mouseup', removeLeftResizerListener)
+      document.addEventListener('mousemove', onLeftResizerMouseMove)
+    }
+
+    function removeLeftResizerListener () {
+      document.removeEventListener('mouseup', removeLeftResizerListener)
+      document.removeEventListener('mousemove', onLeftResizerMouseMove)
+    }
+
+    function onLeftResizerMouseMove (e) {
+      const left = ensureInFrameBounds(getX(e, frame))
+      leftResizer.style.left = `${left}px`
+    }
+
+    function onRightResizerMouseDown () {
+      document.addEventListener('mouseup', removeRightResizerListener)
+      document.addEventListener('mousemove', onRightResizerMouseMove)
+    }
+
+    function removeRightResizerListener () {
+      document.removeEventListener('mouseup', removeRightResizerListener)
+      document.removeEventListener('mousemove', onRightResizerMouseMove)
+    }
+
+    function onRightResizerMouseMove (e) {
+      const left = ensureInFrameBounds(getX(e, frame))
+      rightResizer.style.left = `${left}px`
+    }
+
+    function getX (event, parent) {
+      const { left } = frame.getBoundingClientRect()
+      return event.clientX - left + window.scrollX - document.documentElement.scrollLeft
+    }
+
+    function ensureInFrameBounds (x) {
+      if (x > geometry.frameWidth) return geometry.frameWidth
+      if (x < 0) return 0
+      return x
     }
   </script>
 </body>
