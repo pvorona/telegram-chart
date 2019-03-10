@@ -189,10 +189,13 @@
 
     const context = canvas.getContext('2d')
     const frameContext = frame.getContext('2d')
+    let frameRendered = false
 
     const geometry = {
       width: canvas.width,
       height: canvas.height,
+      frameWidth: frame.width,
+      frameHeight: frame.height,
     }
     render()
 
@@ -209,6 +212,7 @@
       renderVerticalLegend(max, 5)
       renderHorizontalLegend()
       renderPaths(input, max, renderWindow)
+      frameRendered = true
       console.timeEnd('render')
     }
 
@@ -265,22 +269,28 @@
       context.beginPath();
       context.strokeStyle = color
 
-      // frameContext.beginPath();
-      // frameContext.strokeStyle = color
+      if (!frameRendered) {
+        frameContext.beginPath();
+        frameContext.strokeStyle = color
+      }
 
       // const legendItems = [...document.querySelectorAll('.horizontal-legend__item')]
 
       for (let i = 0; i < points.length; i++) {
         const { x, y, frameX, frameY } = points[i]
         context.lineTo(x, y)
-        // frameContext.lineTo(frameX, frameY)
+        if (!frameRendered) {
+          frameContext.lineTo(frameX, frameY)
+        }
 
         // legendItems[i].innerText = i
         // legendItems[i].style = `left: ${x}px;`
       }
 
       context.stroke()
-      // frameContext.stroke()
+      if (!frameRendered) {
+        frameContext.stroke()
+      }
     }
 
   </script>
