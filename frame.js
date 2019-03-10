@@ -52,6 +52,11 @@ function onLeftResizerMouseMove (e) {
   // frameConfig.resizer.left.style.left = `${frameState.left}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.framer.style.left = `${frameState.left}px`
+  console.log(frameState.left / frameConfig.canvas.width * 113)
+  render(
+    undefined,
+    { startIndex: Math.floor(frameState.left / frameConfig.canvas.width * 113), endIndex: 112 },
+  )
 }
 
 function onRightResizerMouseDown (e) {

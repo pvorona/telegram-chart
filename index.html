@@ -181,7 +181,6 @@
     //   points, color,
     // }
 
-
     const context = canvas.getContext('2d')
     const frameContext = frame.getContext('2d')
 
@@ -191,29 +190,22 @@
       frameWidth: frame.width,
       frameHeight: frame.height,
     }
-    render([
+    render()
+
+    function render (input = [
       { data: data1, color: data.colors['y0'] },
       { data: data2, color: data.colors['y1'] },
       // { data: data1, color: '#FF684D' },
       // { data: data2, color: '#47B44D' },
-    ])
-
-    function render (input) {
+    ], renderWindow) {
       console.time('render')
+      canvas.clearRect(0, 0,)
       const max = findMaxValue([...input[0].data, ...input[1].data])
       renderLattice(5)
       renderVerticalLegend(max, 5)
       renderHorizontalLegend()
-      renderPaths(input, max)
+      renderPaths(input, max, renderWindow)
       console.timeEnd('render')
-    }
-
-    // O(n)
-    function findMaxValue (data) {
-      const max = findMaxElement(data)
-      if (max % 10 === 0) return max
-      if (max % 5 === 0) return max
-      return max + (5 - max % 5)
     }
 
     // O(1)
@@ -243,22 +235,22 @@
 
     function renderHorizontalLegend () {}
 
-    // O(n) + O(n)
-    function renderPaths (input, max) {
+    // O(n) + O(n) ~ O(n)
+    function renderPaths (input, max, renderWindow) {
       for (const { data, color } of input) {
-        const points = mapDataToCoords(data, max)
+        const points = mapDataToCoords(data, max, renderWindow)
         renderPath({ points, color })
       }
     }
 
     // O(n)
-    function mapDataToCoords (data, max) {
+    function mapDataToCoords (data, max, { startIndex = 0, endIndex = data.length - 1 } = {}) {
       const coords = []
-      for (let i = 0; i < data.length; i++) {
+      for (let i = startIndex; i <= endIndex; i++) {
         coords.push({
-          x: geometry.width / (data.length - 1) * i,
+          x: geometry.width / (endIndex - startIndex) * (i - startIndex),
           y: geometry.height - geometry.height / max * data[i],
-          frameX: geometry.frameWidth / (data.length - 1) * i,
+          frameX: geometry.frameWidth / (endIndex - startIndex) * (i - startIndex),
           frameY: geometry.frameHeight - geometry.frameHeight / max * data[i],
         })
       }
@@ -269,22 +261,22 @@
       context.beginPath();
       context.strokeStyle = color
 
-      frameContext.beginPath();
-      frameContext.strokeStyle = color
+      // frameContext.beginPath();
+      // frameContext.strokeStyle = color
 
       // const legendItems = [...document.querySelectorAll('.horizontal-legend__item')]
 
       for (let i = 0; i < points.length; i++) {
         const { x, y, frameX, frameY } = points[i]
         context.lineTo(x, y)
-        frameContext.lineTo(frameX, frameY)
+        // frameContext.lineTo(frameX, frameY)
 
         // legendItems[i].innerText = i
         // legendItems[i].style = `left: ${x}px;`
       }
 
       context.stroke()
-      frameContext.stroke()
+      // frameContext.stroke()
     }
 
   </script>

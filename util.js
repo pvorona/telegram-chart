@@ -5,3 +5,12 @@ function findMaxElement (data) {
   }
   return max
 }
+
+// O(n)
+function findMaxValue (data) {
+  const max = findMaxElement(data)
+  if (max % 10 === 0) return max
+  if (max % 5 === 0) return max
+  return max + (5 - max % 5)
+}
+
