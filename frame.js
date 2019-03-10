@@ -8,7 +8,11 @@ const frameConfig = {
   background: {
     left: document.querySelector('.frame__background-left'),
     right: document.querySelector('.frame__background-right'),
-  }
+  },
+  classes: {
+    left: 'cursor-w-resize',
+    right: 'cursor-e-resize',
+  },
 }
 
 const frameState = {
@@ -24,12 +28,14 @@ function initFrame () {
 }
 
 function onLeftResizerMouseDown (e) {
+  document.body.classList.add(frameConfig.classes.left)
   frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.left.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
   document.addEventListener('mouseup', removeLeftResizerListener)
   document.addEventListener('mousemove', onLeftResizerMouseMove)
 }
 
 function removeLeftResizerListener () {
+  document.body.classList.remove(frameConfig.classes.left)
   document.removeEventListener('mouseup', removeLeftResizerListener)
   document.removeEventListener('mousemove', onLeftResizerMouseMove)
 }
@@ -42,12 +48,14 @@ function onLeftResizerMouseMove (e) {
 }
 
 function onRightResizerMouseDown (e) {
+  document.body.classList.add(frameConfig.classes.right)
   frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.right.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
   document.addEventListener('mouseup', removeRightResizerListener)
   document.addEventListener('mousemove', onRightResizerMouseMove)
 }
 
 function removeRightResizerListener () {
+  document.body.classList.remove(frameConfig.classes.right)
   document.removeEventListener('mouseup', removeRightResizerListener)
   document.removeEventListener('mousemove', onRightResizerMouseMove)
 }
