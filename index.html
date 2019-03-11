@@ -120,6 +120,55 @@
       opacity: .8;
       cursor: grab;
     }
+
+    .hidden {
+      opacity: 0;
+    }
+
+    .button {
+      display: none;
+    }
+
+    .like-button {
+      display: inline-block;
+      outline: none;
+      border: 1px solid #EDEFF0;
+      padding: 11px 19px 11px 42px;
+      background: none;
+      border-radius: 30px;
+      font-family: Tahoma;
+      font-size: 14px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .like-button::before {
+      content: '';
+      width: 1.5em;
+      height: 1.5em;
+      position: absolute;
+      border: 1px solid red;
+      top: 50%;
+      transform: translateY(-50%);
+      left: 10px;
+      border-radius: 50%;
+    }
+
+    .button:checked ~ .like-button::before {
+      background: red;
+    }
+
+    .button:checked ~ .like-button::after {
+      content: '';
+      width: 0.3em;
+      height: 0.6em;
+      position: absolute;
+      border-right: 1px solid white;
+      border-bottom: 1px solid white;
+      top: 50%;
+      transform: translateY(-63%) translateX(9px) rotate(55deg) skew(5deg);
+      left: 10px;
+    }
   </style>
   <div class="container">
     <div class="vertical-legend">
@@ -148,13 +197,13 @@
         id="canvas"
         width="1024"
         height="480"
-        style="position: absolute"
+        style="position: absolute;"
       ></canvas>
       <canvas
         id="line-2"
         width="1024"
         height="480"
-        style="position: absolute"
+        style="position: absolute;"
       ></canvas>
     </div>
   </div>
@@ -173,8 +222,22 @@
       </div>
     <!-- </div> -->
   </div>
-
+  <div style="margin-top: 20px;">
+    <label>
+      <input checked onClick="onButtonClick(0)" type="checkbox" class="button">
+      <div class="like-button">Left</div>
+    </label>
+    <label>
+      <input checked onClick="onButtonClick(1)" type="checkbox" class="button">
+      <div class="like-button">Joined</div>
+    </label>
+  </div>
   <script>
+
+    function onButtonClick (index) {
+      canvases[index].classList.toggle('hidden')
+    }
+
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
     // const LIMIT = 1000000
@@ -195,9 +258,17 @@
       endIndex: data1.length - 1,
       total: data1.length - 1,
     }
+    const canvases = {
+      0: document.querySelector('#canvas'),
+      1: document.querySelector('#line-2'),
+    }
     var renderTargetMapping = {
       0: document.querySelector('#canvas').getContext('2d'),
       1: document.querySelector('#line-2').getContext('2d')
+    }
+    const layersState = {
+      line1Visible: true,
+      line2Visible: true,
     }
 
     const context = canvas.getContext('2d')
@@ -219,7 +290,9 @@
       // { data: data2, color: '#47B44D' },
     ], renderWindow) {
       console.time('render')
-      Object.values(renderTargetMapping).forEach(context => context.clearRect(0, 0, canvas.width, canvas.height))
+      Object.values(renderTargetMapping).forEach(
+        context => context.clearRect(0, 0, canvas.width, canvas.height)
+      )
       const max = findMaxValue([...input[0].data, ...input[1].data])
       // renderLattice(5)
       // renderVerticalLegend(max, 5)
@@ -283,6 +356,7 @@
     function renderPath ({ points, color }, targetContext) {
       targetContext.beginPath();
       targetContext.strokeStyle = color
+      // targetContext.lineWidth = 2
 
       if (!frameRendered) {
         frameContext.beginPath();
