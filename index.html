@@ -311,8 +311,12 @@
       // for (const { data, color } of input) {
       for (let i = 0; i < input.length; i++) {
         const { data, color } = input[i]
-        const points = mapDataToCoords(data, max, renderWindow)
-        renderPath({ points, color }, renderTargetMapping[i], frameContextsMapping[i])
+        renderPath(
+          mapDataToCoords(data, max, renderWindow),
+          color,
+          renderTargetMapping[i],
+          frameContextsMapping[i]
+        )
       }
     }
 
@@ -330,7 +334,7 @@
       return coords
     }
 
-    function renderPath ({ points, color }, targetContext, frameContext) {
+    function renderPath (points, color, targetContext, frameContext) {
       targetContext.beginPath();
       targetContext.strokeStyle = color
       // targetContext.lineWidth = 2
