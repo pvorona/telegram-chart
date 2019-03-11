@@ -143,11 +143,20 @@
       <div class="horizontal-legend__item"></div>
       <div class="horizontal-legend__item"></div>
     </div>
-    <canvas
-      id="canvas"
-      width="1024"
-      height="480"
-    ></canvas>
+    <div class="layers-container" style="width: 1024px; height: 480px; position: relative;">
+      <canvas
+        id="canvas"
+        width="1024"
+        height="480"
+        style="position: absolute"
+      ></canvas>
+      <canvas
+        id="line-2"
+        width="1024"
+        height="480"
+        style="position: absolute"
+      ></canvas>
+    </div>
   </div>
   <div class="frame__container">
     <canvas
@@ -186,6 +195,10 @@
       endIndex: data1.length - 1,
       total: data1.length - 1,
     }
+    var renderTargetMapping = {
+      0: document.querySelector('#canvas').getContext('2d'),
+      1: document.querySelector('#line-2').getContext('2d')
+    }
 
     const context = canvas.getContext('2d')
     const frameContext = frame.getContext('2d')
@@ -206,11 +219,11 @@
       // { data: data2, color: '#47B44D' },
     ], renderWindow) {
       console.time('render')
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      Object.values(renderTargetMapping).forEach(context => context.clearRect(0, 0, canvas.width, canvas.height))
       const max = findMaxValue([...input[0].data, ...input[1].data])
-      renderLattice(5)
-      renderVerticalLegend(max, 5)
-      renderHorizontalLegend()
+      // renderLattice(5)
+      // renderVerticalLegend(max, 5)
+      // renderHorizontalLegend()
       renderPaths(input, max, renderWindow)
       frameRendered = true
       console.timeEnd('render')
@@ -245,9 +258,11 @@
 
     // O(n) + O(n) ~ O(n)
     function renderPaths (input, max, renderWindow) {
-      for (const { data, color } of input) {
+      // for (const { data, color } of input) {
+      for (let i = 0; i < input.length; i++) {
+        const { data, color } = input[i]
         const points = mapDataToCoords(data, max, renderWindow)
-        renderPath({ points, color })
+        renderPath({ points, color }, renderTargetMapping[i])
       }
     }
 
@@ -265,9 +280,9 @@
       return coords
     }
 
-    function renderPath ({ points, color }) {
-      context.beginPath();
-      context.strokeStyle = color
+    function renderPath ({ points, color }, targetContext) {
+      targetContext.beginPath();
+      targetContext.strokeStyle = color
 
       if (!frameRendered) {
         frameContext.beginPath();
@@ -278,7 +293,7 @@
 
       for (let i = 0; i < points.length; i++) {
         const { x, y, frameX, frameY } = points[i]
-        context.lineTo(x, y)
+        targetContext.lineTo(x, y)
         if (!frameRendered) {
           frameContext.lineTo(frameX, frameY)
         }
@@ -287,7 +302,7 @@
         // legendItems[i].style = `left: ${x}px;`
       }
 
-      context.stroke()
+      targetContext.stroke()
       if (!frameRendered) {
         frameContext.stroke()
       }
