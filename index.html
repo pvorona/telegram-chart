@@ -180,7 +180,7 @@
     // const path = {
     //   points, color,
     // }
-
+    const coordsPreallocated = new Array(data1.length)
     const renderWindow = {
       startIndex: 0,
       endIndex: data1.length - 1,
@@ -197,15 +197,13 @@
       frameWidth: frame.width,
       frameHeight: frame.height,
     }
-    render()
+    render(undefined, renderWindow)
 
     function render (input = [
       { data: data1, color: data.colors['y0'] },
       { data: data2, color: data.colors['y1'] },
-      // { data: data1, color: '#FF684D' },
-      // { data: data2, color: '#47B44D' },
     ], renderWindow) {
-      console.time('render')
+      // console.time('render')
       context.clearRect(0, 0, canvas.width, canvas.height);
       const max = findMaxValue([...input[0].data, ...input[1].data])
       renderLattice(5)
@@ -213,7 +211,7 @@
       renderHorizontalLegend()
       renderPaths(input, max, renderWindow)
       frameRendered = true
-      console.timeEnd('render')
+      // console.timeEnd('render')
     }
 
     // O(1)
@@ -246,26 +244,24 @@
     // O(n) + O(n) ~ O(n)
     function renderPaths (input, max, renderWindow) {
       for (const { data, color } of input) {
-        const points = mapDataToCoords(data, max, renderWindow)
-        renderPath({ points, color })
+        mapDataToCoords(data, max, renderWindow)
+        renderPath(color, renderWindow)
       }
     }
 
     // O(n)
     function mapDataToCoords (data, max, { startIndex = 0, endIndex = data.length - 1 } = {}) {
-      const coords = []
       for (let i = startIndex; i <= endIndex; i++) {
-        coords.push({
+        coordsPreallocated[i] = {
           x: geometry.width / (endIndex - startIndex) * (i - startIndex),
           y: geometry.height - geometry.height / max * data[i],
           frameX: geometry.frameWidth / (endIndex - startIndex) * (i - startIndex),
           frameY: geometry.frameHeight - geometry.frameHeight / max * data[i],
-        })
+        }
       }
-      return coords
     }
 
-    function renderPath ({ points, color }) {
+    function renderPath (color, { startIndex, endIndex }) {
       context.beginPath();
       context.strokeStyle = color
 
@@ -276,8 +272,8 @@
 
       // const legendItems = [...document.querySelectorAll('.horizontal-legend__item')]
 
-      for (let i = 0; i < points.length; i++) {
-        const { x, y, frameX, frameY } = points[i]
+      for (let i = startIndex; i <= endIndex; i++) {
+        const { x, y, frameX, frameY } = coordsPreallocated[i]
         context.lineTo(x, y)
         if (!frameRendered) {
           frameContext.lineTo(frameX, frameY)
