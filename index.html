@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
+  <link rel="stylesheet" href="./checkbox-button.css">
 </head>
 <body>
   <!-- <script type="text/javascript" src="./data.js"></script> -->
@@ -44,11 +45,11 @@
     .frame__container {
       margin-top: 40px;
       position: relative;
-      width: 1024px;
+      width: 1360;
     }
 
     .frame {
-      width: 1024px;
+      width: 1360;
       position: absolute;
       top: 0;
       border: 1px solid black;
@@ -125,49 +126,8 @@
       opacity: 0;
     }
 
-    .button {
-      display: none;
-    }
-
-    .like-button {
-      display: inline-block;
-      outline: none;
-      border: 1px solid #EDEFF0;
-      padding: 11px 19px 11px 42px;
-      background: none;
-      border-radius: 30px;
-      font-family: Tahoma;
-      font-size: 14px;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .like-button::before {
-      content: '';
-      width: 1.5em;
-      height: 1.5em;
-      position: absolute;
-      border: 1px solid red;
-      top: 50%;
-      transform: translateY(-50%);
-      left: 10px;
-      border-radius: 50%;
-    }
-
-    .button:checked ~ .like-button::before {
-      background: red;
-    }
-
-    .button:checked ~ .like-button::after {
-      content: '';
-      width: 0.3em;
-      height: 0.6em;
-      position: absolute;
-      border-right: 1px solid white;
-      border-bottom: 1px solid white;
-      top: 50%;
-      transform: translateY(-63%) translateX(9px) rotate(55deg) skew(5deg);
-      left: 10px;
+    .layer {
+      will-change: opacity;
     }
   </style>
   <div class="container">
@@ -195,24 +155,37 @@
     <div class="layers-container" style="width: 1024px; height: 480px; position: relative;">
       <canvas
         id="canvas"
-        width="1024"
+        width="1360"
         height="480"
         style="position: absolute;"
+        class="layer"
       ></canvas>
       <canvas
         id="line-2"
-        width="1024"
+        width="1360"
         height="480"
         style="position: absolute;"
+        class="layer"
       ></canvas>
     </div>
   </div>
   <div class="frame__container">
-    <canvas
-      id="frame"
-      width="1024"
-      height="100"
-    ></canvas>
+    <div style="width: 1360px; height: 100px">
+      <canvas
+        id="frame"
+        style="position: absolute;"
+        width="1360"
+        height="100"
+        class="layer"
+      ></canvas>
+      <canvas
+        id="frame-2"
+        style="position: absolute;"
+        width="1360"
+        height="100"
+        class="layer"
+      ></canvas>
+    </div>
     <!-- <div class="frame"> -->
       <div class="frame__background-left"></div>
       <div class="frame__background-right"></div>
@@ -223,19 +196,19 @@
     <!-- </div> -->
   </div>
   <div style="margin-top: 20px;">
-    <label>
+    <label style="color: #3DC23F">
       <input checked onClick="onButtonClick(0)" type="checkbox" class="button">
-      <div class="like-button">Left</div>
+      <div class="like-button"><div class="button-text">Joined</div></div>
     </label>
-    <label>
+    <label style="color: #F34C44; margin-left: 20px;">
       <input checked onClick="onButtonClick(1)" type="checkbox" class="button">
-      <div class="like-button">Joined</div>
+      <div class="like-button"><div class="button-text">Left</div></div>
     </label>
   </div>
   <script>
 
     function onButtonClick (index) {
-      canvases[index].classList.toggle('hidden')
+      canvases[index].forEach(canvas => canvas.classList.toggle('hidden'))
     }
 
     const LEGEND_FONT_SIZE = 13
@@ -259,12 +232,16 @@
       total: data1.length - 1,
     }
     const canvases = {
-      0: document.querySelector('#canvas'),
-      1: document.querySelector('#line-2'),
+      0: [document.querySelector('#canvas'), document.querySelector('#frame')],
+      1: [document.querySelector('#line-2'), document.querySelector('#frame-2')],
     }
-    var renderTargetMapping = {
+    const renderTargetMapping = {
       0: document.querySelector('#canvas').getContext('2d'),
       1: document.querySelector('#line-2').getContext('2d')
+    }
+    const frameContextsMapping = {
+      0: document.querySelector('#frame').getContext('2d'),
+      1: document.querySelector('#frame-2').getContext('2d'),
     }
     const layersState = {
       line1Visible: true,
@@ -335,7 +312,7 @@
       for (let i = 0; i < input.length; i++) {
         const { data, color } = input[i]
         const points = mapDataToCoords(data, max, renderWindow)
-        renderPath({ points, color }, renderTargetMapping[i])
+        renderPath({ points, color }, renderTargetMapping[i], frameContextsMapping[i])
       }
     }
 
@@ -353,7 +330,7 @@
       return coords
     }
 
-    function renderPath ({ points, color }, targetContext) {
+    function renderPath ({ points, color }, targetContext, frameContext) {
       targetContext.beginPath();
       targetContext.strokeStyle = color
       // targetContext.lineWidth = 2

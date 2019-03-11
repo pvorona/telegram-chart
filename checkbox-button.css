@@ -1,0 +1,49 @@
+.button {
+  display: none;
+}
+
+.like-button {
+  display: inline-block;
+  outline: none;
+  border: 1px solid #EDEFF0;
+  padding: 11px 19px 11px 42px;
+  background: none;
+  border-radius: 30px;
+  font-family: Tahoma;
+  font-size: 14px;
+  position: relative;
+  cursor: pointer;
+}
+
+.like-button::before {
+  content: '';
+  width: 1.5em;
+  height: 1.5em;
+  position: absolute;
+  border: 1px solid currentColor;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 10px;
+  border-radius: 50%;
+  transition: background .2s;
+}
+
+.button:checked ~ .like-button::before {
+  background: currentColor;
+}
+
+.button:checked ~ .like-button::after {
+  content: '';
+  width: 0.3em;
+  height: 0.6em;
+  position: absolute;
+  border-right: 1px solid white;
+  border-bottom: 1px solid white;
+  top: 50%;
+  transform: translateY(-63%) translateX(9px) rotate(55deg) skew(5deg);
+  left: 10px;
+}
+
+.button-text {
+  color: black;
+}
