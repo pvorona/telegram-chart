@@ -8,8 +8,8 @@
 <body>
   <script type="text/javascript" src="./util.js"></script>
   <script type="text/javascript" src="./canvas-renderer.js"></script>
-  <!-- <script type="text/javascript" src="./data.js"></script> -->
-  <script type="text/javascript" src="./input.js"></script>
+  <script type="text/javascript" src="./data.js"></script>
+  <!-- <script type="text/javascript" src="./input.js"></script> -->
 
   <style>
     body {
@@ -157,7 +157,7 @@
       <!-- <svg id="svg" width="1360" height="480" xmlns="http://www.w3.org/2000/svg"></svg> -->
 
       <canvas
-        id="canvas"
+        id="line-1"
         style="position: absolute; width: 1360px; height: 480px"
         width="2720"
         height="960"
@@ -219,11 +219,11 @@
 
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
-    const LIMIT = 1000
-    data1 = data.columns[1].slice(1)
-    data2 = data.columns[2].slice(1)
-    // data1 = data.slice(0, LIMIT)
-    // data2 = data.slice(LIMIT, LIMIT * 2)
+    const LIMIT = 400
+    // data1 = data.columns[1].slice(1)
+    // data2 = data.columns[2].slice(1)
+    data1 = data.slice(0, LIMIT)
+    data2 = data.slice(LIMIT, LIMIT * 2)
 
     const IN = {
       data: {
@@ -233,7 +233,7 @@
       },
       graphNames: [1, 2],
       canvases: {
-        1: document.querySelector('#canvas'),
+        1: document.querySelector('#line-1'),
         2: document.querySelector('#line-2'),
       },
       frameCanvases: {
@@ -245,7 +245,7 @@
         2: '#FF684D',
       },
       contexts: {
-        1: document.querySelector('#canvas').getContext('2d'),
+        1: document.querySelector('#line-1').getContext('2d'),
         2: document.querySelector('#line-2').getContext('2d'),
       },
       frameContexts: {
@@ -279,24 +279,20 @@
     }
 
     function render () {
-      // requestAnimationFrame(function () {
-        // console.time('render')
-        const visibleGraphNames = IN.graphNames.filter(graphName => IN.visibilityState[graphName])
-        const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, IN.data[graphName]], [])
-        const max = getMaxValue(IN.renderWindow, ...arrayOfDataArrays)
-        for (const graphName of visibleGraphNames) {
-          clearCanvas(IN.contexts[graphName])
-          renderPath(
-            mapDataToCoords(IN.data[graphName], max, IN.canvases[graphName], IN.renderWindow),
-            IN.colors[graphName],
-            IN.contexts[graphName],
-          )
-        }
-        // console.timeEnd('render')
-      //})
+      const visibleGraphNames = IN.graphNames.filter(graphName => IN.visibilityState[graphName])
+      const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, IN.data[graphName]], [])
+      const max = getMaxValue(IN.renderWindow, ...arrayOfDataArrays)
+      for (const graphName of visibleGraphNames) {
+        clearCanvas(IN.contexts[graphName], IN.canvases[graphName])
+        renderPath(
+          mapDataToCoords(IN.data[graphName], max, IN.canvases[graphName], IN.renderWindow),
+          IN.colors[graphName],
+          IN.contexts[graphName],
+        )
+      }
     }
 
-    function clearCanvas (context) {
+    function clearCanvas (context, canvas) {
       context.clearRect(0, 0, canvas.width, canvas.height)
     }
 
