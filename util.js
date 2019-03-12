@@ -9,7 +9,7 @@ function findMaxElement (values, { startIndex, endIndex}) {
 }
 
 // O(n)
-function findMaxValue (renderWindow, ...values) {
+function getMaxValue (renderWindow, ...values) {
   const max = findMaxElement(values, renderWindow)
   if (max % 10 === 0) return max
   if (max % 5 === 0) return max

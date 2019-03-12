@@ -20,7 +20,7 @@ const frameConfig = {
 
 const frameState = {
   left: 0,
-  right: frameConfig.canvas.width - frameConfig.resizerWidthPixels,
+  right: frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels,
   cursorResizerDelta: 0,
   cursorFramerDelta: 0,
 }
@@ -52,8 +52,11 @@ function onLeftResizerMouseMove (e) {
   // frameConfig.resizer.left.style.left = `${frameState.left}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.framer.style.left = `${frameState.left}px`
-  renderWindow.startIndex = Math.round(frameState.left / frameConfig.canvas.width * renderWindow.total)
-  render()
+  const newStartIndex = Math.round(frameState.left / frameConfig.canvas.offsetWidth * IN.data.total)
+  if (newStartIndex !== IN.renderWindow.startIndex) {
+    IN.renderWindow.startIndex = newStartIndex
+    render()
+  }
 }
 
 function onRightResizerMouseDown (e) {
@@ -74,9 +77,12 @@ function onRightResizerMouseMove (e) {
   const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
   frameState.right = right < frameState.left + frameConfig.minimalPixelsBetweenResizers ? (frameState.left + frameConfig.minimalPixelsBetweenResizers) : right
   frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
-  frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
-  renderWindow.endIndex = Math.round(frameState.right / frameConfig.canvas.width * renderWindow.total)
-  render()
+  frameConfig.framer.style.right = `${frameConfig.canvas.offsetWidth - (frameState.right + frameConfig.resizerWidthPixels)}px`
+  const newEndIndex = Math.round(frameState.right / frameConfig.canvas.offsetWidth * IN.data.total)
+  if (newEndIndex !== IN.renderWindow.endIndex) {
+    IN.renderWindow.endIndex = newEndIndex
+    render()
+  }
 }
 
 function getX (event) {
@@ -85,7 +91,7 @@ function getX (event) {
 }
 
 function ensureInFrameBounds (x) {
-  if (x > frameConfig.canvas.width - frameConfig.resizerWidthPixels) return frameConfig.canvas.width - frameConfig.resizerWidthPixels
+  if (x > frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels) return frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels
   if (x < 0) return 0
   return x
 }
@@ -110,18 +116,21 @@ function onFramerMouseMove (e) {
   const nextLeft = getX(e) - frameState.cursorFramerDelta
   if (nextLeft < 0) {
     frameState.left = 0
-  } else if (nextLeft + width > frameConfig.canvas.width - frameConfig.resizerWidthPixels) {
-    frameState.left = frameConfig.canvas.width - width - frameConfig.resizerWidthPixels
+  } else if (nextLeft + width > frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels) {
+    frameState.left = frameConfig.canvas.offsetWidth - width - frameConfig.resizerWidthPixels
   } else {
     frameState.left = nextLeft
   }
   frameState.right = frameState.left + width
   frameConfig.framer.style.left = `${frameState.left}px`
-  frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
+  frameConfig.framer.style.right = `${frameConfig.canvas.offsetWidth - (frameState.right + frameConfig.resizerWidthPixels)}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
-  const renderWindowSize = renderWindow.endIndex - renderWindow.startIndex
-  renderWindow.startIndex = Math.round(frameState.left / frameConfig.canvas.width * renderWindow.total)
-  renderWindow.endIndex = renderWindow.startIndex + renderWindowSize
-  render()
+  const renderWindowSize = IN.renderWindow.endIndex - IN.renderWindow.startIndex
+  const newStartIndex = Math.round(frameState.left / frameConfig.canvas.offsetWidth * IN.data.total)
+  if (IN.renderWindow.startIndex !== newStartIndex) {
+    IN.renderWindow.startIndex = newStartIndex
+    IN.renderWindow.endIndex = newStartIndex + renderWindowSize
+    render()
+  }
 }
