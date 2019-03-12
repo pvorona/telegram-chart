@@ -6,9 +6,9 @@
   <link rel="stylesheet" href="./checkbox-button.css">
 </head>
 <body>
-  <!-- <script type="text/javascript" src="./data.js"></script> -->
+  <script type="text/javascript" src="./data.js"></script>
   <script type="text/javascript" src="./util.js"></script>
-  <script type="text/javascript" src="./input.js"></script>
+  <!-- <script type="text/javascript" src="./input.js"></script> -->
 
   <style>
     body {
@@ -153,6 +153,8 @@
       <div class="horizontal-legend__item"></div>
     </div>
     <div class="layers-container" style="width: 1024px; height: 480px; position: relative;">
+      <svg id="svg" width="1360" height="480" xmlns="http://www.w3.org/2000/svg"></svg>
+
       <canvas
         id="canvas"
         width="1360"
@@ -213,14 +215,14 @@
 
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
-    // const LIMIT = 1000000
+    const LIMIT = 1000
     // data1 = [10, 8, 15, 13, 5, 8, 9, 4, 13, 4, 18, 45]
-    // data1 = data.slice(0, LIMIT)
-    data1 = data.columns[1].slice(1)
-    data2 = data.columns[2].slice(1)
+    data1 = data.slice(0, LIMIT)
+    // data1 = data.columns[1].slice(1)
+    // data2 = data.columns[2].slice(1)
     // data1 = data.slice(0, 60)
     // data2 = [7, 5, 9, 13, 18, 21, 24, 20, 36, 48, 45, 53]
-    // data2 = data.slice(LIMIT, LIMIT * 2)
+    data2 = data.slice(LIMIT, LIMIT * 2)
 
     // const path = {
     //   points, color,
@@ -250,7 +252,7 @@
 
     const context = canvas.getContext('2d')
     const frameContext = frame.getContext('2d')
-    let frameRendered = false
+    let frameRendered = true
 
     const geometry = {
       width: canvas.width,
@@ -261,10 +263,10 @@
     render()
 
     function render (input = [
-      { data: data1, color: data.colors['y0'] },
-      { data: data2, color: data.colors['y1'] },
-      // { data: data1, color: '#FF684D' },
-      // { data: data2, color: '#47B44D' },
+      // { data: data1, color: data.colors['y0'] },
+      // { data: data2, color: data.colors['y1'] },
+      { data: data1, color: '#FF684D' },
+      { data: data2, color: '#47B44D' },
     ], renderWindow) {
       console.time('render')
       Object.values(renderTargetMapping).forEach(
@@ -325,8 +327,8 @@
       const coords = []
       for (let i = startIndex; i <= endIndex; i++) {
         coords.push({
-          x: geometry.width / (endIndex - startIndex) * (i - startIndex),
-          y: geometry.height - geometry.height / max * data[i],
+          x: Math.floor(geometry.width / (endIndex - startIndex) * (i - startIndex)),
+          y: Math.floor(geometry.height - geometry.height / max * data[i]),
           frameX: geometry.frameWidth / (endIndex - startIndex) * (i - startIndex),
           frameY: geometry.frameHeight - geometry.frameHeight / max * data[i],
         })
@@ -335,10 +337,10 @@
     }
 
     function renderPath (points, color, targetContext, frameContext) {
-      targetContext.beginPath();
-      targetContext.strokeStyle = color
+      // targetContext.beginPath();
+      // targetContext.strokeStyle = color
       // targetContext.lineWidth = 2
-
+const path = ['M 0 480']
       if (!frameRendered) {
         frameContext.beginPath();
         frameContext.strokeStyle = color
@@ -348,7 +350,8 @@
 
       for (let i = 0; i < points.length; i++) {
         const { x, y, frameX, frameY } = points[i]
-        targetContext.lineTo(x, y)
+        path.push(`L ${x} ${y}`)
+        // targetContext.lineTo(x, y)
         if (!frameRendered) {
           frameContext.lineTo(frameX, frameY)
         }
@@ -361,6 +364,13 @@
       if (!frameRendered) {
         frameContext.stroke()
       }
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg',"path");
+      pathEl.setAttributeNS(null, 'd', path.join(' '))
+      pathEl.setAttributeNS(null, 'stroke', color)
+      pathEl.setAttributeNS(null, 'stroke-width', "2")
+      pathEl.setAttributeNS(null, 'fill', "none")
+      svg.appendChild(pathEl)
+      // console.log(d)
     }
 
   </script>
