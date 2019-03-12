@@ -215,7 +215,7 @@
 
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
-    const LIMIT = 400
+    const LIMIT = 10000
     // data1 = [10, 8, 15, 13, 5, 8, 9, 4, 13, 4, 18, 45]
     data1 = data.slice(0, LIMIT)
     // data1 = data.columns[1].slice(1)
@@ -252,7 +252,7 @@
 
     const context = canvas.getContext('2d')
     const frameContext = frame.getContext('2d')
-    let frameRendered = true
+    let frameRendered = false
 
     const geometry = {
       width: canvas.width,
@@ -267,12 +267,16 @@
       // { data: data2, color: data.colors['y1'] },
       { data: data1, color: '#FF684D' },
       { data: data2, color: '#47B44D' },
-    ], renderWindow) {
+    ]) {
+      const data1 = input[0].data
+      const data2 = input[1].data
       console.time('render')
       Object.values(renderTargetMapping).forEach(
         context => context.clearRect(0, 0, canvas.width, canvas.height)
       )
-      const max = findMaxValue([...input[0].data, ...input[1].data])
+      console.time('findMaxValue')
+      const max = findMaxValue(renderWindow, data1, data2)
+      console.timeEnd('findMaxValue')
       // renderLattice(5)
       // renderVerticalLegend(max, 5)
       // renderHorizontalLegend()
@@ -323,12 +327,12 @@
     }
 
     // O(n)
-    function mapDataToCoords (data, max, { startIndex = 0, endIndex = data.length - 1 } = {}) {
+    function mapDataToCoords (data, max, { startIndex, endIndex }) {
       const coords = []
       for (let i = startIndex; i <= endIndex; i++) {
         coords.push({
-          x: Math.floor(geometry.width / (endIndex - startIndex) * (i - startIndex)),
-          y: Math.floor(geometry.height - geometry.height / max * data[i]),
+          x: geometry.width / (endIndex - startIndex) * (i - startIndex),
+          y: geometry.height - geometry.height / max * data[i],
           frameX: geometry.frameWidth / (endIndex - startIndex) * (i - startIndex),
           frameY: geometry.frameHeight - geometry.frameHeight / max * data[i],
         })

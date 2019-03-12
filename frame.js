@@ -53,10 +53,7 @@ function onLeftResizerMouseMove (e) {
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.framer.style.left = `${frameState.left}px`
   renderWindow.startIndex = Math.round(frameState.left / frameConfig.canvas.width * renderWindow.total)
-  render(
-    undefined,
-    renderWindow,
-  )
+  render()
 }
 
 function onRightResizerMouseDown (e) {
@@ -79,10 +76,7 @@ function onRightResizerMouseMove (e) {
   frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
   frameConfig.framer.style.right = `${frameConfig.canvas.width - (frameState.right + frameConfig.resizerWidthPixels)}px`
   renderWindow.endIndex = Math.round(frameState.right / frameConfig.canvas.width * renderWindow.total)
-  render(
-    undefined,
-    renderWindow,
-  )
+  render()
 }
 
 function getX (event) {
@@ -129,8 +123,5 @@ function onFramerMouseMove (e) {
   const renderWindowSize = renderWindow.endIndex - renderWindow.startIndex
   renderWindow.startIndex = Math.round(frameState.left / frameConfig.canvas.width * renderWindow.total)
   renderWindow.endIndex = renderWindow.startIndex + renderWindowSize
-  render(
-    undefined,
-    renderWindow,
-  )
+  render()
 }
