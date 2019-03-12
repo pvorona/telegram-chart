@@ -49,7 +49,6 @@ function removeLeftResizerListener () {
 function onLeftResizerMouseMove (e) {
   const left = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
   frameState.left = left > frameState.right - frameConfig.minimalPixelsBetweenResizers ? (frameState.right - frameConfig.minimalPixelsBetweenResizers) : left
-  // frameConfig.resizer.left.style.left = `${frameState.left}px`
   frameConfig.background.left.style.width = `${frameState.left}px`
   frameConfig.framer.style.left = `${frameState.left}px`
   const newStartIndex = Math.round(frameState.left / frameConfig.canvas.offsetWidth * IN.data.total)
