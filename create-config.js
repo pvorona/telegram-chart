@@ -2,14 +2,14 @@ function createChartConfig (chartData) {
   const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
-    style: 'width: 1360px; height: 480px',
+    style: 'width: 1360px; height: 300px',
     width: 2720,
-    height: 960,
+    height: 600,
     className: 'layer',
   })
   const canvasesContainer = createElement('div', {
     className: 'layers-container',
-    style: 'width: 1000px; height: 480px; position: relative;',
+    style: 'width: 1360px; height: 300px; position: relative; contain: strict;',
   }, Object.values(canvases))
   const frameCanvases = createCanvases(graphNames, {
     style: 'width: 1360px; height: 50px',
@@ -83,6 +83,8 @@ function createChartConfig (chartData) {
     devicePixelRatio: window.devicePixelRatio,
     resizerWidthPixels: 8,
     minimalPixelsBetweenResizers: 40,
+    scale: 1,
+    offsetPercents: 0,
     classes: {
       left: 'cursor-w-resize',
       right: 'cursor-e-resize',

@@ -15,6 +15,10 @@ function Chart (chartConfig) {
   render()
   renderFrameGraphs()
 
+  function render () {
+    requestAnimationFrame(renderSync)
+  }
+
   function renderFrameGraphs () {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
@@ -31,15 +35,24 @@ function Chart (chartConfig) {
     }
   }
 
-  function render () {
+  function renderSync () {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
     const max = getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays)
     for (const graphName of visibleGraphNames) {
+      chartConfig.canvases[graphName].width = 2720 / chartConfig.scale
+      chartConfig.canvases[graphName].style.width =  `${1360 / chartConfig.scale}px`
+      chartConfig.canvases[graphName].style.transform = `translateX(-${chartConfig.offsetPercents}%)`
       clearCanvas(contexts[graphName], chartConfig.canvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.canvases[graphName], chartConfig.renderWindow),
+        mapDataToCoords(
+          chartConfig.data[graphName],
+          max,
+          chartConfig.canvases[graphName],
+          chartConfig.renderWindow
+        ),
+        // .filter(({x, y}) => {return x >= chartConfig.offsetPercents / 100 * chartConfig.canvases[graphName].width + 10}),
         chartConfig.colors[graphName],
         contexts[graphName],
         chartConfig.devicePixelRatio,

@@ -29,11 +29,13 @@ function Framer (chartConfig, render) {
     frameState.left = left > frameState.right - chartConfig.minimalPixelsBetweenResizers ? (frameState.right - chartConfig.minimalPixelsBetweenResizers) : left
     chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
     chartConfig.framer.style.left = `${frameState.left}px`
-    const newStartIndex = Math.round(frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
-    if (newStartIndex !== chartConfig.renderWindow.startIndex) {
-      chartConfig.renderWindow.startIndex = newStartIndex
+    chartConfig.scale = 1 - frameState.left/chartConfig.frameCanvasContainer.offsetWidth
+    chartConfig.offsetPercents = frameState.left/chartConfig.frameCanvasContainer.offsetWidth * 100
+    // const newStartIndex = Math.floor(frameState.left / chartConfig.frameCanvasContainer.offsetWidth * (chartConfig.data.total))
+    // if (newStartIndex !== chartConfig.renderWindow.startIndex) {
+      // chartConfig.renderWindow.startIndex = newStartIndex
       render()
-    }
+    // }
   }
 
   function onRightResizerMouseDown (e) {

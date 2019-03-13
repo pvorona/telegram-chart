@@ -115,6 +115,7 @@ body {
 }
 
 .layer {
+  transform-origin: left;
   position: absolute;
-  will-change: opacity;
+  will-change: transform, opacity;
 }
