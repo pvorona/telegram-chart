@@ -8,15 +8,15 @@ function Framer (chartConfig, frameConfig, render) {
   initFrame()
 
   function initFrame () {
-    frameConfig.resizer.left.addEventListener('mousedown', onLeftResizerMouseDown)
-    frameConfig.resizer.right.addEventListener('mousedown', onRightResizerMouseDown)
+    chartConfig.resizers.left.addEventListener('mousedown', onLeftResizerMouseDown)
+    chartConfig.resizers.right.addEventListener('mousedown', onRightResizerMouseDown)
     chartConfig.framer.addEventListener('mousedown', onFramerMouseDown)
   }
 
   function onLeftResizerMouseDown (e) {
     e.stopPropagation()
     document.body.classList.add(frameConfig.classes.left)
-    frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.left.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
+    frameState.cursorResizerDelta = getX(e) - (chartConfig.resizers.left.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeLeftResizerListener)
     document.addEventListener('mousemove', onLeftResizerMouseMove)
   }
@@ -42,7 +42,7 @@ function Framer (chartConfig, frameConfig, render) {
   function onRightResizerMouseDown (e) {
     e.stopPropagation()
     document.body.classList.add(frameConfig.classes.right)
-    frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.right.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
+    frameState.cursorResizerDelta = getX(e) - (chartConfig.resizers.right.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeRightResizerListener)
     document.addEventListener('mousemove', onRightResizerMouseMove)
   }

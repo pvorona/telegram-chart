@@ -279,10 +279,6 @@
     // data2 = data.slice(LIMIT, LIMIT * 2)
 
     const frameConfig = {
-      resizer: {
-        left: document.querySelector('.frame__resizer-left'),
-        right: document.querySelector('.frame__resizer-right'),
-      },
       background: {
         left: document.querySelector('.frame__background-left'),
         right: document.querySelector('.frame__background-right'),
@@ -301,6 +297,7 @@
       inputIdentifiers,
       frameCanvaseContainerIdentifier,
       framerIdentifier,
+      resizerIdentifiers,
     ) {
       const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
       const data = chartData.columns.reduce((data, column) => ({
@@ -333,6 +330,10 @@
       }), {})
       const frameCanvasContainer = document.querySelector(frameCanvaseContainerIdentifier)
       const framer = document.querySelector(framerIdentifier)
+      const resizers = {
+        left: document.querySelector(resizerIdentifiers[0]),
+        right: document.querySelector(resizerIdentifiers[1]),
+      }
 
       return {
         data,
@@ -345,6 +346,7 @@
         inputs,
         frameCanvasContainer,
         framer,
+        resizers,
         devicePixelRatio: window.devicePixelRatio,
         resizerWidthPixels: 8,
         minimalPixelsBetweenResizers: 40,
@@ -359,6 +361,7 @@
         ['#button-1', '#button-2'],
         '#frame-canvas-container-1',
         '#framer-1',
+        ['.frame__resizer-left', '.frame__resizer-right'],
       ), frameConfig)
     Chart(
       createChartConfig(
@@ -368,11 +371,8 @@
         ['#button-3', '#button-4'],
         '#frame-canvas-container-2',
         '#framer-2',
+        ['#resize-left-2', '#resize-right-2'],
       ), {
-      resizer: {
-        left: document.querySelector('#resize-left-2'),
-        right: document.querySelector('#resize-right-2'),
-      },
       background: {
         left: document.querySelector('#frame-bg-left-2'),
         right: document.querySelector('#frame-bg-right-2'),
