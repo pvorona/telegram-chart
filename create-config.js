@@ -2,16 +2,15 @@ function createChartConfig (chartData) {
   const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
-    style: 'position: absolute; width: 1360px; height: 480px',
-    width: 2720,
+    style: 'position: absolute; width: 1000px; height: 480px',
+    width: 2000,
     height: 960,
     className: 'layer',
   })
   const canvasesContainer = createElement('div', {
     className: 'layers-container',
-    style: 'width: 1360px; height: 480px; position: relative;',
+    style: 'width: 1000px; height: 480px; position: relative;',
   }, Object.values(canvases))
-  document.body.appendChild(canvasesContainer)
   const frameCanvases = createCanvases(graphNames, {
     style: 'position: absolute; width: 1360px; height: 100px;',
     width: 2720,
@@ -21,23 +20,16 @@ function createChartConfig (chartData) {
   const frameCanvasContainer = createElement('div', {
     style: 'width: 1360px; height: 100px',
   }, Object.values(frameCanvases))
-
   const backgroundLeft = createElement('div', { className: 'frame__background-left' })
   const backgroundRight = createElement('div', { className: 'frame__background-right' })
-
   const resizerLeft = createElement('div', { className: 'frame__resizer frame__resizer-left' })
   const resizerRight = createElement('div', { className: 'frame__resizer frame__resizer-right' })
-
   const framer = createElement('div', { className: 'framer' }, [resizerLeft, resizerRight])
-
   const frameContainer = createElement('div', { className: 'frame__container' }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
-  document.body.appendChild(frameContainer)
-
   const inputs = graphNames.reduce((buttons, graphName) => ({
     ...buttons,
     [graphName]: createElement('input', { checked: true, type: 'checkbox', className: 'button' }),
   }), {})
-
   const buttons = graphNames.map(graphName =>
     createElement('label', { style: `color: ${chartData.colors[graphName]}` }, [
         inputs[graphName],
@@ -46,10 +38,9 @@ function createChartConfig (chartData) {
         ])
       ])
   )
-
   const buttonsContainer = createElement('div', { style: 'margin-top: 20px'}, buttons)
-
-  document.body.appendChild(buttonsContainer)
+  const chartContainer = createElement('div', {}, [canvasesContainer, frameContainer, buttonsContainer])
+  document.body.appendChild(chartContainer)
 
   const data = chartData.columns.reduce((data, column) => ({
     ...data,

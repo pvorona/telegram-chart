@@ -5,13 +5,10 @@ function Framer (chartConfig, render) {
     cursorResizerDelta: 0,
     cursorFramerDelta: 0,
   }
-  initFrame()
 
-  function initFrame () {
-    chartConfig.resizers.left.addEventListener('mousedown', onLeftResizerMouseDown)
-    chartConfig.resizers.right.addEventListener('mousedown', onRightResizerMouseDown)
-    chartConfig.framer.addEventListener('mousedown', onFramerMouseDown)
-  }
+  chartConfig.resizers.left.addEventListener('mousedown', onLeftResizerMouseDown)
+  chartConfig.resizers.right.addEventListener('mousedown', onRightResizerMouseDown)
+  chartConfig.framer.addEventListener('mousedown', onFramerMouseDown)
 
   function onLeftResizerMouseDown (e) {
     e.stopPropagation()
