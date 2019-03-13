@@ -1,4 +1,4 @@
-function Chart (chartConfig, frameConfig) {
+function Chart (chartConfig) {
   const contexts = chartConfig.graphNames.reduce((contexts, graphName) => ({
     ...contexts,
     [graphName]: chartConfig.canvases[graphName].getContext('2d')
@@ -9,7 +9,7 @@ function Chart (chartConfig, frameConfig) {
     [graphName]: chartConfig.frameCanvases[graphName].getContext('2d')
   }), {})
 
-  Framer(chartConfig, frameConfig, render)
+  Framer(chartConfig, render)
   Controls(chartConfig, render, renderFrameGraphs)
 
   render()
@@ -19,11 +19,11 @@ function Chart (chartConfig, frameConfig) {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
-    const max = getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays)
+    const max = getMaxValue({ startIndex: 0, endIndex: chartConfig.data.total - 1 }, ...arrayOfDataArrays)
     for (const graphName of chartConfig.graphNames) {
       clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.frameCanvases[graphName], chartConfig.renderWindow),
+        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.frameCanvases[graphName], { startIndex: 0, endIndex: chartConfig.data.total - 1 }),
         chartConfig.colors[graphName],
         frameContexts[graphName],
         chartConfig.devicePixelRatio,

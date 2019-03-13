@@ -1,4 +1,4 @@
-function Framer (chartConfig, frameConfig, render) {
+function Framer (chartConfig, render) {
   const frameState = {
     left: 0,
     right: chartConfig.frameCanvasContainer.offsetWidth - chartConfig.resizerWidthPixels,
