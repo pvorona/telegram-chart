@@ -41,44 +41,11 @@
   <script type="text/javascript" src="./controls.js"></script>
   <script type="text/javascript" src="./chart.js"></script>
   <script>
-
-
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
-    const LIMIT = 400
 
-
-    Chart(
-      createChartConfig(
-        chartData[0],
-        ['#button-1', '#button-2'],
-      )
-    )
-    Chart(
-      createChartConfig(
-        chartData[1],
-        ['#button-3', '#button-4'],
-      )
-    )
-    Chart(
-      createChartConfig(
-        chartData[2],
-        ['#button-3', '#button-4'],
-      )
-    )
-    Chart(
-      createChartConfig(
-        chartData[3],
-        ['#button-3', '#button-4'],
-      )
-    )
-    Chart(
-      createChartConfig(
-        chartData[4],
-        ['#button-3', '#button-4'],
-      )
-    )
-
+    // Chart(createChartConfig(chartData[0]))
+    chartData.forEach(data => Chart(createChartConfig(data)))
     // O(1)
     // function renderLattice (numberOfLines) {
     //   const screenStep = geometry.height / numberOfLines

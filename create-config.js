@@ -1,45 +1,4 @@
-// <div class="frame__container">
-  // <div style="width: 1360px; height: 100px" id="frame-canvas-container-2">
-    // <canvas
-      // id="frame-3"
-      // style="position: absolute; width: 1360px; height: 100px;"
-      // width="2720"
-      // height="200"
-      // class="layer"
-    // ></canvas>
-    // <canvas
-      // id="frame-4"
-      // style="position: absolute; width: 1360px; height: 100px;"
-      // width="2720"
-      // height="200"
-      // class="layer"
-    // ></canvas>
-  // </div>
-  // <!-- <div class="frame"> -->
-  // <div id="frame-bg-left-2" class="frame__background-left"></div>
-  // <div id="frame-bg-right-2" class="frame__background-right"></div>
-  // <div class="framer" id="framer-2">
-    // <div id="resize-left-2" class="frame__resizer frame__resizer-left"></div>
-    // <div id="resize-right-2" class="frame__resizer frame__resizer-right"></div>
-  // </div>
-  // <!-- </div> -->
-// </div>
-
-// <div style="margin-top: 20px;">
-  // <label style="color: #3DC23F">
-    // <input checked id="button-3" type="checkbox" class="button">
-    // <div class="like-button"><div class="button-text">Joined</div></div>
-  // </label>
-  // <label style="color: #F34C44; margin-left: 20px;">
-    // <input checked id="button-4" type="checkbox" class="button">
-    // <div class="like-button"><div class="button-text">Left</div></div>
-  // </label>
-// </div>
-
-function createChartConfig (
-  chartData,
-  inputIdentifiers,
-) {
+function createChartConfig (chartData) {
   const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
@@ -74,6 +33,23 @@ function createChartConfig (
   const frameContainer = createElement('div', { className: 'frame__container' }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
   document.body.appendChild(frameContainer)
 
+  const inputs = graphNames.reduce((buttons, graphName) => ({
+    ...buttons,
+    [graphName]: createElement('input', { checked: true, type: 'checkbox', className: 'button' }),
+  }), {})
+
+  const buttons = graphNames.map(graphName =>
+    createElement('label', { style: `color: ${chartData.colors[graphName]}` }, [
+        inputs[graphName],
+        createElement('div', { className: 'like-button' }, [
+          createElement('div', { className: 'button-text', innerText: graphName })
+        ])
+      ])
+  )
+
+  const buttonsContainer = createElement('div', { style: 'margin-top: 20px'}, buttons)
+
+  document.body.appendChild(buttonsContainer)
 
   const data = chartData.columns.reduce((data, column) => ({
     ...data,
@@ -91,10 +67,6 @@ function createChartConfig (
     startIndex: 0,
     endIndex: data.total,
   }
-  // const inputs = graphNames.reduce((inputs, graphName, i) => ({
-  //   ...inputs,
-  //   [graphName]: document.querySelector(`${inputIdentifiers[i]}`)
-  // }), {})
   const resizers = {
     left: resizerLeft,
     right: resizerRight,
@@ -112,7 +84,7 @@ function createChartConfig (
     renderWindow,
     canvases,
     frameCanvases,
-    // inputs,
+    inputs,
     frameCanvasContainer,
     framer,
     resizers,
