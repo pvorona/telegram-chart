@@ -6,11 +6,6 @@
   <link rel="stylesheet" href="./checkbox-button.css">
 </head>
 <body>
-  <script type="text/javascript" src="./util.js"></script>
-  <script type="text/javascript" src="./canvas-renderer.js"></script>
-  <script type="text/javascript" src="./data.js"></script>
-  <!-- <script type="text/javascript" src="./input.js"></script> -->
-
   <style>
     body {
       margin: 0;
@@ -173,9 +168,9 @@
     </div>
   </div>
   <div class="frame__container">
-    <div style="width: 1360px; height: 100px">
+    <div style="width: 1360px; height: 100px" id="frame-canvas-container-1">
       <canvas
-        id="frame"
+        id="frame-1"
         style="position: absolute; width: 1360px; height: 100px;"
         width="2720"
         height="200"
@@ -192,7 +187,7 @@
     <!-- <div class="frame"> -->
       <div class="frame__background-left"></div>
       <div class="frame__background-right"></div>
-      <div class="framer" id="framer">
+      <div class="framer" id="framer-1">
         <div class="frame__resizer frame__resizer-left"></div>
         <div class="frame__resizer frame__resizer-right"></div>
       </div>
@@ -200,101 +195,194 @@
   </div>
   <div style="margin-top: 20px;">
     <label style="color: #3DC23F">
-      <input checked onClick="onButtonClick(1)" type="checkbox" class="button">
+      <input checked id="button-1" type="checkbox" class="button">
       <div class="like-button"><div class="button-text">Joined</div></div>
     </label>
     <label style="color: #F34C44; margin-left: 20px;">
-      <input checked onClick="onButtonClick(2)" type="checkbox" class="button">
+      <input checked id="button-2" type="checkbox" class="button">
       <div class="like-button"><div class="button-text">Left</div></div>
     </label>
   </div>
+  <div class="layers-container" style="width: 1360px; height: 480px; position: relative;">
+    <canvas
+      id="line-3"
+      style="position: absolute; width: 1360px; height: 480px"
+      width="2720"
+      height="960"
+      class="layer"
+    ></canvas>
+    <canvas
+      id="line-4"
+      style="position: absolute; width: 1360px; height: 480px"
+      width="2720"
+      height="960"
+      class="layer"
+    ></canvas>
+  </div>
+  <div class="frame__container">
+    <div style="width: 1360px; height: 100px" id="frame-canvas-container-2">
+      <canvas
+        id="frame-3"
+        style="position: absolute; width: 1360px; height: 100px;"
+        width="2720"
+        height="200"
+        class="layer"
+      ></canvas>
+      <canvas
+        id="frame-4"
+        style="position: absolute; width: 1360px; height: 100px;"
+        width="2720"
+        height="200"
+        class="layer"
+      ></canvas>
+    </div>
+    <!-- <div class="frame"> -->
+      <div id="frame-bg-left-2" class="frame__background-left"></div>
+      <div id="frame-bg-right-2" class="frame__background-right"></div>
+      <div class="framer" id="framer-2">
+        <div id="resize-left-2" class="frame__resizer frame__resizer-left"></div>
+        <div id="resize-right-2" class="frame__resizer frame__resizer-right"></div>
+      </div>
+    <!-- </div> -->
+  </div>
+  <div style="margin-top: 20px;">
+    <label style="color: #3DC23F">
+      <input checked id="button-3" type="checkbox" class="button">
+      <div class="like-button"><div class="button-text">Joined</div></div>
+    </label>
+    <label style="color: #F34C44; margin-left: 20px;">
+      <input checked id="button-4" type="checkbox" class="button">
+      <div class="like-button"><div class="button-text">Left</div></div>
+    </label>
+  </div>
+
+  <script type="text/javascript" src="./util.js"></script>
+  <script type="text/javascript" src="./canvas-renderer.js"></script>
+  <!-- <script type="text/javascript" src="./data.js"></script> -->
+  <!-- <script type="text/javascript" src="./input.js"></script> -->
+  <script type="text/javascript" src="./chart_data.js"></script>
+  <script type="text/javascript" src="./frame.js"></script>
+  <script type="text/javascript" src="./controls.js"></script>
+  <script type="text/javascript" src="./chart.js"></script>
   <script>
 
-    function onButtonClick (graphName) {
-      IN.visibilityState[graphName] = !IN.visibilityState[graphName]
-      IN.canvases[graphName].classList.toggle('hidden')
-      IN.frameCanvases[graphName].classList.toggle('hidden')
-      render()
-    }
 
     const LEGEND_FONT_SIZE = 13
     const LEGEND_PADDING = 5
     const LIMIT = 400
-    // data1 = data.columns[1].slice(1)
-    // data2 = data.columns[2].slice(1)
-    data1 = data.slice(0, LIMIT)
-    data2 = data.slice(LIMIT, LIMIT * 2)
+    data1 = chartData[0].columns[1].slice(1)
+    data2 = chartData[0].columns[2].slice(1)
 
-    const IN = {
-      data: {
-        1: data1,
-        2: data2,
-        total: data1.length,
+    data3 = chartData[1].columns[1].slice(1)
+    data4 = chartData[1].columns[2].slice(1)
+    // data1 = data.slice(0, LIMIT)
+    // data2 = data.slice(LIMIT, LIMIT * 2)
+
+    const frameConfig = {
+      background: {
+        left: document.querySelector('.frame__background-left'),
+        right: document.querySelector('.frame__background-right'),
       },
-      graphNames: [1, 2],
-      canvases: {
-        1: document.querySelector('#line-1'),
-        2: document.querySelector('#line-2'),
-      },
-      frameCanvases: {
-        1: document.querySelector('#frame'),
-        2: document.querySelector('#frame-2'),
-      },
-      colors: {
-        1: '#47B44D',
-        2: '#FF684D',
-      },
-      contexts: {
-        1: document.querySelector('#line-1').getContext('2d'),
-        2: document.querySelector('#line-2').getContext('2d'),
-      },
-      frameContexts: {
-        1: document.querySelector('#frame').getContext('2d'),
-        2: document.querySelector('#frame-2').getContext('2d'),
-      },
-      visibilityState: {
-        1: true,
-        2: true,
-      },
-      renderWindow: {
+    }
+
+    function createChartConfig (
+      chartData,
+      canvasIdentifiers,
+      frameCanvasIdentifiers,
+      inputIdentifiers,
+      frameCanvaseContainerIdentifier,
+      framerIdentifier,
+      resizerIdentifiers,
+      frameBgIdentifiers,
+    ) {
+      const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
+      const data = chartData.columns.reduce((data, column) => ({
+        ...data,
+        [column[0]]: column.slice(1),
+        total: Math.max(data.total, column.length - 1)
+      }), {
+        total: 0,
+      })
+      const colors = chartData.colors
+      const visibilityState = graphNames.reduce((visibilityState, graphName) => ({
+        ...visibilityState,
+        [graphName]: true,
+      }), {})
+      const renderWindow = {
         startIndex: 0,
-        endIndex: data1.length - 1,
-      },
-      devicePixelRatio: window.devicePixelRatio,
-    }
+        endIndex: data.total,
+      }
+      const canvases = graphNames.reduce((canvases, graphName, i) => ({
+        ...canvases,
+        [graphName]: document.querySelector(`${canvasIdentifiers[i]}`)
+      }), {})
+      const frameCanvases = graphNames.reduce((canvases, graphName, i) => ({
+        ...canvases,
+        [graphName]: document.querySelector(`${frameCanvasIdentifiers[i]}`)
+      }), {})
+      const inputs = graphNames.reduce((inputs, graphName, i) => ({
+        ...inputs,
+        [graphName]: document.querySelector(`${inputIdentifiers[i]}`)
+      }), {})
+      const frameCanvasContainer = document.querySelector(frameCanvaseContainerIdentifier)
+      const framer = document.querySelector(framerIdentifier)
+      const resizers = {
+        left: document.querySelector(resizerIdentifiers[0]),
+        right: document.querySelector(resizerIdentifiers[1]),
+      }
+      const frameBackgrounds = {
+        left: document.querySelector(frameBgIdentifiers[0]),
+        right: document.querySelector(frameBgIdentifiers[1]),
+      }
 
-    renderFrame()
-    render()
-
-    function renderFrame () {
-      const arrayOfDataArrays = IN.graphNames.reduce((reduced, graphName) => [...reduced, IN.data[graphName]], [])
-      const max = getMaxValue(IN.renderWindow, ...arrayOfDataArrays)
-      for (const graphName of IN.graphNames) {
-        renderPath(
-          mapDataToCoords(IN.data[graphName], max, IN.frameCanvases[graphName], IN.renderWindow),
-          IN.colors[graphName],
-          IN.frameContexts[graphName],
-        )
+      return {
+        data,
+        graphNames,
+        colors,
+        visibilityState,
+        renderWindow,
+        canvases,
+        frameCanvases,
+        inputs,
+        frameCanvasContainer,
+        framer,
+        resizers,
+        frameBackgrounds,
+        devicePixelRatio: window.devicePixelRatio,
+        resizerWidthPixels: 8,
+        minimalPixelsBetweenResizers: 40,
+        classes: {
+          left: 'cursor-w-resize',
+          right: 'cursor-e-resize',
+          grabbing: 'cursor-grabbing',
+        },
       }
     }
 
-    function render () {
-      const visibleGraphNames = IN.graphNames.filter(graphName => IN.visibilityState[graphName])
-      const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, IN.data[graphName]], [])
-      const max = getMaxValue(IN.renderWindow, ...arrayOfDataArrays)
-      for (const graphName of visibleGraphNames) {
-        clearCanvas(IN.contexts[graphName], IN.canvases[graphName])
-        renderPath(
-          mapDataToCoords(IN.data[graphName], max, IN.canvases[graphName], IN.renderWindow),
-          IN.colors[graphName],
-          IN.contexts[graphName],
-        )
-      }
-    }
-
-    function clearCanvas (context, canvas) {
-      context.clearRect(0, 0, canvas.width, canvas.height)
-    }
+    Chart(
+      createChartConfig(
+        chartData[0],
+        ['#line-1', '#line-2'],
+        ['#frame-1', '#frame-2'],
+        ['#button-1', '#button-2'],
+        '#frame-canvas-container-1',
+        '#framer-1',
+        ['.frame__resizer-left', '.frame__resizer-right'],
+        ['.frame__background-left', '.frame__background-right'],
+      )
+    )
+    Chart(
+      createChartConfig(
+        chartData[1],
+        ['#line-3', '#line-4'],
+        ['#frame-3', '#frame-4'],
+        ['#button-3', '#button-4'],
+        '#frame-canvas-container-2',
+        '#framer-2',
+        ['#resize-left-2', '#resize-right-2'],
+        ['#frame-bg-left-2', '#frame-bg-right-2'],
+      )
+    )
 
     // O(1)
     // function renderLattice (numberOfLines) {
@@ -322,25 +410,6 @@
     // }
 
     // function renderHorizontalLegend () {}
-
-
-    // O(n)
-    function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
-      const coords = []
-      for (let i = startIndex; i <= endIndex; i++) {
-        coords.push({
-          x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
-          y: targetContainer.height - targetContainer.height / max * data[i],
-        })
-      }
-      return coords
-    }
-
-
-  </script>
-  <script type="text/javascript" src="./frame.js"></script>
-  <script>
-    initFrame()
   </script>
 </body>
 </html>

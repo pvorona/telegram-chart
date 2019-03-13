@@ -16,3 +16,18 @@ function getMaxValue (renderWindow, ...values) {
   return max + (5 - max % 5)
 }
 
+function clearCanvas (context, canvas) {
+  context.clearRect(0, 0, canvas.width, canvas.height)
+}
+
+// O(n)
+function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
+  const coords = []
+  for (let i = startIndex; i <= endIndex; i++) {
+    coords.push({
+      x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
+      y: targetContainer.height - targetContainer.height / max * data[i],
+    })
+  }
+  return coords
+}

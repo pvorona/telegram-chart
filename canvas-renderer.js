@@ -1,8 +1,8 @@
 var renderPath = canvasRenderer
 
-function canvasRenderer (points, color, targetContext) {
+function canvasRenderer (points, color, targetContext, devicePixelRatio) {
   targetContext.strokeStyle = color
-  targetContext.lineWidth = 2 * IN.devicePixelRatio
+  targetContext.lineWidth = 2 * devicePixelRatio
   targetContext.beginPath();
 
   for (let i = 0; i < points.length; i++) {
