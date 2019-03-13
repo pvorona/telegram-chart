@@ -1,7 +1,7 @@
 function Framer (chartConfig, frameConfig, render) {
   const frameState = {
     left: 0,
-    right: frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels,
+    right: chartConfig.frameCanvasContainer.offsetWidth - chartConfig.resizerWidthPixels,
     cursorResizerDelta: 0,
     cursorFramerDelta: 0,
   }
@@ -10,13 +10,13 @@ function Framer (chartConfig, frameConfig, render) {
   function initFrame () {
     frameConfig.resizer.left.addEventListener('mousedown', onLeftResizerMouseDown)
     frameConfig.resizer.right.addEventListener('mousedown', onRightResizerMouseDown)
-    frameConfig.framer.addEventListener('mousedown', onFramerMouseDown)
+    chartConfig.framer.addEventListener('mousedown', onFramerMouseDown)
   }
 
   function onLeftResizerMouseDown (e) {
     e.stopPropagation()
     document.body.classList.add(frameConfig.classes.left)
-    frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.left.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
+    frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.left.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeLeftResizerListener)
     document.addEventListener('mousemove', onLeftResizerMouseMove)
   }
@@ -29,10 +29,10 @@ function Framer (chartConfig, frameConfig, render) {
 
   function onLeftResizerMouseMove (e) {
     const left = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
-    frameState.left = left > frameState.right - frameConfig.minimalPixelsBetweenResizers ? (frameState.right - frameConfig.minimalPixelsBetweenResizers) : left
+    frameState.left = left > frameState.right - chartConfig.minimalPixelsBetweenResizers ? (frameState.right - chartConfig.minimalPixelsBetweenResizers) : left
     frameConfig.background.left.style.width = `${frameState.left}px`
-    frameConfig.framer.style.left = `${frameState.left}px`
-    const newStartIndex = Math.round(frameState.left / frameConfig.canvas.offsetWidth * chartConfig.data.total)
+    chartConfig.framer.style.left = `${frameState.left}px`
+    const newStartIndex = Math.round(frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
     if (newStartIndex !== chartConfig.renderWindow.startIndex) {
       chartConfig.renderWindow.startIndex = newStartIndex
       render()
@@ -42,7 +42,7 @@ function Framer (chartConfig, frameConfig, render) {
   function onRightResizerMouseDown (e) {
     e.stopPropagation()
     document.body.classList.add(frameConfig.classes.right)
-    frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.right.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
+    frameState.cursorResizerDelta = getX(e) - (frameConfig.resizer.right.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeRightResizerListener)
     document.addEventListener('mousemove', onRightResizerMouseMove)
   }
@@ -55,10 +55,10 @@ function Framer (chartConfig, frameConfig, render) {
 
   function onRightResizerMouseMove (e) {
     const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
-    frameState.right = right < frameState.left + frameConfig.minimalPixelsBetweenResizers ? (frameState.left + frameConfig.minimalPixelsBetweenResizers) : right
-    frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
-    frameConfig.framer.style.right = `${frameConfig.canvas.offsetWidth - (frameState.right + frameConfig.resizerWidthPixels)}px`
-    const newEndIndex = Math.round(frameState.right / frameConfig.canvas.offsetWidth * chartConfig.data.total)
+    frameState.right = right < frameState.left + chartConfig.minimalPixelsBetweenResizers ? (frameState.left + chartConfig.minimalPixelsBetweenResizers) : right
+    frameConfig.background.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
+    chartConfig.framer.style.right = `${chartConfig.frameCanvasContainer.offsetWidth - (frameState.right + chartConfig.resizerWidthPixels)}px`
+    const newEndIndex = Math.round(frameState.right / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
     if (newEndIndex !== chartConfig.renderWindow.endIndex) {
       chartConfig.renderWindow.endIndex = newEndIndex
       render()
@@ -66,19 +66,19 @@ function Framer (chartConfig, frameConfig, render) {
   }
 
   function getX (event) {
-    const { left } = frameConfig.canvas.getBoundingClientRect()
+    const { left } = chartConfig.frameCanvasContainer.getBoundingClientRect()
     return event.clientX - left + window.scrollX - document.documentElement.scrollLeft
   }
 
   function ensureInFrameBounds (x) {
-    if (x > frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels) return frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels
+    if (x > chartConfig.frameCanvasContainer.offsetWidth - chartConfig.resizerWidthPixels) return chartConfig.frameCanvasContainer.offsetWidth - chartConfig.resizerWidthPixels
     if (x < 0) return 0
     return x
   }
 
   function onFramerMouseDown (e) {
-    frameState.cursorFramerDelta = getX(e) - (frameConfig.framer.getBoundingClientRect().left - frameConfig.canvas.getBoundingClientRect().left),
-    frameConfig.framer.classList.add(frameConfig.classes.grabbing)
+    frameState.cursorFramerDelta = getX(e) - (chartConfig.framer.getBoundingClientRect().left - chartConfig.frameCanvasContainer.getBoundingClientRect().left),
+    chartConfig.framer.classList.add(frameConfig.classes.grabbing)
     document.body.classList.add(frameConfig.classes.grabbing)
     document.addEventListener('mouseup', onFramerMouseUp)
     document.addEventListener('mousemove', onFramerMouseMove)
@@ -86,7 +86,7 @@ function Framer (chartConfig, frameConfig, render) {
 
   function onFramerMouseUp () {
     document.body.classList.remove(frameConfig.classes.grabbing)
-    frameConfig.framer.classList.remove(frameConfig.classes.grabbing)
+    chartConfig.framer.classList.remove(frameConfig.classes.grabbing)
     document.removeEventListener('mouseup', onFramerMouseUp)
     document.removeEventListener('mousemove', onFramerMouseMove)
   }
@@ -96,18 +96,18 @@ function Framer (chartConfig, frameConfig, render) {
     const nextLeft = getX(e) - frameState.cursorFramerDelta
     if (nextLeft < 0) {
       frameState.left = 0
-    } else if (nextLeft + width > frameConfig.canvas.offsetWidth - frameConfig.resizerWidthPixels) {
-      frameState.left = frameConfig.canvas.offsetWidth - width - frameConfig.resizerWidthPixels
+    } else if (nextLeft + width > chartConfig.frameCanvasContainer.offsetWidth - chartConfig.resizerWidthPixels) {
+      frameState.left = chartConfig.frameCanvasContainer.offsetWidth - width - chartConfig.resizerWidthPixels
     } else {
       frameState.left = nextLeft
     }
     frameState.right = frameState.left + width
-    frameConfig.framer.style.left = `${frameState.left}px`
-    frameConfig.framer.style.right = `${frameConfig.canvas.offsetWidth - (frameState.right + frameConfig.resizerWidthPixels)}px`
+    chartConfig.framer.style.left = `${frameState.left}px`
+    chartConfig.framer.style.right = `${chartConfig.frameCanvasContainer.offsetWidth - (frameState.right + chartConfig.resizerWidthPixels)}px`
     frameConfig.background.left.style.width = `${frameState.left}px`
-    frameConfig.background.right.style.left = `${frameState.right + frameConfig.resizerWidthPixels}px`
+    frameConfig.background.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
     const renderWindowSize = chartConfig.renderWindow.endIndex - chartConfig.renderWindow.startIndex
-    const newStartIndex = Math.round(frameState.left / frameConfig.canvas.offsetWidth * chartConfig.data.total)
+    const newStartIndex = Math.round(frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
     if (chartConfig.renderWindow.startIndex !== newStartIndex) {
       chartConfig.renderWindow.startIndex = newStartIndex
       chartConfig.renderWindow.endIndex = newStartIndex + renderWindowSize

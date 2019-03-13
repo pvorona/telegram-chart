@@ -168,7 +168,7 @@
     </div>
   </div>
   <div class="frame__container">
-    <div style="width: 1360px; height: 100px">
+    <div style="width: 1360px; height: 100px" id="frame-canvas-container-1">
       <canvas
         id="frame-1"
         style="position: absolute; width: 1360px; height: 100px;"
@@ -187,7 +187,7 @@
     <!-- <div class="frame"> -->
       <div class="frame__background-left"></div>
       <div class="frame__background-right"></div>
-      <div class="framer" id="framer">
+      <div class="framer" id="framer-1">
         <div class="frame__resizer frame__resizer-left"></div>
         <div class="frame__resizer frame__resizer-right"></div>
       </div>
@@ -220,7 +220,7 @@
     ></canvas>
   </div>
   <div class="frame__container">
-    <div style="width: 1360px; height: 100px">
+    <div style="width: 1360px; height: 100px" id="frame-canvas-container-2">
       <canvas
         id="frame-3"
         style="position: absolute; width: 1360px; height: 100px;"
@@ -278,44 +278,7 @@
     // data1 = data.slice(0, LIMIT)
     // data2 = data.slice(LIMIT, LIMIT * 2)
 
-    const chartConfig = {
-      data: {
-        1: data1,
-        2: data2,
-        total: data1.length,
-      },
-      graphNames: [1, 2],
-      canvases: {
-        1: document.querySelector('#line-1'),
-        2: document.querySelector('#line-2'),
-      },
-      frameCanvases: {
-        1: document.querySelector('#frame'),
-        2: document.querySelector('#frame-2'),
-      },
-      colors: {
-        1: '#47B44D',
-        2: '#FF684D',
-      },
-      visibilityState: {
-        1: true,
-        2: true,
-      },
-      renderWindow: {
-        startIndex: 0,
-        endIndex: data1.length - 1,
-      },
-      devicePixelRatio: window.devicePixelRatio,
-      inputs: {
-        1: document.querySelector('#button-1'),
-        2: document.querySelector('#button-2'),
-      },
-    }
     const frameConfig = {
-      resizerWidthPixels: 8,
-      minimalPixelsBetweenResizers: 40,
-      canvas: document.querySelector('#frame-1'),
-      framer: document.querySelector('#framer'),
       resizer: {
         left: document.querySelector('.frame__resizer-left'),
         right: document.querySelector('.frame__resizer-right'),
@@ -333,9 +296,11 @@
 
     function createChartConfig (
       chartData,
-      canvasIdentifiers = ['#line-3', '#line-4'],
-      frameCanvasIdentifiers = ['#frame-3', '#frame-4'],
-      inputIdentifiers = ['#button-3', '#button-4'],
+      canvasIdentifiers,
+      frameCanvasIdentifiers,
+      inputIdentifiers,
+      frameCanvaseContainerIdentifier,
+      framerIdentifier,
     ) {
       const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
       const data = chartData.columns.reduce((data, column) => ({
@@ -366,6 +331,8 @@
         ...inputs,
         [graphName]: document.querySelector(`${inputIdentifiers[i]}`)
       }), {})
+      const frameCanvasContainer = document.querySelector(frameCanvaseContainerIdentifier)
+      const framer = document.querySelector(framerIdentifier)
 
       return {
         data,
@@ -376,7 +343,11 @@
         canvases,
         frameCanvases,
         inputs,
+        frameCanvasContainer,
+        framer,
         devicePixelRatio: window.devicePixelRatio,
+        resizerWidthPixels: 8,
+        minimalPixelsBetweenResizers: 40,
       }
     }
 
@@ -386,6 +357,8 @@
         ['#line-1', '#line-2'],
         ['#frame-1', '#frame-2'],
         ['#button-1', '#button-2'],
+        '#frame-canvas-container-1',
+        '#framer-1',
       ), frameConfig)
     Chart(
       createChartConfig(
@@ -393,11 +366,9 @@
         ['#line-3', '#line-4'],
         ['#frame-3', '#frame-4'],
         ['#button-3', '#button-4'],
+        '#frame-canvas-container-2',
+        '#framer-2',
       ), {
-      resizerWidthPixels: 8,
-      minimalPixelsBetweenResizers: 40,
-      canvas: document.querySelector('#frame-3'),
-      framer: document.querySelector('#framer-2'),
       resizer: {
         left: document.querySelector('#resize-left-2'),
         right: document.querySelector('#resize-right-2'),
