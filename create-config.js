@@ -1,14 +1,80 @@
+// <div class="frame__container">
+  // <div style="width: 1360px; height: 100px" id="frame-canvas-container-2">
+    // <canvas
+      // id="frame-3"
+      // style="position: absolute; width: 1360px; height: 100px;"
+      // width="2720"
+      // height="200"
+      // class="layer"
+    // ></canvas>
+    // <canvas
+      // id="frame-4"
+      // style="position: absolute; width: 1360px; height: 100px;"
+      // width="2720"
+      // height="200"
+      // class="layer"
+    // ></canvas>
+  // </div>
+  // <!-- <div class="frame"> -->
+  // <div id="frame-bg-left-2" class="frame__background-left"></div>
+  // <div id="frame-bg-right-2" class="frame__background-right"></div>
+  // <div class="framer" id="framer-2">
+    // <div id="resize-left-2" class="frame__resizer frame__resizer-left"></div>
+    // <div id="resize-right-2" class="frame__resizer frame__resizer-right"></div>
+  // </div>
+  // <!-- </div> -->
+// </div>
+
+// <div style="margin-top: 20px;">
+  // <label style="color: #3DC23F">
+    // <input checked id="button-3" type="checkbox" class="button">
+    // <div class="like-button"><div class="button-text">Joined</div></div>
+  // </label>
+  // <label style="color: #F34C44; margin-left: 20px;">
+    // <input checked id="button-4" type="checkbox" class="button">
+    // <div class="like-button"><div class="button-text">Left</div></div>
+  // </label>
+// </div>
+
 function createChartConfig (
   chartData,
-  canvasIdentifiers,
-  frameCanvasIdentifiers,
   inputIdentifiers,
-  frameCanvaseContainerIdentifier,
-  framerIdentifier,
-  resizerIdentifiers,
-  frameBgIdentifiers,
 ) {
   const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
+
+  const canvases = createCanvases(graphNames, {
+    style: 'position: absolute; width: 1360px; height: 480px',
+    width: 2720,
+    height: 960,
+    className: 'layer',
+  })
+  const canvasesContainer = createElement('div', {
+    className: 'layers-container',
+    style: 'width: 1360px; height: 480px; position: relative;',
+  }, Object.values(canvases))
+  document.body.appendChild(canvasesContainer)
+  const frameCanvases = createCanvases(graphNames, {
+    style: 'position: absolute; width: 1360px; height: 100px;',
+    width: 2720,
+    height: 200,
+    className: 'layer',
+  })
+  const frameCanvasContainer = createElement('div', {
+    style: 'width: 1360px; height: 100px',
+  }, Object.values(frameCanvases))
+
+  const backgroundLeft = createElement('div', { className: 'frame__background-left' })
+  const backgroundRight = createElement('div', { className: 'frame__background-right' })
+
+  const resizerLeft = createElement('div', { className: 'frame__resizer frame__resizer-left' })
+  const resizerRight = createElement('div', { className: 'frame__resizer frame__resizer-right' })
+
+  const framer = createElement('div', { className: 'framer' }, [resizerLeft, resizerRight])
+
+  const frameContainer = createElement('div', { className: 'frame__container' }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
+  document.body.appendChild(frameContainer)
+
+
   const data = chartData.columns.reduce((data, column) => ({
     ...data,
     [column[0]]: column.slice(1),
@@ -25,27 +91,17 @@ function createChartConfig (
     startIndex: 0,
     endIndex: data.total,
   }
-  const canvases = graphNames.reduce((canvases, graphName, i) => ({
-    ...canvases,
-    [graphName]: document.querySelector(`${canvasIdentifiers[i]}`)
-  }), {})
-  const frameCanvases = graphNames.reduce((canvases, graphName, i) => ({
-    ...canvases,
-    [graphName]: document.querySelector(`${frameCanvasIdentifiers[i]}`)
-  }), {})
-  const inputs = graphNames.reduce((inputs, graphName, i) => ({
-    ...inputs,
-    [graphName]: document.querySelector(`${inputIdentifiers[i]}`)
-  }), {})
-  const frameCanvasContainer = document.querySelector(frameCanvaseContainerIdentifier)
-  const framer = document.querySelector(framerIdentifier)
+  // const inputs = graphNames.reduce((inputs, graphName, i) => ({
+  //   ...inputs,
+  //   [graphName]: document.querySelector(`${inputIdentifiers[i]}`)
+  // }), {})
   const resizers = {
-    left: document.querySelector(resizerIdentifiers[0]),
-    right: document.querySelector(resizerIdentifiers[1]),
+    left: resizerLeft,
+    right: resizerRight,
   }
   const frameBackgrounds = {
-    left: document.querySelector(frameBgIdentifiers[0]),
-    right: document.querySelector(frameBgIdentifiers[1]),
+    left: backgroundLeft,
+    right: backgroundRight,
   }
 
   return {
@@ -56,7 +112,7 @@ function createChartConfig (
     renderWindow,
     canvases,
     frameCanvases,
-    inputs,
+    // inputs,
     frameCanvasContainer,
     framer,
     resizers,

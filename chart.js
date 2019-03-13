@@ -10,7 +10,7 @@ function Chart (chartConfig) {
   }), {})
 
   Framer(chartConfig, render)
-  Controls(chartConfig, render, renderFrameGraphs)
+  // Controls(chartConfig, render, renderFrameGraphs)
 
   render()
   renderFrameGraphs()

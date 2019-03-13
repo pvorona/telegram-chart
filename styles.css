@@ -1,0 +1,119 @@
+
+body {
+  margin: 0;
+  padding: 40px;
+  user-select: none;
+}
+
+.container {
+  position: relative;
+}
+
+.vertical-legend {
+  position: relative;
+}
+
+.vertical-legend__item {
+  position: absolute;
+  color: #A4AAB0;
+  font-size: 13px;
+}
+
+.horizontal-legend {
+  position: absolute;
+  bottom: 0;
+}
+
+.horizontal-legend__item {
+  position: absolute;
+  color: #A4AAB0;
+  font-size: 13px;
+}
+
+.frame__container {
+  margin-top: 40px;
+  position: relative;
+  width: 1360;
+}
+
+.frame {
+  width: 1360;
+  position: absolute;
+  top: 0;
+  border: 1px solid black;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+.frame__resizer {
+  background-color: #E3ECF2;
+}
+
+.frame__resizer-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: w-resize;
+}
+
+.frame__resizer-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: e-resize;
+}
+
+.frame__background-left {
+  position: absolute;
+  background: #F6FAFC;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  opacity: .8;
+}
+
+.frame__background-right {
+  position: absolute;
+  background: #F6FAFC;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  opacity: .8;
+}
+
+.cursor-w-resize {
+  cursor: w-resize !important;
+}
+
+.cursor-e-resize {
+  cursor: e-resize !important;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}
+
+.framer {
+  border-top: 4px solid #E3ECF2;
+  border-bottom: 4px solid #E3ECF2;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  opacity: .8;
+  cursor: grab;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.layer {
+  will-change: opacity;
+}
