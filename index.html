@@ -283,11 +283,6 @@
         left: document.querySelector('.frame__background-left'),
         right: document.querySelector('.frame__background-right'),
       },
-      classes: {
-        left: 'cursor-w-resize',
-        right: 'cursor-e-resize',
-        grabbing: 'cursor-grabbing',
-      },
     }
 
     function createChartConfig (
@@ -298,6 +293,7 @@
       frameCanvaseContainerIdentifier,
       framerIdentifier,
       resizerIdentifiers,
+      frameBgIdentifiers,
     ) {
       const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
       const data = chartData.columns.reduce((data, column) => ({
@@ -334,6 +330,10 @@
         left: document.querySelector(resizerIdentifiers[0]),
         right: document.querySelector(resizerIdentifiers[1]),
       }
+      const frameBackgrounds = {
+        left: document.querySelector(frameBgIdentifiers[0]),
+        right: document.querySelector(frameBgIdentifiers[1]),
+      }
 
       return {
         data,
@@ -347,9 +347,15 @@
         frameCanvasContainer,
         framer,
         resizers,
+        frameBackgrounds,
         devicePixelRatio: window.devicePixelRatio,
         resizerWidthPixels: 8,
         minimalPixelsBetweenResizers: 40,
+        classes: {
+          left: 'cursor-w-resize',
+          right: 'cursor-e-resize',
+          grabbing: 'cursor-grabbing',
+        },
       }
     }
 
@@ -362,7 +368,9 @@
         '#frame-canvas-container-1',
         '#framer-1',
         ['.frame__resizer-left', '.frame__resizer-right'],
-      ), frameConfig)
+        ['.frame__background-left', '.frame__background-right'],
+      )
+    )
     Chart(
       createChartConfig(
         chartData[1],
@@ -372,17 +380,9 @@
         '#frame-canvas-container-2',
         '#framer-2',
         ['#resize-left-2', '#resize-right-2'],
-      ), {
-      background: {
-        left: document.querySelector('#frame-bg-left-2'),
-        right: document.querySelector('#frame-bg-right-2'),
-      },
-      classes: {
-        left: 'cursor-w-resize',
-        right: 'cursor-e-resize',
-        grabbing: 'cursor-grabbing',
-      },
-    })
+        ['#frame-bg-left-2', '#frame-bg-right-2'],
+      )
+    )
 
     // O(1)
     // function renderLattice (numberOfLines) {
