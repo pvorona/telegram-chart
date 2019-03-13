@@ -115,5 +115,6 @@ body {
 }
 
 .layer {
+  position: absolute;
   will-change: opacity;
 }

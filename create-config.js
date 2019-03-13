@@ -2,8 +2,8 @@ function createChartConfig (chartData) {
   const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
-    style: 'position: absolute; width: 1000px; height: 480px',
-    width: 2000,
+    style: 'width: 1360px; height: 480px',
+    width: 2720,
     height: 960,
     className: 'layer',
   })
@@ -12,13 +12,13 @@ function createChartConfig (chartData) {
     style: 'width: 1000px; height: 480px; position: relative;',
   }, Object.values(canvases))
   const frameCanvases = createCanvases(graphNames, {
-    style: 'position: absolute; width: 1360px; height: 100px;',
+    style: 'width: 1360px; height: 50px',
     width: 2720,
-    height: 200,
+    height: 100,
     className: 'layer',
   })
   const frameCanvasContainer = createElement('div', {
-    style: 'width: 1360px; height: 100px',
+    style: 'width: 1360px; height: 50px',
   }, Object.values(frameCanvases))
   const backgroundLeft = createElement('div', { className: 'frame__background-left' })
   const backgroundRight = createElement('div', { className: 'frame__background-right' })
