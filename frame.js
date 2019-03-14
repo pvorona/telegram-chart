@@ -107,12 +107,12 @@ function Framer (chartConfig, render) {
     chartConfig.frameBackgrounds.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
     const renderWindowSize = chartConfig.renderWindow.endIndex - chartConfig.renderWindow.startIndex
     const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
-    const floatWindowSize = chartConfig.renderWindow.floatEndIndex - chartConfig.renderWindow.floatStartIndex
+    const newEndIndex = (frameState.right + chartConfig.resizerWidthPixels) / (chartConfig.frameCanvasContainer.offsetWidth) * (chartConfig.data.total - 1)
     // if (chartConfig.renderWindow.startIndex !== newStartIndex) {
       chartConfig.renderWindow.startIndex = Math.ceil(newStartIndex)
       chartConfig.renderWindow.floatStartIndex = newStartIndex
-      chartConfig.renderWindow.floatEndIndex = newStartIndex + floatWindowSize
-      chartConfig.renderWindow.endIndex = Math.floor(chartConfig.renderWindow.floatEndIndex)
+      chartConfig.renderWindow.floatEndIndex = newEndIndex
+      chartConfig.renderWindow.endIndex = Math.floor(newEndIndex)
       render()
     // }
   }
