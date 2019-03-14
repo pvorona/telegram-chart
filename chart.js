@@ -23,11 +23,11 @@ function Chart (chartConfig) {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
-    const max = getMaxValue({ startIndex: 0, endIndex: chartConfig.data.total - 1 }, ...arrayOfDataArrays)
+    const max = getMaxValue({ floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }, ...arrayOfDataArrays)
     for (const graphName of chartConfig.graphNames) {
       clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.frameCanvases[graphName], { startIndex: 0, endIndex: chartConfig.data.total - 1 }),
+        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.frameCanvases[graphName], { floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }),
         chartConfig.colors[graphName],
         frameContexts[graphName],
         chartConfig.devicePixelRatio,

@@ -56,5 +56,7 @@ function interpolatePoint (point, values) {
 }
 
 function interpolate ([x1, x2], [y1, y2], x) {
+  if (x === x1) return y1
+  if (x === x2) return y2
   return (y2 - y1) / (x2 - x1) * (x - x1) + y1
 }
