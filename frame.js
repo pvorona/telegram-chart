@@ -112,7 +112,7 @@ function Framer (chartConfig, render) {
       chartConfig.renderWindow.startIndex = Math.ceil(newStartIndex)
       chartConfig.renderWindow.floatStartIndex = newStartIndex
       chartConfig.renderWindow.floatEndIndex = newStartIndex + floatWindowSize
-      chartConfig.renderWindow.endIndex = Math.floor(newStartIndex + renderWindowSize)
+      chartConfig.renderWindow.endIndex = Math.floor(chartConfig.renderWindow.floatEndIndex)
       render()
     // }
   }
