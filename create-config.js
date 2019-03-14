@@ -56,7 +56,9 @@ function createChartConfig (chartData) {
   }), {})
   const renderWindow = {
     startIndex: 0,
-    endIndex: data.total,
+    floatStartIndex: 0,
+    endIndex: data.total - 1,
+    floatEndIndex: data.total - 1,
   }
   const resizers = {
     left: resizerLeft,

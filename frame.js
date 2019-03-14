@@ -29,11 +29,13 @@ function Framer (chartConfig, render) {
     frameState.left = left > frameState.right - chartConfig.minimalPixelsBetweenResizers ? (frameState.right - chartConfig.minimalPixelsBetweenResizers) : left
     chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
     chartConfig.framer.style.left = `${frameState.left}px`
-    const newStartIndex = Math.round(frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
-    if (newStartIndex !== chartConfig.renderWindow.startIndex) {
-      chartConfig.renderWindow.startIndex = newStartIndex
+    const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
+    console.log(newStartIndex)
+    // if (newStartIndex !== chartConfig.renderWindow.startIndex) {
+      chartConfig.renderWindow.startIndex = Math.round(newStartIndex)
+      chartConfig.renderWindow.floatStartIndex = newStartIndex
       render()
-    }
+    // }
   }
 
   function onRightResizerMouseDown (e) {
@@ -55,11 +57,12 @@ function Framer (chartConfig, render) {
     frameState.right = right < frameState.left + chartConfig.minimalPixelsBetweenResizers ? (frameState.left + chartConfig.minimalPixelsBetweenResizers) : right
     chartConfig.frameBackgrounds.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
     chartConfig.framer.style.right = `${chartConfig.frameCanvasContainer.offsetWidth - (frameState.right + chartConfig.resizerWidthPixels)}px`
-    const newEndIndex = Math.round(frameState.right / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
-    if (newEndIndex !== chartConfig.renderWindow.endIndex) {
-      chartConfig.renderWindow.endIndex = newEndIndex
+    const newEndIndex = frameState.right / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
+    // if (newEndIndex !== chartConfig.renderWindow.endIndex) {
+      chartConfig.renderWindow.endIndex = Math.round(newEndIndex)
+      chartConfig.renderWindow.floatEndIndex = newEndIndex
       render()
-    }
+    // }
   }
 
   function getX (event) {
@@ -104,11 +107,14 @@ function Framer (chartConfig, render) {
     chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
     chartConfig.frameBackgrounds.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
     const renderWindowSize = chartConfig.renderWindow.endIndex - chartConfig.renderWindow.startIndex
-    const newStartIndex = Math.round(frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total)
-    if (chartConfig.renderWindow.startIndex !== newStartIndex) {
-      chartConfig.renderWindow.startIndex = newStartIndex
-      chartConfig.renderWindow.endIndex = newStartIndex + renderWindowSize
+    const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
+    const floatWindowSize = chartConfig.renderWindow.floatEndIndex - chartConfig.renderWindow.floatStartIndex
+    // if (chartConfig.renderWindow.startIndex !== newStartIndex) {
+      chartConfig.renderWindow.startIndex = Math.round(newStartIndex)
+      chartConfig.renderWindow.floatStartIndex = newStartIndex
+      chartConfig.renderWindow.floatEndIndex = newStartIndex + floatWindowSize
+      chartConfig.renderWindow.endIndex = Math.round(newStartIndex + renderWindowSize)
       render()
-    }
+    // }
   }
 }
