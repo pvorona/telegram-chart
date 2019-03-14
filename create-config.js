@@ -1,5 +1,9 @@
+const LINE_WIDTH = 1
+
 function createChartConfig (chartData) {
-  const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
+  const graphNames = chartData.columns
+    .map(column => column[0])
+    .filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
     style: 'width: 768px; height: 400',
@@ -44,6 +48,20 @@ function createChartConfig (chartData) {
   const chartContainer = createElement('div', {}, [canvasesContainer, frameContainer, buttonsContainer])
   document.body.appendChild(chartContainer)
 
+  graphNames.forEach(graphName =>
+    Object.assign(canvases[graphName].getContext('2d'), {
+      strokeStyle: chartData.colors[graphName],
+      lineWidth: LINE_WIDTH * devicePixelRatio,
+    })
+  )
+
+  graphNames.forEach(graphName =>
+    Object.assign(frameCanvases[graphName].getContext('2d'), {
+      strokeStyle: chartData.colors[graphName],
+      lineWidth: LINE_WIDTH * devicePixelRatio,
+    })
+  )
+
   const data = chartData.columns.reduce((data, column) => ({
     ...data,
     [column[0]]: column.slice(1),
@@ -51,7 +69,6 @@ function createChartConfig (chartData) {
   }), {
     total: 0,
   })
-  const colors = chartData.colors
   const visibilityState = graphNames.reduce((visibilityState, graphName) => ({
     ...visibilityState,
     [graphName]: true,
@@ -74,7 +91,6 @@ function createChartConfig (chartData) {
   return {
     data,
     graphNames,
-    colors,
     visibilityState,
     renderWindow,
     canvases,

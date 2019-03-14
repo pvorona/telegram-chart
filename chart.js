@@ -28,9 +28,7 @@ function Chart (chartConfig) {
       clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
         mapDataToCoords(chartConfig.data[graphName], max, chartConfig.frameCanvases[graphName], { floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }),
-        chartConfig.colors[graphName],
         frameContexts[graphName],
-        chartConfig.devicePixelRatio,
       )
     }
   }
@@ -44,9 +42,7 @@ function Chart (chartConfig) {
       clearCanvas(contexts[graphName], chartConfig.canvases[graphName])
       renderPath(
         mapDataToCoords(chartConfig.data[graphName], max, chartConfig.canvases[graphName], chartConfig.renderWindow),
-        chartConfig.colors[graphName],
         contexts[graphName],
-        chartConfig.devicePixelRatio,
       )
     }
   }
