@@ -15,6 +15,10 @@ function Chart (chartConfig) {
   render()
   renderFrameGraphs()
 
+  function render () {
+    requestAnimationFrame(renderSync)
+  }
+
   function renderFrameGraphs () {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
@@ -31,7 +35,7 @@ function Chart (chartConfig) {
     }
   }
 
-  function render () {
+  function renderSync () {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])

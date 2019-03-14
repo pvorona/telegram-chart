@@ -30,9 +30,8 @@ function Framer (chartConfig, render) {
     chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
     chartConfig.framer.style.left = `${frameState.left}px`
     const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
-    console.log(newStartIndex)
     // if (newStartIndex !== chartConfig.renderWindow.startIndex) {
-      chartConfig.renderWindow.startIndex = Math.round(newStartIndex)
+      chartConfig.renderWindow.startIndex = Math.ceil(newStartIndex)
       chartConfig.renderWindow.floatStartIndex = newStartIndex
       render()
     // }
@@ -59,7 +58,7 @@ function Framer (chartConfig, render) {
     chartConfig.framer.style.right = `${chartConfig.frameCanvasContainer.offsetWidth - (frameState.right + chartConfig.resizerWidthPixels)}px`
     const newEndIndex = frameState.right / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
     // if (newEndIndex !== chartConfig.renderWindow.endIndex) {
-      chartConfig.renderWindow.endIndex = Math.round(newEndIndex)
+      chartConfig.renderWindow.endIndex = Math.floor(newEndIndex)
       chartConfig.renderWindow.floatEndIndex = newEndIndex
       render()
     // }
@@ -110,10 +109,10 @@ function Framer (chartConfig, render) {
     const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
     const floatWindowSize = chartConfig.renderWindow.floatEndIndex - chartConfig.renderWindow.floatStartIndex
     // if (chartConfig.renderWindow.startIndex !== newStartIndex) {
-      chartConfig.renderWindow.startIndex = Math.round(newStartIndex)
+      chartConfig.renderWindow.startIndex = Math.ceil(newStartIndex)
       chartConfig.renderWindow.floatStartIndex = newStartIndex
       chartConfig.renderWindow.floatEndIndex = newStartIndex + floatWindowSize
-      chartConfig.renderWindow.endIndex = Math.round(newStartIndex + renderWindowSize)
+      chartConfig.renderWindow.endIndex = Math.floor(newStartIndex + renderWindowSize)
       render()
     // }
   }

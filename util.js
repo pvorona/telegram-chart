@@ -1,8 +1,9 @@
-function findMaxElement (values, { startIndex, floatStartIndex, endIndex}) {
+function findMaxElement (values, { startIndex, floatStartIndex, endIndex, floatEndIndex }) {
   let max = values[0][startIndex]
   for (let j = 0; j < values.length; j++) {
+    max = Math.max(max, interpolatePoint(floatStartIndex, values[j]), interpolatePoint(floatEndIndex, values[j]))
     for (let i = startIndex; i <= endIndex; i++) {
-      if (values[j][i] > max) max = values[j][i]
+      max = Math.max(values[j][i], max)
     }
   }
   return max
@@ -26,12 +27,9 @@ function mapDataToCoords (data, max, targetContainer, { startIndex, floatStartIn
   const coords = []
   const leftIndex = Math.floor(floatStartIndex)
   const rightIndex = Math.ceil(floatStartIndex)
-  const H = (data[rightIndex] - data[leftIndex])
-  const w = floatStartIndex - leftIndex
-  const inCurrent = H * w + data[leftIndex]
   coords.push({
     x: 0,
-    y: targetContainer.height - targetContainer.height / max * inCurrent,
+    y: targetContainer.height - targetContainer.height / max * interpolatePoint(floatStartIndex, data),
   })
   for (let i = startIndex; i <= endIndex; i++) {
     coords.push({
@@ -39,9 +37,24 @@ function mapDataToCoords (data, max, targetContainer, { startIndex, floatStartIn
       y: targetContainer.height - targetContainer.height / max * data[i],
     })
   }
+  const endLeftIndex = Math.floor(floatEndIndex)
+  const endRightIndex = Math.ceil(floatEndIndex)
+
   coords.push({
     x: targetContainer.width,
-    y: targetContainer.height - targetContainer.height / max * ( (data[Math.ceil(floatEndIndex)] - data[Math.floor(floatEndIndex)]) * (floatEndIndex % 1) + data[Math.floor(floatEndIndex)] ),
+    y: targetContainer.height - targetContainer.height / max * interpolatePoint(floatEndIndex, data),
   })
   return coords
+}
+
+function interpolatePoint (point, values) {
+  return interpolate(
+    [Math.floor(point), Math.ceil(point)],
+    [values[Math.floor(point)], values[Math.ceil(point)]],
+    point,
+  )
+}
+
+function interpolate ([x1, x2], [y1, y2], x) {
+  return (y2 - y1) / (x2 - x1) * (x - x1) + y1
 }
