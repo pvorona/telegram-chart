@@ -56,7 +56,7 @@ function Framer (chartConfig, render) {
     frameState.right = right < frameState.left + chartConfig.minimalPixelsBetweenResizers ? (frameState.left + chartConfig.minimalPixelsBetweenResizers) : right
     chartConfig.frameBackgrounds.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
     chartConfig.framer.style.right = `${chartConfig.frameCanvasContainer.offsetWidth - (frameState.right + chartConfig.resizerWidthPixels)}px`
-    const newEndIndex = frameState.right / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
+    const newEndIndex = (frameState.right + chartConfig.resizerWidthPixels) / chartConfig.frameCanvasContainer.offsetWidth * (chartConfig.data.total - 1)
     // if (newEndIndex !== chartConfig.renderWindow.endIndex) {
       chartConfig.renderWindow.endIndex = Math.floor(newEndIndex)
       chartConfig.renderWindow.floatEndIndex = newEndIndex
