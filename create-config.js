@@ -100,7 +100,6 @@ function createChartConfig (chartData) {
     framer,
     resizers,
     frameBackgrounds,
-    devicePixelRatio: window.devicePixelRatio,
     resizerWidthPixels: 8,
     minimalPixelsBetweenResizers: 40,
     classes: {
