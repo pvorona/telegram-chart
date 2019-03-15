@@ -74,10 +74,8 @@ function createChartConfig (chartData) {
     [graphName]: true,
   }), {})
   const renderWindow = {
-    startIndex: 0,
-    floatStartIndex: 0,
+    startIndex: Math.ceil(data.total / 3 * 2),
     endIndex: data.total - 1,
-    floatEndIndex: data.total - 1,
   }
   const resizers = {
     left: resizerLeft,

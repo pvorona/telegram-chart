@@ -1,8 +1,8 @@
-function findMaxElement (values, { startIndex, floatStartIndex, endIndex, floatEndIndex }) {
-  let max = values[0][startIndex]
+function findMaxElement (values, { startIndex, endIndex }) {
+  let max = values[0][Math.ceil(startIndex)]
   for (let j = 0; j < values.length; j++) {
-    max = Math.max(max, interpolatePoint(floatStartIndex, values[j]), interpolatePoint(floatEndIndex, values[j]))
-    for (let i = startIndex; i <= endIndex; i++) {
+    max = Math.max(max, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
+    for (let i = Math.ceil(startIndex); i <= endIndex; i++) {
       max = Math.max(values[j][i], max)
     }
   }
@@ -12,6 +12,9 @@ function findMaxElement (values, { startIndex, floatStartIndex, endIndex, floatE
 // O(n)
 function getMaxValue (renderWindow, ...values) {
   const max = findMaxElement(values, renderWindow)
+  if (Number.isNaN(max)) {
+    debugger
+  }
   if (max % 10 === 0) return max
   if (max % 5 === 0) return max
   return max + (5 - max % 5)
@@ -23,27 +26,30 @@ function clearCanvas (context, canvas) {
 
 // h = H * w / W
 // O(n)
-function mapDataToCoords (data, max, targetContainer, { startIndex, floatStartIndex, floatEndIndex, endIndex }) {
+function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
   const coords = []
-  const leftIndex = Math.floor(floatStartIndex)
-  const rightIndex = Math.ceil(floatStartIndex)
-  coords.push({
-    x: 0,
-    y: targetContainer.height - targetContainer.height / max * interpolatePoint(floatStartIndex, data),
-  })
-  for (let i = startIndex; i <= endIndex; i++) {
+
+  if (!Number.isInteger(startIndex)) {
     coords.push({
-      x: targetContainer.width / (floatEndIndex - floatStartIndex) * (i - floatStartIndex),
+      x: 0,
+      y: targetContainer.height - targetContainer.height / max * interpolatePoint(startIndex, data),
+    })
+  }
+
+  for (let i = Math.ceil(startIndex); i <= Math.floor(endIndex); i++) {
+    coords.push({
+      x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
       y: targetContainer.height - targetContainer.height / max * data[i],
     })
   }
-  const endLeftIndex = Math.floor(floatEndIndex)
-  const endRightIndex = Math.ceil(floatEndIndex)
 
-  coords.push({
-    x: targetContainer.width,
-    y: targetContainer.height - targetContainer.height / max * interpolatePoint(floatEndIndex, data),
-  })
+  if (!Number.isInteger(endIndex)) {
+    coords.push({
+      x: targetContainer.width,
+      y: targetContainer.height - targetContainer.height / max * interpolatePoint(endIndex, data),
+    })
+  }
+
   return coords
 }
 
@@ -64,6 +70,7 @@ function interpolate ([x1, x2], [y1, y2], x) {
 function animate (from, to, duration, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from
+  let animating = true
   let animationId
 
   function frame () {
@@ -72,6 +79,7 @@ function animate (from, to, duration, callback) {
       if (lastDispatchedValue !== to) {
         callback(to)
       }
+      animating = false
     } else {
       const currentValue = interpolate(
         [startAnimationTime, startAnimationTime + duration],
@@ -86,7 +94,8 @@ function animate (from, to, duration, callback) {
   animationId = requestAnimationFrame(frame)
 
   return function cancelAnimation () {
-    // called event when animation ended
-    cancelAnimationFrame(animationId)
+    if (animating) {
+      cancelAnimationFrame(animationId)
+    }
   }
 }

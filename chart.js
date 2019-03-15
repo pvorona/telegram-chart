@@ -9,6 +9,14 @@ function Chart (chartConfig) {
     [graphName]: chartConfig.frameCanvases[graphName].getContext('2d')
   }), {})
 
+  let cancelAnimation
+  let cancelFrameAnimation
+  let currentAnimationTarget
+  const wholeRange = {
+    startIndex: 0,
+    endIndex: chartConfig.data.total - 1,
+  }
+
   Framer(chartConfig, render)
   Controls(chartConfig, render, renderFrameGraphs)
 
@@ -17,16 +25,7 @@ function Chart (chartConfig) {
   )
   const state = {
     max: getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays),
-    frameMax: getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays),
-  }
-  let cancelAnimation
-  let cancelFrameAnimation
-  let currentAnimationTarget
-  const wholeRange = {
-    floatStartIndex: 0,
-    startIndex: 0,
-    floatEndIndex: chartConfig.data.total - 1,
-    endIndex: chartConfig.data.total - 1,
+    frameMax: getMaxValue(wholeRange, ...arrayOfDataArrays),
   }
 
   render()

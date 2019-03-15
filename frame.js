@@ -1,10 +1,14 @@
 function Framer (chartConfig, render) {
   const frameState = {
-    left: 0,
+    left: chartConfig.renderWindow.startIndex / (chartConfig.data.total) * chartConfig.frameCanvasContainer.offsetWidth,
     right: chartConfig.frameCanvasContainer.offsetWidth - chartConfig.resizerWidthPixels,
     cursorResizerDelta: 0,
     cursorFramerDelta: 0,
   }
+
+
+  chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
+  chartConfig.framer.style.left = `${frameState.left}px`
 
   chartConfig.resizers.left.addEventListener('mousedown', onLeftResizerMouseDown)
   chartConfig.resizers.right.addEventListener('mousedown', onRightResizerMouseDown)
@@ -30,11 +34,8 @@ function Framer (chartConfig, render) {
     chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
     chartConfig.framer.style.left = `${frameState.left}px`
     const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
-    // if (newStartIndex !== chartConfig.renderWindow.startIndex) {
-      chartConfig.renderWindow.startIndex = Math.ceil(newStartIndex)
-      chartConfig.renderWindow.floatStartIndex = newStartIndex
-      render()
-    // }
+    chartConfig.renderWindow.startIndex = newStartIndex
+    render()
   }
 
   function onRightResizerMouseDown (e) {
@@ -57,11 +58,8 @@ function Framer (chartConfig, render) {
     chartConfig.frameBackgrounds.right.style.left = `${frameState.right + chartConfig.resizerWidthPixels}px`
     chartConfig.framer.style.right = `${chartConfig.frameCanvasContainer.offsetWidth - (frameState.right + chartConfig.resizerWidthPixels)}px`
     const newEndIndex = (frameState.right + chartConfig.resizerWidthPixels) / chartConfig.frameCanvasContainer.offsetWidth * (chartConfig.data.total - 1)
-    // if (newEndIndex !== chartConfig.renderWindow.endIndex) {
-      chartConfig.renderWindow.endIndex = Math.floor(newEndIndex)
-      chartConfig.renderWindow.floatEndIndex = newEndIndex
-      render()
-    // }
+    chartConfig.renderWindow.endIndex = newEndIndex
+    render()
   }
 
   function getX (event) {
@@ -108,12 +106,8 @@ function Framer (chartConfig, render) {
     const renderWindowSize = chartConfig.renderWindow.endIndex - chartConfig.renderWindow.startIndex
     const newStartIndex = frameState.left / chartConfig.frameCanvasContainer.offsetWidth * chartConfig.data.total
     const newEndIndex = (frameState.right + chartConfig.resizerWidthPixels) / (chartConfig.frameCanvasContainer.offsetWidth) * (chartConfig.data.total - 1)
-    // if (chartConfig.renderWindow.startIndex !== newStartIndex) {
-      chartConfig.renderWindow.startIndex = Math.ceil(newStartIndex)
-      chartConfig.renderWindow.floatStartIndex = newStartIndex
-      chartConfig.renderWindow.floatEndIndex = newEndIndex
-      chartConfig.renderWindow.endIndex = Math.floor(newEndIndex)
-      render()
-    // }
+    chartConfig.renderWindow.startIndex = newStartIndex
+    chartConfig.renderWindow.endIndex = newEndIndex
+    render()
   }
 }
