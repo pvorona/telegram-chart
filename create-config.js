@@ -1,4 +1,5 @@
 const LINE_WIDTH = 2
+const FRAME_LINE_WIDTH = 1
 
 function createChartConfig (chartData) {
   const graphNames = chartData.columns
@@ -58,7 +59,7 @@ function createChartConfig (chartData) {
   graphNames.forEach(graphName =>
     Object.assign(frameCanvases[graphName].getContext('2d'), {
       strokeStyle: chartData.colors[graphName],
-      lineWidth: LINE_WIDTH * devicePixelRatio,
+      lineWidth: FRAME_LINE_WIDTH * devicePixelRatio,
     })
   )
 
