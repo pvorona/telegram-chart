@@ -104,4 +104,5 @@ body {
 .layer {
   position: absolute;
   will-change: opacity;
+  transition: opacity .3s;
 }
