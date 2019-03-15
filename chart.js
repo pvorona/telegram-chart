@@ -20,6 +20,7 @@ function Chart (chartConfig) {
   }
   let cancelAnimation
   let cancelFrameAnimation
+  let currentAnimationTarget
 
   render()
   renderFrameGraphs()
@@ -38,7 +39,7 @@ function Chart (chartConfig) {
     // reconcile()
   // }
 
-  const TRANSITION_TIME = 50
+  const TRANSITION_TIME = 100
 
   function renderWithMaxSync () {
     const visibleGraphNames = chartConfig.graphNames
@@ -58,7 +59,9 @@ function Chart (chartConfig) {
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
     const newMax = getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays)
-    if (state.max !== newMax) {
+    // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
+    if (state.max !== newMax && newMax !== currentAnimationTarget) {
+      currentAnimationTarget = newMax
       if (cancelAnimation) cancelAnimation()
       cancelAnimation = animate(state.max, newMax, TRANSITION_TIME, (newMax) => {
         state.max = newMax
