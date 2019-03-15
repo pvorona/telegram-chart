@@ -12,37 +12,98 @@ function Chart (chartConfig) {
   Framer(chartConfig, render)
   Controls(chartConfig, render, renderFrameGraphs)
 
+  const arrayOfDataArrays = chartConfig.graphNames.reduce(
+    (reduced, graphName) => [...reduced, chartConfig.data[graphName]], []
+  )
+  const state = {
+    max: getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays),
+  }
+  let cancelAnimation
+  let cancelFrameAnimation
+
   render()
   renderFrameGraphs()
+
+  function render () {
+    requestAnimationFrame(renderSync)
+  }
+
+  // state = { from, to, max, visibilityState }
+  // Event -> renderWindow change -> maxValueInRenderWindowChange -> render
+  // currentData = data.filter(renderWindow)
+  // render: state => UI
+
+  // function setState (newState) {
+    // state = newState
+    // reconcile()
+  // }
+
+  const TRANSITION_TIME = 50
+
+  function renderWithMaxSync () {
+    const visibleGraphNames = chartConfig.graphNames
+    if (!visibleGraphNames.length) return
+    const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
+    for (const graphName of visibleGraphNames) {
+      clearCanvas(contexts[graphName], chartConfig.canvases[graphName])
+      renderPath(
+        mapDataToCoords(chartConfig.data[graphName], state.max, chartConfig.canvases[graphName], chartConfig.renderWindow),
+        contexts[graphName],
+      )
+    }
+  }
+
+  function renderSync () {
+    const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
+    if (!visibleGraphNames.length) return
+    const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
+    const newMax = getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays)
+    if (state.max !== newMax) {
+      if (cancelAnimation) cancelAnimation()
+      cancelAnimation = animate(state.max, newMax, TRANSITION_TIME, (newMax) => {
+        state.max = newMax
+        renderWithMaxSync()
+      })
+    }
+    for (const graphName of visibleGraphNames) {
+      clearCanvas(contexts[graphName], chartConfig.canvases[graphName])
+      renderPath(
+        mapDataToCoords(chartConfig.data[graphName], state.max, chartConfig.canvases[graphName], chartConfig.renderWindow),
+        contexts[graphName],
+      )
+    }
+  }
 
   function renderFrameGraphs () {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
-    const max = getMaxValue({ startIndex: 0, endIndex: chartConfig.data.total - 1 }, ...arrayOfDataArrays)
+    const newMax = getMaxValue({ floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }, ...arrayOfDataArrays)
+    if (state.max !== newMax) {
+      if (cancelFrameAnimation) cancelFrameAnimation()
+        cancelFrameAnimation = animate(state.max, newMax, TRANSITION_TIME, (newMax) => {
+          state.max = newMax
+          renderFrameWithMaxSync()
+        })
+    }
     for (const graphName of chartConfig.graphNames) {
       clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.frameCanvases[graphName], { startIndex: 0, endIndex: chartConfig.data.total - 1 }),
-        chartConfig.colors[graphName],
+        mapDataToCoords(chartConfig.data[graphName], state.max, chartConfig.frameCanvases[graphName], { floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }),
         frameContexts[graphName],
-        chartConfig.devicePixelRatio,
       )
     }
   }
 
-  function render () {
+  function renderFrameWithMaxSync () {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
-    const max = getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays)
-    for (const graphName of visibleGraphNames) {
-      clearCanvas(contexts[graphName], chartConfig.canvases[graphName])
+    for (const graphName of chartConfig.graphNames) {
+      clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], max, chartConfig.canvases[graphName], chartConfig.renderWindow),
-        chartConfig.colors[graphName],
-        contexts[graphName],
-        chartConfig.devicePixelRatio,
+        mapDataToCoords(chartConfig.data[graphName], state.max, chartConfig.frameCanvases[graphName], { floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }),
+        frameContexts[graphName],
       )
     }
   }

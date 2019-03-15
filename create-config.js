@@ -1,31 +1,37 @@
+const LINE_WIDTH = 1
+
 function createChartConfig (chartData) {
-  const graphNames = chartData.columns.map(column => column[0]).filter(graphName => chartData.types[graphName] === 'line')
+  const graphNames = chartData.columns
+    .map(column => column[0])
+    .filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
-    style: 'width: 1360px; height: 480px',
-    width: 2720,
-    height: 960,
+    style: 'width: 768px; height: 400',
+    width: 1536,
+    height: 600,
     className: 'layer',
   })
   const canvasesContainer = createElement('div', {
     className: 'layers-container',
-    style: 'width: 1000px; height: 480px; position: relative;',
+    style: 'width: 768px; height: 300px; position: relative;',
   }, Object.values(canvases))
   const frameCanvases = createCanvases(graphNames, {
-    style: 'width: 1360px; height: 50px',
-    width: 2720,
+    style: 'width: 768px; height: 50px',
+    width: 1536,
     height: 100,
     className: 'layer',
   })
   const frameCanvasContainer = createElement('div', {
-    style: 'width: 1360px; height: 50px',
+    style: 'width: 768px; height: 50px',
   }, Object.values(frameCanvases))
   const backgroundLeft = createElement('div', { className: 'frame__background-left' })
   const backgroundRight = createElement('div', { className: 'frame__background-right' })
   const resizerLeft = createElement('div', { className: 'frame__resizer frame__resizer-left' })
   const resizerRight = createElement('div', { className: 'frame__resizer frame__resizer-right' })
   const framer = createElement('div', { className: 'framer' }, [resizerLeft, resizerRight])
-  const frameContainer = createElement('div', { className: 'frame__container' }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
+  const frameContainer = createElement('div', {
+    style: 'margin-top: 40px; position: relative; width: 768px;'
+  }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
   const inputs = graphNames.reduce((buttons, graphName) => ({
     ...buttons,
     [graphName]: createElement('input', { checked: true, type: 'checkbox', className: 'button' }),
@@ -42,6 +48,20 @@ function createChartConfig (chartData) {
   const chartContainer = createElement('div', {}, [canvasesContainer, frameContainer, buttonsContainer])
   document.body.appendChild(chartContainer)
 
+  graphNames.forEach(graphName =>
+    Object.assign(canvases[graphName].getContext('2d'), {
+      strokeStyle: chartData.colors[graphName],
+      lineWidth: LINE_WIDTH * devicePixelRatio,
+    })
+  )
+
+  graphNames.forEach(graphName =>
+    Object.assign(frameCanvases[graphName].getContext('2d'), {
+      strokeStyle: chartData.colors[graphName],
+      lineWidth: LINE_WIDTH * devicePixelRatio,
+    })
+  )
+
   const data = chartData.columns.reduce((data, column) => ({
     ...data,
     [column[0]]: column.slice(1),
@@ -49,14 +69,15 @@ function createChartConfig (chartData) {
   }), {
     total: 0,
   })
-  const colors = chartData.colors
   const visibilityState = graphNames.reduce((visibilityState, graphName) => ({
     ...visibilityState,
     [graphName]: true,
   }), {})
   const renderWindow = {
     startIndex: 0,
-    endIndex: data.total,
+    floatStartIndex: 0,
+    endIndex: data.total - 1,
+    floatEndIndex: data.total - 1,
   }
   const resizers = {
     left: resizerLeft,
@@ -70,7 +91,6 @@ function createChartConfig (chartData) {
   return {
     data,
     graphNames,
-    colors,
     visibilityState,
     renderWindow,
     canvases,
@@ -80,7 +100,6 @@ function createChartConfig (chartData) {
     framer,
     resizers,
     frameBackgrounds,
-    devicePixelRatio: window.devicePixelRatio,
     resizerWidthPixels: 8,
     minimalPixelsBetweenResizers: 40,
     classes: {
