@@ -1,4 +1,4 @@
-const LINE_WIDTH = 1
+const LINE_WIDTH = 2
 
 function createChartConfig (chartData) {
   const graphNames = chartData.columns

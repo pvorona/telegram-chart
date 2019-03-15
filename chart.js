@@ -17,10 +17,17 @@ function Chart (chartConfig) {
   )
   const state = {
     max: getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays),
+    frameMax: getMaxValue(chartConfig.renderWindow, ...arrayOfDataArrays),
   }
   let cancelAnimation
   let cancelFrameAnimation
   let currentAnimationTarget
+  const wholeRange = {
+    floatStartIndex: 0,
+    startIndex: 0,
+    floatEndIndex: chartConfig.data.total - 1,
+    endIndex: chartConfig.data.total - 1,
+  }
 
   render()
   renderFrameGraphs()
@@ -81,18 +88,18 @@ function Chart (chartConfig) {
     const visibleGraphNames = chartConfig.graphNames.filter(graphName => chartConfig.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, chartConfig.data[graphName]], [])
-    const newMax = getMaxValue({ floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }, ...arrayOfDataArrays)
-    if (state.max !== newMax) {
+    const newMax = getMaxValue(wholeRange, ...arrayOfDataArrays)
+    if (state.frameMax !== newMax) {
       if (cancelFrameAnimation) cancelFrameAnimation()
-        cancelFrameAnimation = animate(state.max, newMax, TRANSITION_TIME, (newMax) => {
-          state.max = newMax
+        cancelFrameAnimation = animate(state.frameMax, newMax, TRANSITION_TIME, (newMax) => {
+          state.frameMax = newMax
           renderFrameWithMaxSync()
         })
     }
     for (const graphName of chartConfig.graphNames) {
       clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], state.max, chartConfig.frameCanvases[graphName], { floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }),
+        mapDataToCoords(chartConfig.data[graphName], state.frameMax, chartConfig.frameCanvases[graphName], wholeRange),
         frameContexts[graphName],
       )
     }
@@ -105,7 +112,7 @@ function Chart (chartConfig) {
     for (const graphName of chartConfig.graphNames) {
       clearCanvas(frameContexts[graphName], chartConfig.frameCanvases[graphName])
       renderPath(
-        mapDataToCoords(chartConfig.data[graphName], state.max, chartConfig.frameCanvases[graphName], { floatStartIndex: 0, startIndex: 0, floatEndIndex: chartConfig.data.total - 1, endIndex: chartConfig.data.total - 1 }),
+        mapDataToCoords(chartConfig.data[graphName], state.frameMax, chartConfig.frameCanvases[graphName], wholeRange),
         frameContexts[graphName],
       )
     }
