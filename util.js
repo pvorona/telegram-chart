@@ -60,3 +60,33 @@ function interpolate ([x1, x2], [y1, y2], x) {
   if (x === x2) return y2
   return (y2 - y1) / (x2 - x1) * (x - x1) + y1
 }
+
+function animate (from, to, duration, callback) {
+  const startAnimationTime = Date.now()
+  let lastDispatchedValue = from
+  let animationId
+
+  function frame () {
+    const currentTime = Date.now()
+    if (currentTime - startAnimationTime >= duration) {
+      if (lastDispatchedValue !== to) {
+        callback(to)
+      }
+    } else {
+      const currentValue = interpolate(
+        [startAnimationTime, startAnimationTime + duration],
+        [from, to],
+        currentTime,
+      )
+      callback(currentValue)
+      lastDispatchedValue = currentValue
+      animationId = requestAnimationFrame(frame)
+    }
+  }
+  animationId = requestAnimationFrame(frame)
+
+  return function cancelAnimation () {
+    // called event when animation ended
+    cancelAnimationFrame(animationId)
+  }
+}
