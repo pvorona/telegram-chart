@@ -67,6 +67,10 @@ function interpolate ([x1, x2], [y1, y2], x) {
   return (y2 - y1) / (x2 - x1) * (x - x1) + y1
 }
 
+function easing (t) {
+  return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+}
+
 function animate (from, to, duration, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from
@@ -81,11 +85,9 @@ function animate (from, to, duration, callback) {
       }
       animating = false
     } else {
-      const currentValue = interpolate(
-        [startAnimationTime, startAnimationTime + duration],
-        [from, to],
-        currentTime,
-      )
+      const currentValue = easing(
+        (currentTime - startAnimationTime) / duration
+      ) * (to - from) + from
       callback(currentValue)
       lastDispatchedValue = currentValue
       animationId = requestAnimationFrame(frame)

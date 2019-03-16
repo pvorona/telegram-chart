@@ -32,7 +32,8 @@ function Chart (chartConfig) {
   renderFrameGraphs()
 
   function render () {
-    requestAnimationFrame(renderSync)
+    renderSync()
+    // requestAnimationFrame(renderSync)
   }
 
   // state = { from, to, max, visibilityState }
@@ -46,6 +47,7 @@ function Chart (chartConfig) {
   // }
 
   const TRANSITION_TIME = 150
+  // const VERTICAL_TRANSITION_TIME = 250
 
   function renderWithMaxSync () {
     const visibleGraphNames = chartConfig.graphNames
