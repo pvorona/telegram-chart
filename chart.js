@@ -45,7 +45,7 @@ function Chart (chartConfig) {
     // reconcile()
   // }
 
-  const TRANSITION_TIME = 100
+  const TRANSITION_TIME = 150
 
   function renderWithMaxSync () {
     const visibleGraphNames = chartConfig.graphNames
