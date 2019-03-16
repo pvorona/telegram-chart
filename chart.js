@@ -18,7 +18,13 @@ function Chart (chartConfig) {
   }
 
   Framer(chartConfig, render)
-  Controls(chartConfig, render, renderFrameGraphs)
+  document.body.appendChild(
+    Controls({
+      graphNames: chartConfig.graphNames,
+      colors: chartConfig.colors,
+      toggleVisibilityState,
+    }),
+  )
 
   const arrayOfDataArrays = chartConfig.graphNames.reduce(
     (reduced, graphName) => [...reduced, chartConfig.data[graphName]], []
@@ -115,5 +121,13 @@ function Chart (chartConfig) {
         frameContexts[graphName],
       )
     }
+  }
+
+  function toggleVisibilityState (graphName) {
+    chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
+    chartConfig.canvases[graphName].classList.toggle('hidden')
+    chartConfig.frameCanvases[graphName].classList.toggle('hidden')
+    render()
+    renderFrameGraphs()
   }
 }

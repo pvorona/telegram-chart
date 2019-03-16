@@ -1,13 +1,16 @@
-function Controls (config, render, renderFrame) {
-  for (const graphName of config.graphNames) {
-    config.inputs[graphName].addEventListener('click', onButtonClick.bind(undefined, graphName))
-  }
-
-  function onButtonClick (graphName) {
-    config.visibilityState[graphName] = !config.visibilityState[graphName]
-    config.canvases[graphName].classList.toggle('hidden')
-    config.frameCanvases[graphName].classList.toggle('hidden')
-    render()
-    renderFrame()
-  }
-}
+const Controls = ({ graphNames, colors, toggleVisibilityState }) =>
+  div({ style: 'margin-top: 20px' },
+    ...graphNames.map(graphName =>
+      label({ style: `color: ${colors[graphName]}` },
+        input({
+          checked: true,
+          type: 'checkbox',
+          className: 'button',
+          onclick: () => toggleVisibilityState(graphName),
+        }),
+        div({ className: 'like-button' },
+          div({ className: 'button-text', innerText: graphName })
+        )
+      )
+    )
+  )

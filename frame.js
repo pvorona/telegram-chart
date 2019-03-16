@@ -6,7 +6,6 @@ function Framer (chartConfig, render) {
     cursorFramerDelta: 0,
   }
 
-
   chartConfig.frameBackgrounds.left.style.width = `${frameState.left}px`
   chartConfig.framer.style.left = `${frameState.left}px`
 
