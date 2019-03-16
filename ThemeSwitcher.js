@@ -4,8 +4,8 @@ const MODES = {
 }
 
 const label = {
-  [MODES.LIGHT]: 'Switch to Night mode',
-  [MODES.DARK]: 'Switch to Day mode',
+  [MODES.LIGHT]: 'Switch to Night Mode',
+  [MODES.DARK]: 'Switch to Day Mode',
 }
 
 const classNames = {
