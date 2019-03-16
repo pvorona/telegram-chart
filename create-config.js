@@ -15,7 +15,7 @@ function createChartConfig (chartData) {
   const canvasesContainer = createElement('div', {
     className: 'layers-container',
     style: 'width: 768px; height: 300px; position: relative;',
-  }, Object.values(canvases))
+  }, ...Object.values(canvases))
   const frameCanvases = createCanvases(graphNames, {
     style: 'width: 768px; height: 50px',
     width: 1536,
@@ -24,29 +24,33 @@ function createChartConfig (chartData) {
   })
   const frameCanvasContainer = createElement('div', {
     style: 'width: 768px; height: 50px',
-  }, Object.values(frameCanvases))
+  }, ...Object.values(frameCanvases))
   const backgroundLeft = createElement('div', { className: 'frame__background-left' })
   const backgroundRight = createElement('div', { className: 'frame__background-right' })
   const resizerLeft = createElement('div', { className: 'frame__resizer frame__resizer-left' })
   const resizerRight = createElement('div', { className: 'frame__resizer frame__resizer-right' })
-  const framer = createElement('div', { className: 'framer' }, [resizerLeft, resizerRight])
+  const framer = createElement('div', { className: 'framer' }, ...[resizerLeft, resizerRight])
   const frameContainer = createElement('div', {
     style: 'margin-top: 40px; position: relative; width: 768px;'
-  }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
-  const inputs = graphNames.reduce((buttons, graphName) => ({
-    ...buttons,
-    [graphName]: createElement('input', { checked: true, type: 'checkbox', className: 'button' }),
-  }), {})
-  const buttons = graphNames.map(graphName =>
-    createElement('label', { style: `color: ${chartData.colors[graphName]}` }, [
-        inputs[graphName],
-        createElement('div', { className: 'like-button' }, [
-          createElement('div', { className: 'button-text', innerText: graphName })
-        ])
-      ])
+  }, ...[frameCanvasContainer, backgroundLeft, backgroundRight, framer])
+  // const inputs = graphNames.reduce((buttons, graphName) => ({
+  //   ...buttons,
+  //   [graphName]: createElement('input', { checked: true, type: 'checkbox', className: 'button' }),
+  // }), {})
+  // const buttons = graphNames.map(graphName =>
+  //   createElement('label', { style: `color: ${chartData.colors[graphName]}` }, [
+  //       inputs[graphName],
+  //       createElement('div', { className: 'like-button' }, [
+  //         createElement('div', { className: 'button-text', innerText: graphName })
+  //       ])
+  //     ])
+  // )
+  // const buttonsContainer = createElement('div', { style: 'margin-top: 20px'}, buttons)
+  const chartContainer = createElement('div', {},
+    canvasesContainer,
+    frameContainer,
+    // buttonsContainer,
   )
-  const buttonsContainer = createElement('div', { style: 'margin-top: 20px'}, buttons)
-  const chartContainer = createElement('div', {}, [canvasesContainer, frameContainer, buttonsContainer])
   document.body.appendChild(chartContainer)
 
   graphNames.forEach(graphName =>
@@ -94,7 +98,8 @@ function createChartConfig (chartData) {
     renderWindow,
     canvases,
     frameCanvases,
-    inputs,
+    colors: chartData.colors,
+    // inputs,
     frameCanvasContainer,
     framer,
     resizers,
