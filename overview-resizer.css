@@ -1,0 +1,25 @@
+.overview__resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  transition: background-color .3s ease-in-out;
+}
+
+.overview__resizer--left {
+  left: 0;
+  cursor: w-resize;
+}
+
+.overview__resizer--right {
+  right: 0;
+  cursor: e-resize;
+}
+
+.theme-light .overview__resizer {
+  background-color: #e3ecf2cc;
+}
+
+.theme-dark .overview__resizer {
+  background-color: #39496080;
+}

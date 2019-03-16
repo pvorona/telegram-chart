@@ -1,0 +1,19 @@
+.overview__viewbox {
+  border-top: 4px solid;
+  border-bottom: 4px solid;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  cursor: grab;
+  transition: border-color .3s ease-in-out;
+}
+
+.theme-light .overview__viewbox {
+  border-color: #e3ecf2cc;
+}
+
+.theme-dark .overview__viewbox {
+  border-color: #39496080;
+}

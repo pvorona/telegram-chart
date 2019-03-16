@@ -1,0 +1,11 @@
+.cursor-w-resize {
+  cursor: w-resize !important;
+}
+
+.cursor-e-resize {
+  cursor: e-resize !important;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}

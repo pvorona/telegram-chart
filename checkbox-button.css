@@ -5,7 +5,7 @@
 .like-button {
   display: inline-block;
   outline: none;
-  border: 1px solid #EDEFF0;
+  border: 1px solid;
   padding: 11px 19px 11px 42px;
   background: none;
   border-radius: 30px;
@@ -13,6 +13,15 @@
   font-size: 14px;
   position: relative;
   cursor: pointer;
+  transition: border-color .3s ease-in-out;
+}
+
+.theme-light .like-button {
+  border-color: #EDEFF0;
+}
+
+.theme-dark .like-button {
+  border-color: #334659;
 }
 
 .like-button::before {
@@ -45,5 +54,13 @@
 }
 
 .button-text {
+  transition: color .3s ease-in-out;
+}
+
+.theme-light .button-text {
   color: black;
+}
+
+.theme-dark .button-text {
+  color: #E8ECEE;
 }

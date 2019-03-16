@@ -1,5 +1,9 @@
 const LINE_WIDTH = 2
 const FRAME_LINE_WIDTH = 1
+const CANVAS_WIDTH = 768
+const CANVAS_HEIGHT = 300
+const FRAME_CANVAS_HEIGHT = 50
+const FRAME_CANVAS_WIDTH = CANVAS_WIDTH
 
 function createChartConfig (chartData) {
   const graphNames = chartData.columns
@@ -7,32 +11,29 @@ function createChartConfig (chartData) {
     .filter(graphName => chartData.types[graphName] === 'line')
 
   const canvases = createCanvases(graphNames, {
-    style: 'width: 768px; height: 400',
-    width: 1536,
-    height: 600,
-    className: 'layer',
+    style: `width: ${CANVAS_WIDTH}px; height: ${CANVAS_HEIGHT}px`,
+    width: CANVAS_WIDTH * devicePixelRatio,
+    height: CANVAS_HEIGHT * devicePixelRatio,
+    className: 'graph__layer',
   })
   const canvasesContainer = createElement('div', {
-    className: 'layers-container',
-    style: 'width: 768px; height: 300px; position: relative;',
+    style: `width: ${CANVAS_WIDTH}px; height: ${CANVAS_HEIGHT}px`,
   }, Object.values(canvases))
   const frameCanvases = createCanvases(graphNames, {
-    style: 'width: 768px; height: 50px',
-    width: 1536,
-    height: 100,
-    className: 'layer',
+    style: `width: ${FRAME_CANVAS_WIDTH}px; height: ${FRAME_CANVAS_HEIGHT}px`,
+    width: FRAME_CANVAS_WIDTH * devicePixelRatio,
+    height: FRAME_CANVAS_HEIGHT * devicePixelRatio,
+    className: 'graph__layer',
   })
   const frameCanvasContainer = createElement('div', {
-    style: 'width: 768px; height: 50px',
+    style: `height: ${FRAME_CANVAS_HEIGHT}px`,
   }, Object.values(frameCanvases))
-  const backgroundLeft = createElement('div', { className: 'frame__background-left' })
-  const backgroundRight = createElement('div', { className: 'frame__background-right' })
-  const resizerLeft = createElement('div', { className: 'frame__resizer frame__resizer-left' })
-  const resizerRight = createElement('div', { className: 'frame__resizer frame__resizer-right' })
-  const framer = createElement('div', { className: 'framer' }, [resizerLeft, resizerRight])
-  const frameContainer = createElement('div', {
-    style: 'margin-top: 40px; position: relative; width: 768px;'
-  }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
+  const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' })
+  const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' })
+  const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' })
+  const resizerRight = createElement('div', { className: 'overview__resizer overview__resizer--right' })
+  const framer = createElement('div', { className: 'overview__viewbox' }, [resizerLeft, resizerRight])
+  const frameContainer = createElement('div', { className: 'overview' }, [frameCanvasContainer, backgroundLeft, backgroundRight, framer])
   const inputs = graphNames.reduce((buttons, graphName) => ({
     ...buttons,
     [graphName]: createElement('input', { checked: true, type: 'checkbox', className: 'button' }),
@@ -46,7 +47,12 @@ function createChartConfig (chartData) {
       ])
   )
   const buttonsContainer = createElement('div', { style: 'margin-top: 20px'}, buttons)
-  const chartContainer = createElement('div', {}, [canvasesContainer, frameContainer, buttonsContainer])
+  const chartContainer = createElement('div', {}, [
+    Title('Followers'),
+    canvasesContainer,
+    frameContainer,
+    buttonsContainer,
+  ])
   document.body.appendChild(chartContainer)
 
   graphNames.forEach(graphName =>
