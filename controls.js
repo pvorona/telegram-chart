@@ -1,15 +1,15 @@
-const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
-
-function Controls (config, render, renderFrame) {
-  for (const graphName of config.graphNames) {
-    config.inputs[graphName].addEventListener('click', onButtonClick.bind(undefined, graphName))
-  }
-
-  function onButtonClick (graphName) {
-    config.visibilityState[graphName] = !config.visibilityState[graphName]
-    config.canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS)
-    config.frameCanvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS)
-    render()
-    renderFrame()
-  }
+function Controls (config, onButtonClick) {
+  return createElement('div', { style: 'margin-top: 20px'}, config.graphNames.map(graphName =>
+    createElement('label', { style: `color: ${config.colors[graphName]}` }, [
+      createElement('input', {
+        checked: true,
+        type: 'checkbox',
+        className: 'button',
+        onclick: () => onButtonClick(graphName),
+      }),
+      createElement('div', { className: 'like-button' }, [
+        createElement('div', { className: 'button-text', innerText: graphName })
+      ])
+    ])
+  ))
 }
