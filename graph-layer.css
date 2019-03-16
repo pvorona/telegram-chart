@@ -1,0 +1,10 @@
+.graph__layer {
+  position: absolute;
+  transform: translazeZ(0);
+  will-change: opacity;
+  transition: opacity .1s;
+}
+
+.graph__layer--hidden {
+  opacity: 0;
+}
