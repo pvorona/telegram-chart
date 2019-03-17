@@ -22,17 +22,25 @@ function XAxis ({
     shiftingContainer.appendChild(xValueElement)
   }
 
-  const xScale = (viewBox.endIndex + 1 - viewBox.startIndex) / domain.length
-  shiftingContainer.style.transform = `translateX(${-1 / xScale * 768 * viewBox.startIndex / domain.length}px)`
-  let previousOffset = -Infinity
-  for (let i = 0; i < points.length; i++) {
-    const xValueElement = legendValues[i]
-    const offset = points[i].x / devicePixelRatio / xScale
-    xValueElement.style.transform = `translateX(${offset}px)`
-    if (offset - previousOffset < 50) {
-      xValueElement.hidden = true
-    } else {
-      previousOffset = offset
+  reconcile()
+
+  function reconcile () {
+    const xScale = (viewBox.endIndex - viewBox.startIndex) / (domain.length - 1)
+    // console.log(viewBox)
+    shiftingContainer.style.transform = `translateX(${-1 / xScale * 768 * viewBox.startIndex / (domain.length - 1)}px)`
+    let previousOffset = -Infinity
+    // console.log(points)
+    // console.log(xScale)
+    for (let i = 0; i < points.length; i++) {
+      const xValueElement = legendValues[i]
+      const offset = points[i].x / xScale
+      xValueElement.style.transform = `translateX(${offset}px)`
+      if (offset - previousOffset < 150) {
+        xValueElement.hidden = true
+      } else {
+        previousOffset = offset
+        xValueElement.hidden = false
+      }
     }
   }
 
@@ -40,25 +48,7 @@ function XAxis ({
 
   function update ({ type }) {
     if (type === EVENTS.VIEW_BOX_CHANGE) {
-
-      const xScale = (viewBox.endIndex + 1 - viewBox.startIndex) / domain.length
-      shiftingContainer.style.transform = `translateX(${-1 / xScale * 768 * viewBox.startIndex / domain.length}px)`
-      let previousOffset = -Infinity
-
-      for (let i = 0; i < points.length; i++) {
-        const xValueElement = legendValues[i]
-        const offset = points[i].x / devicePixelRatio / xScale
-        // need to change it only if xScale changed
-        xValueElement.style.transform = `translateX(${offset}px)`
-        if (offset - previousOffset < 50) {
-          xValueElement.hidden = true
-        } else {
-          xValueElement.hidden = false
-          previousOffset = offset
-        }
-      }
-
-
+      reconcile()
     }
   }
 

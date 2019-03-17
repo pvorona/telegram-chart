@@ -45,15 +45,15 @@ function Graphs (parentElement, config, {
   render()
 
   parentElement.appendChild(canvasesContainer)
+  const xAxisPoints = []
+  for (let i = 0; i < config.data.total; i++) {
+    xAxisPoints.push({
+      x: width / (config.data.total - 1 - 0) * (i - 0),
+    })
+  }
   const [xAxis, updateXAxis] = XAxis({
-    // points:
     domain: config.domain,
-    points: mapDataToCoords(
-      config.data[config.graphNames[0]],
-      max,
-      { width: width * devicePixelRatio, height: height * devicePixelRatio },
-      viewBox,
-    ),
+    points: xAxisPoints,
     viewBox,
   })
 
