@@ -32,3 +32,9 @@ body.theme-dark {
   color: #A4AAB0;
   font-size: 13px;
 }
+
+.shifting-container {
+  display: flex;
+  white-space: nowrap;
+  color: #536779;
+}
