@@ -27,7 +27,8 @@ function Graphs (parentElement, config, {
     })
   )
 
-  const TRANSITION_TIME = 150
+  const viewBoxChangeTransitionDuration = 150
+  const visibilityStateChangeTransitionDuration = 250
   let cancelAnimation
   let currentAnimationTarget
 
@@ -39,6 +40,7 @@ function Graphs (parentElement, config, {
     startIndex,
     endIndex,
   }
+  let transitionDuration
 
   render()
 
@@ -47,8 +49,8 @@ function Graphs (parentElement, config, {
   return update
 
   function update (event) {
-    reconcileVisibilityState(event)
-    reconcileViewBoxState(event)
+    updateVisibilityState(event)
+    updateViewBoxState(event)
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], [])
@@ -57,7 +59,7 @@ function Graphs (parentElement, config, {
     if (state.max !== newMax && newMax !== currentAnimationTarget) {
       if (cancelAnimation) cancelAnimation()
       currentAnimationTarget = newMax
-      cancelAnimation = animate(state.max, newMax, TRANSITION_TIME, (newMax) => {
+      cancelAnimation = animate(state.max, newMax, transitionDuration, (newMax) => {
         state.max = newMax
         render()
       })
@@ -78,16 +80,18 @@ function Graphs (parentElement, config, {
     }
   }
 
-  function reconcileVisibilityState ({ type, graphName }) {
+  function updateVisibilityState ({ type, graphName }) {
     if (type === EVENTS.TOGGLE_VISIBILITY_STATE) {
       canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS)
+      transitionDuration = visibilityStateChangeTransitionDuration
     }
   }
 
-  function reconcileViewBoxState ({ type, viewBox }) {
+  function updateViewBoxState ({ type, viewBox }) {
     if (type === EVENTS.VIEW_BOX_CHANGE) {
-      if (viewBox.startIndex) state.startIndex = viewBox.startIndex
-      if (viewBox.endIndex) state.endIndex = viewBox.endIndex
+      if ('startIndex' in viewBox) state.startIndex = viewBox.startIndex
+      if ('endIndex' in viewBox) state.endIndex = viewBox.endIndex
+      transitionDuration = viewBoxChangeTransitionDuration
     }
   }
 }
