@@ -6,6 +6,7 @@ function Graphs (parentElement, config, {
   lineWidth,
   strokeStyles,
   viewBox: { startIndex, endIndex },
+  showXAxis,
 }) {
   const canvases = createCanvases(config.graphNames, {
     style: `width: ${width}px; height: ${height}px`,
@@ -45,6 +46,7 @@ function Graphs (parentElement, config, {
   render()
 
   parentElement.appendChild(canvasesContainer)
+
   const xAxisPoints = []
   for (let i = 0; i < config.data.total; i++) {
     xAxisPoints.push({
@@ -57,14 +59,16 @@ function Graphs (parentElement, config, {
     viewBox,
   })
 
-  parentElement.appendChild(xAxis)
+  if (showXAxis) {
+    parentElement.appendChild(xAxis)
+  }
 
   return update
 
   function update (event) {
     updateVisibilityState(event)
     updateViewBoxState(event)
-    updateXAxis(event)
+    if (showXAxis) { updateXAxis(event) }
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], [])

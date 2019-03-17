@@ -7,6 +7,7 @@ function Chart (chartConfig) {
     lineWidth: LINE_WIDTH,
     strokeStyles: chartConfig.colors,
     viewBox: chartConfig.renderWindow,
+    showXAxis: true,
   })
   // const [overview, updateOverview] = Framer(chartConfig, onViewBoxChange)
   const updateFrameGraphs = Framer(containerElement, chartConfig, onViewBoxChange)
