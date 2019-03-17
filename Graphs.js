@@ -42,6 +42,7 @@ function Graphs (parentElement, config, {
   }
   let max = getMaxValue(viewBox, ...arrayOfDataArrays)
   let transitionDuration
+  let shouldAnimate = false
 
   render()
 
@@ -77,10 +78,15 @@ function Graphs (parentElement, config, {
     if (max !== newMax && newMax !== currentAnimationTarget) {
       if (cancelAnimation) cancelAnimation()
       currentAnimationTarget = newMax
-      cancelAnimation = animate(max, newMax, transitionDuration, (newMax) => {
+      if (shouldAnimate) {
+        cancelAnimation = animate(max, newMax, transitionDuration, (newMax) => {
+          max = newMax
+          render()
+        })
+      } else {
         max = newMax
         render()
-      })
+      }
     } else {
       render()
     }
@@ -107,6 +113,7 @@ function Graphs (parentElement, config, {
 
   function updateViewBoxState ({ type, viewBox: newViewBox }) {
     if (type === EVENTS.VIEW_BOX_CHANGE) {
+      shouldAnimate = Math.abs(newViewBox.startIndex - viewBox.startIndex) > 1 || Math.abs(newViewBox.endIndex - viewBox.endIndex) > 1
       if ('startIndex' in newViewBox) viewBox.startIndex = newViewBox.startIndex
       if ('endIndex' in newViewBox) viewBox.endIndex = newViewBox.endIndex
       transitionDuration = viewBoxChangeTransitionDuration
