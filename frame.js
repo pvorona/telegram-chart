@@ -17,7 +17,6 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     viewBox: {
       startIndex: 0,
       endIndex: chartConfig.data.total - 1,
-      size: chartConfig.data.total,
     }
   })
   const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' })
