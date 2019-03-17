@@ -2,7 +2,7 @@
   position: absolute;
   transform: translazeZ(0);
   will-change: opacity;
-  transition: opacity .1s;
+  transition: opacity .25s;
 }
 
 .graph__layer--hidden {
