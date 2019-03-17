@@ -8,7 +8,6 @@ function Chart (chartConfig) {
     strokeStyles: chartConfig.colors,
     viewBox: chartConfig.renderWindow,
   })
-  containerElement.appendChild(XAxis(chartConfig.domain))
   // const [overview, updateOverview] = Framer(chartConfig, onViewBoxChange)
   const updateFrameGraphs = Framer(containerElement, chartConfig, onViewBoxChange)
   containerElement.appendChild(Controls(chartConfig, onButtonClick))

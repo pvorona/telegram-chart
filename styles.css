@@ -37,4 +37,9 @@ body.theme-dark {
   display: flex;
   white-space: nowrap;
   color: #536779;
+  height: 14px;
+}
+
+.legend-item-value {
+  position: absolute;
 }
