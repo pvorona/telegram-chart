@@ -75,7 +75,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     e.stopPropagation()
     e.preventDefault()
     document.body.classList.add(classes.right)
-    frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
+    frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeRightResizerListener)
     document.addEventListener('mousemove', onRightResizerMouseMove)
   }
@@ -87,7 +87,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
   }
 
   function onRightResizerMouseMove (e) {
-    const right = ensureInFrameBounds(getX(e) + frameState.cursorResizerDelta)
+    const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
     frameState.right = right < frameState.left + minimalPixelsBetweenResizers ? (frameState.left + minimalPixelsBetweenResizers) : right
     backgroundRight.style.left = `${frameState.right}px`
     framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right)}px`
