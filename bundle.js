@@ -13,28 +13,21 @@
     VIEW_BOX_CHANGE: 1,
   };
 
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const LEGEND_ITEM_CLASS = 'legend-item-value';
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
 
-  function XAxis ({
-    domain,
-    points,
-    viewBox,
-  }) {
+  function XAxis ({ points, viewBox, width }) {
     const containerElement = document.createElement('div');
-    containerElement.style.overflow = 'hidden';
-    containerElement.style.maxWidth = '768px';
-    containerElement.style.padding = '5px 0 15px';
+    containerElement.className = 'x-axis';
+    containerElement.style.width = `${width}px`;
     const shiftingContainer = document.createElement('div');
     shiftingContainer.classList.add('shifting-container');
     containerElement.appendChild(shiftingContainer);
     const legendValues = [];
 
     for (let i = 0; i < points.length; i++) {
-      const timestamp = domain[i];
       const xValueElement = document.createElement('div');
-      xValueElement.innerText = getLabelText(timestamp);
+      xValueElement.textContent = points[i].label;
       xValueElement.classList.add(LEGEND_ITEM_CLASS);
       legendValues.push(xValueElement);
       shiftingContainer.appendChild(xValueElement);
@@ -44,18 +37,19 @@
 
     function reconcile () {
       const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
-      const xScale = (viewBox.endIndex - viewBox.startIndex) / (domain.length - 1);
-      const shift = -1 / xScale * 768 * viewBox.startIndex / (domain.length - 1);
+      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
+      const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
       shiftingContainer.style.transform = `translateX(${shift}px)`;
       for (let i = 0; i < points.length; i++) {
         const xValueElement = legendValues[i];
         const offset = points[i].x / xScale;
         xValueElement.style.transform = `translateX(${offset}px)`;
+        // Performance!
         xValueElement.classList.toggle(
           LEGEND_ITEM_HIDDEN_CLASS,
           i % Math.pow(2, stepMiltiplier)
           || (offset < -1 * shift)
-          || (xValueElement.offsetWidth + offset + shift > 768)
+          || (xValueElement.offsetWidth + offset + shift > width)
         );
       }
     }
@@ -67,27 +61,21 @@
         reconcile();
       }
     }
+  }
 
-    function getLabelText (timestamp) {
-      const date = new Date(timestamp);
-      return `${MONTHS[date.getMonth()]} ${date.getDate()}`
-    }
-
-    // Not smart enough to find analytic representation for this function
-    function calculateMultiplier (size) {
-        if      (size < Math.pow(2, 3)) return 0
-        else if (size < Math.pow(2, 4)) return 1
-        else if (size < Math.pow(2, 5)) return 2
-        else if (size < Math.pow(2, 6)) return 3
-        else if (size < Math.pow(2, 7)) return 4
-        else if (size < Math.pow(2, 8)) return 5
-        else if (size < Math.pow(2, 9)) return 6
-        else if (size < Math.pow(2, 10)) return 7
-        else if (size < Math.pow(2, 11)) return 8
-        else if (size < Math.pow(2, 12)) return 9
-        else if (size < Math.pow(2, 13)) return 10
-
-    }
+  // Not smart enough to find analytic representation for this function
+  function calculateMultiplier (size) {
+      if      (size < Math.pow(2, 3)) return 0
+      else if (size < Math.pow(2, 4)) return 1
+      else if (size < Math.pow(2, 5)) return 2
+      else if (size < Math.pow(2, 6)) return 3
+      else if (size < Math.pow(2, 7)) return 4
+      else if (size < Math.pow(2, 8)) return 5
+      else if (size < Math.pow(2, 9)) return 6
+      else if (size < Math.pow(2, 10)) return 7
+      else if (size < Math.pow(2, 11)) return 8
+      else if (size < Math.pow(2, 12)) return 9
+      else if (size < Math.pow(2, 13)) return 10
   }
 
   var renderPath = canvasRenderer;
@@ -206,34 +194,12 @@
     }
   }
 
-  function createElement (type, attributes = {}, children = []) {
-    const element = document.createElement(type);
-    setElementAttributes(element, attributes);
-    children.forEach(child => element.appendChild(child));
-    return element
-  }
-
-  function validateElementAttributes (element, props) {
-    for (let prop in props) {
-      if (!(prop in element)) throw Error('No such prop')
-    }
-  }
-
-  function setElementAttributes (element, attributes) {
-    validateElementAttributes(element, attributes);
-    for (const attributeName in attributes) {
-      element[attributeName] = attributes[attributeName];
-    }
-  }
-
-  function createCanvases (graphNames, attributes) {
-    return graphNames.reduce((canvases, graphName) => ({
-      ...canvases,
-      [graphName]: createElement('canvas', attributes),
-    }), {})
-  }
-
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
+  const TRANSITION_DURATIONS = {
+    [EVENTS.VIEW_BOX_CHANGE]: 150,
+    [EVENTS.TOGGLE_VISIBILITY_STATE]: 250,
+  };
 
   function Graphs (config, {
     width,
@@ -244,21 +210,29 @@
     showXAxis,
   }) {
     const fragment = document.createDocumentFragment();
-    const canvases = createCanvases(config.graphNames, {
-      style: `width: ${width}px; height: ${height}px`,
-      width: width * devicePixelRatio,
-      height: height * devicePixelRatio,
-      className: 'graph__layer',
-    });
-    const canvasesContainer = createElement('div', {
-      style: `width: ${width}px; height: ${height}px`,
-    }, Object.values(canvases));
+    const canvasesContainer = document.createElement('div');
+    canvasesContainer.style.width = `${width}px`;
+    canvasesContainer.style.height = `${height}px`;
+
+    const canvases = {};
+    for (const graphName of config.graphNames) {
+      const canvas = document.createElement('canvas');
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      canvas.width = width * devicePixelRatio;
+      canvas.height = height * devicePixelRatio;
+      canvas.className = 'graph__layer';
+      canvases[graphName] = canvas;
+      canvasesContainer.appendChild(canvas);
+    }
+
     fragment.appendChild(canvasesContainer);
 
     const contexts = config.graphNames.reduce((contexts, graphName) => ({
       ...contexts,
       [graphName]: canvases[graphName].getContext('2d'),
     }), {});
+
     config.graphNames.forEach(graphName =>
       Object.assign(contexts[graphName], {
         strokeStyle: strokeStyles[graphName],
@@ -266,38 +240,29 @@
       })
     );
 
-    const viewBoxChangeTransitionDuration = 150;
-    const visibilityStateChangeTransitionDuration = 250;
     let cancelAnimation;
     let currentAnimationTarget;
-
-    const arrayOfDataArrays = config.graphNames.reduce(
-      (reduced, graphName) => [...reduced, config.data[graphName]], []
-    );
     const viewBox = {
       startIndex,
       endIndex,
     };
-    let max = getMaxValue(viewBox, ...arrayOfDataArrays);
+    let max = getMaxValue(viewBox, ...config.graphNames.reduce(
+      (reduced, graphName) => [...reduced, config.data[graphName]], []
+    ));
     let transitionDuration;
-
-    render();
-
-    const xAxisPoints = [];
-    for (let i = 0; i < config.data.total; i++) {
-      xAxisPoints.push({
-        x: width / (config.data.total - 1 - 0) * (i - 0),
-      });
-    }
-    const [xAxis, updateXAxis] = XAxis({
-      domain: config.domain,
-      points: xAxisPoints,
-      viewBox,
-    });
+    let xAxis;
+    let updateXAxis;
 
     if (showXAxis) {
+      [xAxis, updateXAxis] = XAxis({
+        points: getXAxisPoints(),
+        viewBox,
+        width,
+      });
       fragment.appendChild(xAxis);
     }
+
+    render();
 
     return [fragment, update]
 
@@ -337,16 +302,47 @@
     function updateVisibilityState ({ type, graphName }) {
       if (type === EVENTS.TOGGLE_VISIBILITY_STATE) {
         canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS);
-        transitionDuration = visibilityStateChangeTransitionDuration;
+        transitionDuration = TRANSITION_DURATIONS[type];
       }
     }
 
     function updateViewBoxState ({ type, viewBox: newViewBox }) {
       if (type === EVENTS.VIEW_BOX_CHANGE) {
-        if ('startIndex' in newViewBox) viewBox.startIndex = newViewBox.startIndex;
-        if ('endIndex' in newViewBox) viewBox.endIndex = newViewBox.endIndex;
-        transitionDuration = viewBoxChangeTransitionDuration;
+        Object.assign(viewBox, newViewBox);
+        transitionDuration = TRANSITION_DURATIONS[type];
       }
+    }
+
+    function getXAxisPoints () {
+      return config.domain.map((timestamp, index) => ({
+        x: width / (config.domain.length - 1) * index,
+        label: getLabelText(timestamp)
+      }))
+    }
+  }
+
+  function getLabelText (timestamp) {
+    const date = new Date(timestamp);
+    return `${MONTHS[date.getMonth()]} ${date.getDate()}`
+  }
+
+  function createElement (type, attributes = {}, children = []) {
+    const element = document.createElement(type);
+    setElementAttributes(element, attributes);
+    children.forEach(child => element.appendChild(child));
+    return element
+  }
+
+  function validateElementAttributes (element, props) {
+    for (let prop in props) {
+      if (!(prop in element)) throw Error('No such prop')
+    }
+  }
+
+  function setElementAttributes (element, attributes) {
+    validateElementAttributes(element, attributes);
+    for (const attributeName in attributes) {
+      element[attributeName] = attributes[attributeName];
     }
   }
 

@@ -17,10 +17,3 @@ function setElementAttributes (element, attributes) {
     element[attributeName] = attributes[attributeName]
   }
 }
-
-export function createCanvases (graphNames, attributes) {
-  return graphNames.reduce((canvases, graphName) => ({
-    ...canvases,
-    [graphName]: createElement('canvas', attributes),
-  }), {})
-}

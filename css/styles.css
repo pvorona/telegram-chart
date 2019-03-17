@@ -46,3 +46,8 @@ body.theme-dark {
 .legend-item-value--hidden {
   opacity: 0;
 }
+
+.x-axis {
+  overflow: hidden;
+  padding: 5px 0 15px;
+}

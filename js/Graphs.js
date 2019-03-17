@@ -2,9 +2,13 @@ import { XAxis } from './XAxis'
 import { renderPath } from './canvas-renderer'
 import { EVENTS } from './constants'
 import { getMaxValue, clearCanvas, mapDataToCoords, animate } from './util'
-import { createCanvases, createElement } from './html'
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
+const TRANSITION_DURATIONS = {
+  [EVENTS.VIEW_BOX_CHANGE]: 150,
+  [EVENTS.TOGGLE_VISIBILITY_STATE]: 250,
+}
 
 export function Graphs (config, {
   width,
@@ -15,21 +19,29 @@ export function Graphs (config, {
   showXAxis,
 }) {
   const fragment = document.createDocumentFragment()
-  const canvases = createCanvases(config.graphNames, {
-    style: `width: ${width}px; height: ${height}px`,
-    width: width * devicePixelRatio,
-    height: height * devicePixelRatio,
-    className: 'graph__layer',
-  })
-  const canvasesContainer = createElement('div', {
-    style: `width: ${width}px; height: ${height}px`,
-  }, Object.values(canvases))
+  const canvasesContainer = document.createElement('div')
+  canvasesContainer.style.width = `${width}px`
+  canvasesContainer.style.height = `${height}px`
+
+  const canvases = {}
+  for (const graphName of config.graphNames) {
+    const canvas = document.createElement('canvas')
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+    canvas.width = width * devicePixelRatio
+    canvas.height = height * devicePixelRatio
+    canvas.className = 'graph__layer'
+    canvases[graphName] = canvas
+    canvasesContainer.appendChild(canvas)
+  }
+
   fragment.appendChild(canvasesContainer)
 
   const contexts = config.graphNames.reduce((contexts, graphName) => ({
     ...contexts,
     [graphName]: canvases[graphName].getContext('2d'),
   }), {})
+
   config.graphNames.forEach(graphName =>
     Object.assign(contexts[graphName], {
       strokeStyle: strokeStyles[graphName],
@@ -37,38 +49,29 @@ export function Graphs (config, {
     })
   )
 
-  const viewBoxChangeTransitionDuration = 150
-  const visibilityStateChangeTransitionDuration = 250
   let cancelAnimation
   let currentAnimationTarget
-
-  const arrayOfDataArrays = config.graphNames.reduce(
-    (reduced, graphName) => [...reduced, config.data[graphName]], []
-  )
   const viewBox = {
     startIndex,
     endIndex,
   }
-  let max = getMaxValue(viewBox, ...arrayOfDataArrays)
+  let max = getMaxValue(viewBox, ...config.graphNames.reduce(
+    (reduced, graphName) => [...reduced, config.data[graphName]], []
+  ))
   let transitionDuration
-
-  render()
-
-  const xAxisPoints = []
-  for (let i = 0; i < config.data.total; i++) {
-    xAxisPoints.push({
-      x: width / (config.data.total - 1 - 0) * (i - 0),
-    })
-  }
-  const [xAxis, updateXAxis] = XAxis({
-    domain: config.domain,
-    points: xAxisPoints,
-    viewBox,
-  })
+  let xAxis
+  let updateXAxis
 
   if (showXAxis) {
+    [xAxis, updateXAxis] = XAxis({
+      points: getXAxisPoints(),
+      viewBox,
+      width,
+    })
     fragment.appendChild(xAxis)
   }
+
+  render()
 
   return [fragment, update]
 
@@ -108,15 +111,26 @@ export function Graphs (config, {
   function updateVisibilityState ({ type, graphName }) {
     if (type === EVENTS.TOGGLE_VISIBILITY_STATE) {
       canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS)
-      transitionDuration = visibilityStateChangeTransitionDuration
+      transitionDuration = TRANSITION_DURATIONS[type]
     }
   }
 
   function updateViewBoxState ({ type, viewBox: newViewBox }) {
     if (type === EVENTS.VIEW_BOX_CHANGE) {
-      if ('startIndex' in newViewBox) viewBox.startIndex = newViewBox.startIndex
-      if ('endIndex' in newViewBox) viewBox.endIndex = newViewBox.endIndex
-      transitionDuration = viewBoxChangeTransitionDuration
+      Object.assign(viewBox, newViewBox)
+      transitionDuration = TRANSITION_DURATIONS[type]
     }
   }
+
+  function getXAxisPoints () {
+    return config.domain.map((timestamp, index) => ({
+      x: width / (config.domain.length - 1) * index,
+      label: getLabelText(timestamp)
+    }))
+  }
+}
+
+function getLabelText (timestamp) {
+  const date = new Date(timestamp)
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}`
 }
