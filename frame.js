@@ -17,6 +17,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     viewBox: {
       startIndex: 0,
       endIndex: chartConfig.data.total - 1,
+      size: chartConfig.data.total,
     }
   })
   const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' })
@@ -29,8 +30,8 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
   frameContainer.appendChild(framer)
 
   const frameState = {
-    left: chartConfig.renderWindow.startIndex / (chartConfig.data.total) * FRAME_CANVAS_WIDTH,
-    right: FRAME_CANVAS_WIDTH - resizerWidthPixels,
+    left: chartConfig.renderWindow.startIndex / (chartConfig.data.total - 1) * FRAME_CANVAS_WIDTH,
+    right: FRAME_CANVAS_WIDTH,
     cursorResizerDelta: 0,
     cursorFramerDelta: 0,
   }
@@ -48,6 +49,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
 
   function onLeftResizerMouseDown (e) {
     e.stopPropagation()
+    e.preventDefault()
     document.body.classList.add(classes.left)
     frameState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeLeftResizerListener)
@@ -65,14 +67,15 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     frameState.left = left > frameState.right - minimalPixelsBetweenResizers ? (frameState.right - minimalPixelsBetweenResizers) : left
     backgroundLeft.style.width = `${frameState.left}px`
     framer.style.left = `${frameState.left}px`
-    const startIndex = frameState.left / FRAME_CANVAS_WIDTH * chartConfig.data.total
+    const startIndex = frameState.left / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
     onViewBoxChange({ startIndex })
   }
 
   function onRightResizerMouseDown (e) {
     e.stopPropagation()
+    e.preventDefault()
     document.body.classList.add(classes.right)
-    frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
+    frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left),
     document.addEventListener('mouseup', removeRightResizerListener)
     document.addEventListener('mousemove', onRightResizerMouseMove)
   }
@@ -86,9 +89,9 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
   function onRightResizerMouseMove (e) {
     const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
     frameState.right = right < frameState.left + minimalPixelsBetweenResizers ? (frameState.left + minimalPixelsBetweenResizers) : right
-    backgroundRight.style.left = `${frameState.right + resizerWidthPixels}px`
-    framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right + resizerWidthPixels)}px`
-    const endIndex = (frameState.right + resizerWidthPixels) / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    backgroundRight.style.left = `${frameState.right}px`
+    framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right)}px`
+    const endIndex = (frameState.right) / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
     onViewBoxChange({ endIndex })
   }
 
@@ -98,7 +101,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
   }
 
   function ensureInFrameBounds (x) {
-    if (x > FRAME_CANVAS_WIDTH - resizerWidthPixels) return FRAME_CANVAS_WIDTH - resizerWidthPixels
+    if (x > FRAME_CANVAS_WIDTH) return FRAME_CANVAS_WIDTH
     if (x < 0) return 0
     return x
   }
@@ -123,18 +126,19 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     const nextLeft = getX(e) - frameState.cursorFramerDelta
     if (nextLeft < 0) {
       frameState.left = 0
-    } else if (nextLeft + width > FRAME_CANVAS_WIDTH - resizerWidthPixels) {
-      frameState.left = FRAME_CANVAS_WIDTH - width - resizerWidthPixels
+    } else if (nextLeft > FRAME_CANVAS_WIDTH - width) {
+      frameState.left = FRAME_CANVAS_WIDTH - width
     } else {
       frameState.left = nextLeft
     }
     frameState.right = frameState.left + width
     framer.style.left = `${frameState.left}px`
-    framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right + resizerWidthPixels)}px`
+    framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right)}px`
     backgroundLeft.style.width = `${frameState.left}px`
-    backgroundRight.style.left = `${frameState.right + resizerWidthPixels}px`
-    const startIndex = frameState.left / FRAME_CANVAS_WIDTH * chartConfig.data.total
-    const endIndex = (frameState.right + resizerWidthPixels) / (FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1)
+    backgroundRight.style.left = `${frameState.right}px`
+    const startIndex = frameState.left / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    const endIndex = (frameState.right) / (FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1)
+    // console.log(frameState.right / endIndex)
     onViewBoxChange({ startIndex, endIndex })
   }
 }

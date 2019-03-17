@@ -6,6 +6,7 @@ function Graphs (parentElement, config, {
   lineWidth,
   strokeStyles,
   viewBox: { startIndex, endIndex },
+  showXAxis,
 }) {
   const canvases = createCanvases(config.graphNames, {
     style: `width: ${width}px; height: ${height}px`,
@@ -35,32 +36,49 @@ function Graphs (parentElement, config, {
   const arrayOfDataArrays = config.graphNames.reduce(
     (reduced, graphName) => [...reduced, config.data[graphName]], []
   )
-  const state = {
-    max: getMaxValue(config.renderWindow, ...arrayOfDataArrays),
+  const viewBox = {
     startIndex,
     endIndex,
   }
+  let max = getMaxValue(viewBox, ...arrayOfDataArrays)
   let transitionDuration
 
   render()
 
   parentElement.appendChild(canvasesContainer)
 
+  const xAxisPoints = []
+  for (let i = 0; i < config.data.total; i++) {
+    xAxisPoints.push({
+      x: width / (config.data.total - 1 - 0) * (i - 0),
+    })
+  }
+  const [xAxis, updateXAxis] = XAxis({
+    domain: config.domain,
+    points: xAxisPoints,
+    viewBox,
+  })
+
+  if (showXAxis) {
+    parentElement.appendChild(xAxis)
+  }
+
   return update
 
   function update (event) {
     updateVisibilityState(event)
     updateViewBoxState(event)
+    if (showXAxis) { updateXAxis(event) }
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], [])
-    const newMax = getMaxValue(state, ...arrayOfDataArrays)
+    const newMax = getMaxValue(viewBox, ...arrayOfDataArrays)
     // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
-    if (state.max !== newMax && newMax !== currentAnimationTarget) {
+    if (max !== newMax && newMax !== currentAnimationTarget) {
       if (cancelAnimation) cancelAnimation()
       currentAnimationTarget = newMax
-      cancelAnimation = animate(state.max, newMax, transitionDuration, (newMax) => {
-        state.max = newMax
+      cancelAnimation = animate(max, newMax, transitionDuration, (newMax) => {
+        max = newMax
         render()
       })
     } else {
@@ -74,7 +92,7 @@ function Graphs (parentElement, config, {
     for (const graphName of config.graphNames) {
       clearCanvas(contexts[graphName], canvases[graphName])
       renderPath(
-        mapDataToCoords(config.data[graphName], state.max, canvases[graphName], state),
+        mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
         contexts[graphName],
       )
     }
@@ -87,10 +105,10 @@ function Graphs (parentElement, config, {
     }
   }
 
-  function updateViewBoxState ({ type, viewBox }) {
+  function updateViewBoxState ({ type, viewBox: newViewBox }) {
     if (type === EVENTS.VIEW_BOX_CHANGE) {
-      if ('startIndex' in viewBox) state.startIndex = viewBox.startIndex
-      if ('endIndex' in viewBox) state.endIndex = viewBox.endIndex
+      if ('startIndex' in newViewBox) viewBox.startIndex = newViewBox.startIndex
+      if ('endIndex' in newViewBox) viewBox.endIndex = newViewBox.endIndex
       transitionDuration = viewBoxChangeTransitionDuration
     }
   }
