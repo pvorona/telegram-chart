@@ -36,10 +36,24 @@ body.theme-dark {
 .shifting-container {
   display: flex;
   white-space: nowrap;
-  color: #536779;
   height: 14px;
+  transition: color .3s ease-in-out;
+}
+
+.theme-light .shifting-container {
+  color: #536779;
+}
+
+.theme-dark .shifting-container {
+  color: #96A2AA;
 }
 
 .legend-item-value {
   position: absolute;
+  transition: opacity .25s;
+  will-change: opacity;
+}
+
+.legend-item-value--hidden {
+  opacity: 0;
 }
