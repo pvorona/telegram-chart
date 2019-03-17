@@ -10,7 +10,9 @@ export function XAxis ({
   viewBox,
 }) {
   const containerElement = document.createElement('div')
-  containerElement.style = 'overflow:hidden;max-width: 768px;padding: 5px 0 15px;'
+  containerElement.style.overflow = 'hidden'
+  containerElement.style.maxWidth = '768px'
+  containerElement.style.padding = '5px 0 15px'
   const shiftingContainer = document.createElement('div')
   shiftingContainer.classList.add('shifting-container')
   containerElement.appendChild(shiftingContainer)

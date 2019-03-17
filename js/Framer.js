@@ -12,7 +12,7 @@ const classes = {
 export function Framer (parentElement, chartConfig, onViewBoxChange) {
   const frameContainer = document.createElement('div')
   frameContainer.classList.add('overview')
-  const updateFrameGraphs = Graphs(frameContainer, chartConfig, {
+  const [graphs, updateFrameGraphs] = Graphs(chartConfig, {
     width: chartConfig.FRAME_CANVAS_WIDTH,
     height: chartConfig.FRAME_CANVAS_HEIGHT,
     strokeStyles: chartConfig.colors,
@@ -22,6 +22,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange) {
       endIndex: chartConfig.data.total - 1,
     }
   })
+  frameContainer.appendChild(graphs)
   const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' })
   const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' })
   const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' })

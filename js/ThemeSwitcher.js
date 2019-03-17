@@ -1,29 +1,30 @@
-const MODES = {
-  LIGHT: 'LIGHT',
-  DARK: 'DARK',
+const THEMES = {
+  LIGHT: 0,
+  DARK: 1,
 }
 
 const label = {
-  [MODES.LIGHT]: 'Switch to Night Mode',
-  [MODES.DARK]: 'Switch to Day Mode',
+  [THEMES.LIGHT]: 'Switch to Night Mode',
+  [THEMES.DARK]: 'Switch to Day Mode',
 }
 
 const classNames = {
-  [MODES.LIGHT]: 'theme-light',
-  [MODES.DARK]: 'theme-dark',
+  [THEMES.LIGHT]: 'theme-light',
+  [THEMES.DARK]: 'theme-dark',
 }
 
-export function ThemeSwitcher () {
-  let mode = MODES.LIGHT
+export function ThemeSwitcher (initialTheme) {
+  let theme = initialTheme
 
   const button = document.createElement('button')
-  button.innerText = label[mode]
+  button.innerText = label[theme]
   button.classList.add('theme-switcher')
   button.addEventListener('click', function () {
-    document.body.classList.remove(classNames[mode])
-    mode = mode === MODES.LIGHT ? MODES.DARK : MODES.LIGHT
-    button.innerText = label[mode]
-    document.body.classList.add(classNames[mode])
+    document.body.classList.remove(classNames[theme])
+    theme = theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT
+    button.innerText = label[theme]
+    document.body.classList.add(classNames[theme])
   })
-  document.body.appendChild(button)
+
+  return button
 }

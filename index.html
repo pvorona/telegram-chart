@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="./css/overview-viewbox.css">
   <link rel="stylesheet" href="./css/checkbox-button.css">
 </head>
-<body class="theme-light">
+<body class="theme-dark">
     <!--   <div class="container">
     <div class="vertical-legend">
       <div class="vertical-legend__item">1</div>
@@ -28,13 +28,6 @@
   <script type="text/javascript" src="./chart_data.js"></script>
   <script type="text/javascript" src="./bundle.js"></script>
   <script>
-    const { ThemeSwitcher, createChartConfig, Chart } = foo
-    const LEGEND_FONT_SIZE = 13
-    const LEGEND_PADDING = 5
-    ThemeSwitcher()
-    // 1/3, 1/2, 1/3, 1/3, 1/2
-    // Chart(createChartConfig(chartData[0]))
-    chartData.forEach(data => Chart(createChartConfig(data)))
 
     // O(1)
     // function renderLattice (numberOfLines) {
@@ -60,8 +53,6 @@
     //     legendItems[i].style = `top: ${geometry.height - screenStep * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
     //   }
     // }
-
-    // function renderHorizontalLegend () {}
   </script>
 </body>
 </html>

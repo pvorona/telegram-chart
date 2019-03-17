@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "bundle.js",
   "scripts": {
-    "build": "rollup ./js/index.js --file bundle.js --format iife --name foo"
+    "build": "rollup ./app.js --file bundle.js --format iife"
   },
   "devDependencies": {
     "rollup": "^1.6.0"

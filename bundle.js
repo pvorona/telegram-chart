@@ -1,16 +1,16 @@
-var foo = (function (exports) {
+(function () {
   'use strict';
 
   function Title (title) {
     const element = document.createElement('div');
     element.classList.add('title');
-    element.innerText = title;
+    element.textContent = title;
     return element
   }
 
   const EVENTS = {
-    TOGGLE_VISIBILITY_STATE: 'TOGGLE_VISIBILITY_STATE',
-    VIEW_BOX_CHANGE: 'VIEW_BOX_CHANGE',
+    TOGGLE_VISIBILITY_STATE: 0,
+    VIEW_BOX_CHANGE: 1,
   };
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -23,7 +23,9 @@ var foo = (function (exports) {
     viewBox,
   }) {
     const containerElement = document.createElement('div');
-    containerElement.style = 'overflow:hidden;max-width: 768px;padding: 5px 0 15px;';
+    containerElement.style.overflow = 'hidden';
+    containerElement.style.maxWidth = '768px';
+    containerElement.style.padding = '5px 0 15px';
     const shiftingContainer = document.createElement('div');
     shiftingContainer.classList.add('shifting-container');
     containerElement.appendChild(shiftingContainer);
@@ -90,15 +92,15 @@ var foo = (function (exports) {
 
   var renderPath = canvasRenderer;
 
-  function canvasRenderer (points, targetContext) {
-    targetContext.beginPath();
+  function canvasRenderer (points, context) {
+    context.beginPath();
 
     for (let i = 0; i < points.length; i++) {
       const { x, y } = points[i];
-      targetContext.lineTo(x, y);
+      context.lineTo(x, y);
     }
 
-    targetContext.stroke();
+    context.stroke();
   }
 
   function findMaxElement (values, { startIndex, endIndex }) {
@@ -233,7 +235,7 @@ var foo = (function (exports) {
 
   const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
 
-  function Graphs (parentElement, config, {
+  function Graphs (config, {
     width,
     height,
     lineWidth,
@@ -241,6 +243,7 @@ var foo = (function (exports) {
     viewBox: { startIndex, endIndex },
     showXAxis,
   }) {
+    const fragment = document.createDocumentFragment();
     const canvases = createCanvases(config.graphNames, {
       style: `width: ${width}px; height: ${height}px`,
       width: width * devicePixelRatio,
@@ -250,6 +253,8 @@ var foo = (function (exports) {
     const canvasesContainer = createElement('div', {
       style: `width: ${width}px; height: ${height}px`,
     }, Object.values(canvases));
+    fragment.appendChild(canvasesContainer);
+
     const contexts = config.graphNames.reduce((contexts, graphName) => ({
       ...contexts,
       [graphName]: canvases[graphName].getContext('2d'),
@@ -278,8 +283,6 @@ var foo = (function (exports) {
 
     render();
 
-    parentElement.appendChild(canvasesContainer);
-
     const xAxisPoints = [];
     for (let i = 0; i < config.data.total; i++) {
       xAxisPoints.push({
@@ -293,10 +296,10 @@ var foo = (function (exports) {
     });
 
     if (showXAxis) {
-      parentElement.appendChild(xAxis);
+      fragment.appendChild(xAxis);
     }
 
-    return update
+    return [fragment, update]
 
     function update (event) {
       updateVisibilityState(event);
@@ -357,7 +360,7 @@ var foo = (function (exports) {
   function Framer (parentElement, chartConfig, onViewBoxChange) {
     const frameContainer = document.createElement('div');
     frameContainer.classList.add('overview');
-    const updateFrameGraphs = Graphs(frameContainer, chartConfig, {
+    const [graphs, updateFrameGraphs] = Graphs(chartConfig, {
       width: chartConfig.FRAME_CANVAS_WIDTH,
       height: chartConfig.FRAME_CANVAS_HEIGHT,
       strokeStyles: chartConfig.colors,
@@ -367,6 +370,7 @@ var foo = (function (exports) {
         endIndex: chartConfig.data.total - 1,
       }
     });
+    frameContainer.appendChild(graphs);
     const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' });
     const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' });
     const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' });
@@ -509,7 +513,7 @@ var foo = (function (exports) {
   function Chart (chartConfig) {
     const containerElement = document.createElement('div');
     containerElement.appendChild(Title('Followers'));
-    const updateGraphs = Graphs(containerElement, chartConfig, {
+    const [graphs, updateGraphs] = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
       lineWidth: chartConfig.lineWidth,
@@ -517,6 +521,7 @@ var foo = (function (exports) {
       viewBox: chartConfig.renderWindow,
       showXAxis: true,
     });
+    containerElement.appendChild(graphs);
     // const [overview, updateOverview] = Framer(chartConfig, onViewBoxChange)
     const updateFrameGraphs = Framer(containerElement, chartConfig, onViewBoxChange);
     containerElement.appendChild(Controls(chartConfig, onButtonClick));
@@ -543,34 +548,35 @@ var foo = (function (exports) {
 
   }
 
-  const MODES = {
-    LIGHT: 'LIGHT',
-    DARK: 'DARK',
+  const THEMES = {
+    LIGHT: 0,
+    DARK: 1,
   };
 
   const label = {
-    [MODES.LIGHT]: 'Switch to Night Mode',
-    [MODES.DARK]: 'Switch to Day Mode',
+    [THEMES.LIGHT]: 'Switch to Night Mode',
+    [THEMES.DARK]: 'Switch to Day Mode',
   };
 
   const classNames = {
-    [MODES.LIGHT]: 'theme-light',
-    [MODES.DARK]: 'theme-dark',
+    [THEMES.LIGHT]: 'theme-light',
+    [THEMES.DARK]: 'theme-dark',
   };
 
-  function ThemeSwitcher () {
-    let mode = MODES.LIGHT;
+  function ThemeSwitcher (initialTheme) {
+    let theme = initialTheme;
 
     const button = document.createElement('button');
-    button.innerText = label[mode];
+    button.innerText = label[theme];
     button.classList.add('theme-switcher');
     button.addEventListener('click', function () {
-      document.body.classList.remove(classNames[mode]);
-      mode = mode === MODES.LIGHT ? MODES.DARK : MODES.LIGHT;
-      button.innerText = label[mode];
-      document.body.classList.add(classNames[mode]);
+      document.body.classList.remove(classNames[theme]);
+      theme = theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
+      button.innerText = label[theme];
+      document.body.classList.add(classNames[theme]);
     });
-    document.body.appendChild(button);
+
+    return button
   }
 
   const LINE_WIDTH = 2;
@@ -618,23 +624,10 @@ var foo = (function (exports) {
     }
   }
 
-  // <script type="text/javascript" src="./js/constants.js"></script>
-  // <script type="text/javascript" src="./js/util.js"></script>
-  // <script type="text/javascript" src="./js/html.js"></script>
-  // <script type="text/javascript" src="./js/title.js"></script>
-  // <script type="text/javascript" src="./js/x-axis.js"></script>
-  // <script type="text/javascript" src="./js/create-config.js"></script>
-  // <script type="text/javascript" src="./js/canvas-renderer.js"></script>
-  // <script type="text/javascript" src="./js/Graphs.js"></script>
-  // <script type="text/javascript" src="./js/frame.js"></script>
-  // <script type="text/javascript" src="./js/controls.js"></script>
-  // <script type="text/javascript" src="./js/ThemeSwitcher.js"></script>
-  // <script type="text/javascript" src="./js/chart.js"></script>
+  document.body.appendChild(ThemeSwitcher(1));
 
-  exports.Chart = Chart;
-  exports.ThemeSwitcher = ThemeSwitcher;
-  exports.createChartConfig = createChartConfig;
+  // 1/3, 1/2, 1/3, 1/3, 1/2
+  // Chart(createChartConfig(chartData[0]))
+  chartData.forEach(data => Chart(createChartConfig(data)));
 
-  return exports;
-
-}({}));
+}());

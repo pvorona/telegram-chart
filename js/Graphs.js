@@ -6,7 +6,7 @@ import { createCanvases, createElement } from './html'
 
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
 
-export function Graphs (parentElement, config, {
+export function Graphs (config, {
   width,
   height,
   lineWidth,
@@ -14,6 +14,7 @@ export function Graphs (parentElement, config, {
   viewBox: { startIndex, endIndex },
   showXAxis,
 }) {
+  const fragment = document.createDocumentFragment()
   const canvases = createCanvases(config.graphNames, {
     style: `width: ${width}px; height: ${height}px`,
     width: width * devicePixelRatio,
@@ -23,6 +24,8 @@ export function Graphs (parentElement, config, {
   const canvasesContainer = createElement('div', {
     style: `width: ${width}px; height: ${height}px`,
   }, Object.values(canvases))
+  fragment.appendChild(canvasesContainer)
+
   const contexts = config.graphNames.reduce((contexts, graphName) => ({
     ...contexts,
     [graphName]: canvases[graphName].getContext('2d'),
@@ -51,8 +54,6 @@ export function Graphs (parentElement, config, {
 
   render()
 
-  parentElement.appendChild(canvasesContainer)
-
   const xAxisPoints = []
   for (let i = 0; i < config.data.total; i++) {
     xAxisPoints.push({
@@ -66,10 +67,10 @@ export function Graphs (parentElement, config, {
   })
 
   if (showXAxis) {
-    parentElement.appendChild(xAxis)
+    fragment.appendChild(xAxis)
   }
 
-  return update
+  return [fragment, update]
 
   function update (event) {
     updateVisibilityState(event)

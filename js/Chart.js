@@ -7,7 +7,7 @@ import { EVENTS } from './constants'
 export function Chart (chartConfig) {
   const containerElement = document.createElement('div')
   containerElement.appendChild(Title('Followers'))
-  const updateGraphs = Graphs(containerElement, chartConfig, {
+  const [graphs, updateGraphs] = Graphs(chartConfig, {
     width: chartConfig.width,
     height: chartConfig.height,
     lineWidth: chartConfig.lineWidth,
@@ -15,6 +15,7 @@ export function Chart (chartConfig) {
     viewBox: chartConfig.renderWindow,
     showXAxis: true,
   })
+  containerElement.appendChild(graphs)
   // const [overview, updateOverview] = Framer(chartConfig, onViewBoxChange)
   const updateFrameGraphs = Framer(containerElement, chartConfig, onViewBoxChange)
   containerElement.appendChild(Controls(chartConfig, onButtonClick))
