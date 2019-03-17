@@ -22,17 +22,6 @@ body.theme-dark {
   font-size: 13px;
 }
 
-.horizontal-legend {
-  position: absolute;
-  bottom: 0;
-}
-
-.horizontal-legend__item {
-  position: absolute;
-  color: #A4AAB0;
-  font-size: 13px;
-}
-
 .shifting-container {
   display: flex;
   white-space: nowrap;

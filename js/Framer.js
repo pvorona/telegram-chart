@@ -1,3 +1,6 @@
+import { Graphs } from './Graphs'
+import { createElement } from './html'
+
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40
 const classes = {
@@ -6,14 +9,14 @@ const classes = {
   grabbing: 'cursor-grabbing',
 }
 
-function Framer (parentElement, chartConfig, onViewBoxChange) {
+export function Framer (parentElement, chartConfig, onViewBoxChange) {
   const frameContainer = document.createElement('div')
   frameContainer.classList.add('overview')
   const updateFrameGraphs = Graphs(frameContainer, chartConfig, {
-    width: FRAME_CANVAS_WIDTH,
-    height: FRAME_CANVAS_HEIGHT,
+    width: chartConfig.FRAME_CANVAS_WIDTH,
+    height: chartConfig.FRAME_CANVAS_HEIGHT,
     strokeStyles: chartConfig.colors,
-    lineWidth: FRAME_LINE_WIDTH,
+    lineWidth: chartConfig.FRAME_LINE_WIDTH,
     viewBox: {
       startIndex: 0,
       endIndex: chartConfig.data.total - 1,
@@ -29,8 +32,8 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
   frameContainer.appendChild(framer)
 
   const frameState = {
-    left: chartConfig.renderWindow.startIndex / (chartConfig.data.total - 1) * FRAME_CANVAS_WIDTH,
-    right: FRAME_CANVAS_WIDTH,
+    left: chartConfig.renderWindow.startIndex / (chartConfig.data.total - 1) * chartConfig.FRAME_CANVAS_WIDTH,
+    right: chartConfig.FRAME_CANVAS_WIDTH,
     cursorResizerDelta: 0,
     cursorFramerDelta: 0,
   }
@@ -66,7 +69,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     frameState.left = left > frameState.right - minimalPixelsBetweenResizers ? (frameState.right - minimalPixelsBetweenResizers) : left
     backgroundLeft.style.width = `${frameState.left}px`
     framer.style.left = `${frameState.left}px`
-    const startIndex = frameState.left / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
     onViewBoxChange({ startIndex })
   }
 
@@ -89,8 +92,8 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta)
     frameState.right = right < frameState.left + minimalPixelsBetweenResizers ? (frameState.left + minimalPixelsBetweenResizers) : right
     backgroundRight.style.left = `${frameState.right}px`
-    framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right)}px`
-    const endIndex = (frameState.right) / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    framer.style.right = `${chartConfig.FRAME_CANVAS_WIDTH - (frameState.right)}px`
+    const endIndex = (frameState.right) / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
     onViewBoxChange({ endIndex })
   }
 
@@ -100,7 +103,7 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
   }
 
   function ensureInFrameBounds (x) {
-    if (x > FRAME_CANVAS_WIDTH) return FRAME_CANVAS_WIDTH
+    if (x > chartConfig.FRAME_CANVAS_WIDTH) return chartConfig.FRAME_CANVAS_WIDTH
     if (x < 0) return 0
     return x
   }
@@ -125,18 +128,18 @@ function Framer (parentElement, chartConfig, onViewBoxChange) {
     const nextLeft = getX(e) - frameState.cursorFramerDelta
     if (nextLeft < 0) {
       frameState.left = 0
-    } else if (nextLeft > FRAME_CANVAS_WIDTH - width) {
-      frameState.left = FRAME_CANVAS_WIDTH - width
+    } else if (nextLeft > chartConfig.FRAME_CANVAS_WIDTH - width) {
+      frameState.left = chartConfig.FRAME_CANVAS_WIDTH - width
     } else {
       frameState.left = nextLeft
     }
     frameState.right = frameState.left + width
     framer.style.left = `${frameState.left}px`
-    framer.style.right = `${FRAME_CANVAS_WIDTH - (frameState.right)}px`
+    framer.style.right = `${chartConfig.FRAME_CANVAS_WIDTH - (frameState.right)}px`
     backgroundLeft.style.width = `${frameState.left}px`
     backgroundRight.style.left = `${frameState.right}px`
-    const startIndex = frameState.left / FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
-    const endIndex = (frameState.right) / (FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1)
+    const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    const endIndex = (frameState.right) / (chartConfig.FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1)
     // console.log(frameState.right / endIndex)
     onViewBoxChange({ startIndex, endIndex })
   }

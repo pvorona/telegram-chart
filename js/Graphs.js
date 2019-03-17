@@ -1,6 +1,12 @@
+import { XAxis } from './XAxis'
+import { renderPath } from './canvas-renderer'
+import { EVENTS } from './constants'
+import { getMaxValue, clearCanvas, mapDataToCoords, animate } from './util'
+import { createCanvases, createElement } from './html'
+
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
 
-function Graphs (parentElement, config, {
+export function Graphs (parentElement, config, {
   width,
   height,
   lineWidth,

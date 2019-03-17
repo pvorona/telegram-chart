@@ -1,10 +1,16 @@
-function Chart (chartConfig) {
+import { Title } from './Title'
+import { Graphs } from './Graphs'
+import { Framer } from './Framer'
+import { Controls } from './Controls'
+import { EVENTS } from './constants'
+
+export function Chart (chartConfig) {
   const containerElement = document.createElement('div')
   containerElement.appendChild(Title('Followers'))
   const updateGraphs = Graphs(containerElement, chartConfig, {
-    width: CANVAS_WIDTH,
-    height: CANVAS_HEIGHT,
-    lineWidth: LINE_WIDTH,
+    width: chartConfig.width,
+    height: chartConfig.height,
+    lineWidth: chartConfig.lineWidth,
     strokeStyles: chartConfig.colors,
     viewBox: chartConfig.renderWindow,
     showXAxis: true,

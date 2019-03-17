@@ -1,4 +1,4 @@
-var renderPath = canvasRenderer
+export var renderPath = canvasRenderer
 
 function canvasRenderer (points, targetContext) {
   targetContext.beginPath();

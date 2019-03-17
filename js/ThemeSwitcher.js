@@ -13,7 +13,7 @@ const classNames = {
   [MODES.DARK]: 'theme-dark',
 }
 
-function ThemeSwitcher () {
+export function ThemeSwitcher () {
   let mode = MODES.LIGHT
 
   const button = document.createElement('button')

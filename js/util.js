@@ -9,8 +9,7 @@ function findMaxElement (values, { startIndex, endIndex }) {
   return max
 }
 
-// O(n)
-function getMaxValue (renderWindow, ...values) {
+export function getMaxValue (renderWindow, ...values) {
   const max = findMaxElement(values, renderWindow)
   if (Number.isNaN(max)) {
     debugger
@@ -20,13 +19,13 @@ function getMaxValue (renderWindow, ...values) {
   return max + (5 - max % 5)
 }
 
-function clearCanvas (context, canvas) {
+export function clearCanvas (context, canvas) {
   context.clearRect(0, 0, canvas.width, canvas.height)
 }
 
 // h = H * w / W
 // O(n)
-function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
+export function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
   const coords = []
 
   if (!Number.isInteger(startIndex)) {
@@ -71,7 +70,7 @@ function easing (t) {
   return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
 }
 
-function animate (from, to, duration, callback) {
+export function animate (from, to, duration, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from
   let animating = true

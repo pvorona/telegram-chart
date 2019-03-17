@@ -1,4 +1,4 @@
-function createElement (type, attributes = {}, children = []) {
+export function createElement (type, attributes = {}, children = []) {
   const element = document.createElement(type)
   setElementAttributes(element, attributes)
   children.forEach(child => element.appendChild(child))
@@ -18,7 +18,7 @@ function setElementAttributes (element, attributes) {
   }
 }
 
-function createCanvases (graphNames, attributes) {
+export function createCanvases (graphNames, attributes) {
   return graphNames.reduce((canvases, graphName) => ({
     ...canvases,
     [graphName]: createElement('canvas', attributes),

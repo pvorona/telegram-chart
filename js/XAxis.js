@@ -1,8 +1,10 @@
+import { EVENTS } from './constants'
+
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const LEGEND_ITEM_CLASS = 'legend-item-value'
 const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden'
 
-function XAxis ({
+export function XAxis ({
   domain,
   points,
   viewBox,

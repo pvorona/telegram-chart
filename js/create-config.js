@@ -5,7 +5,7 @@ const CANVAS_HEIGHT = 300
 const FRAME_CANVAS_HEIGHT = 50
 const FRAME_CANVAS_WIDTH = CANVAS_WIDTH
 
-function createChartConfig (chartData) {
+export function createChartConfig (chartData) {
   const graphNames = chartData.columns
     .map(column => column[0])
     .filter(graphName => chartData.types[graphName] === 'line')
@@ -34,5 +34,11 @@ function createChartConfig (chartData) {
     visibilityState,
     renderWindow,
     colors: chartData.colors,
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    lineWidth: LINE_WIDTH,
+    FRAME_CANVAS_WIDTH,
+    FRAME_CANVAS_HEIGHT,
+    FRAME_LINE_WIDTH,
   }
 }
