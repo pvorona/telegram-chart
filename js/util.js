@@ -11,9 +11,6 @@ function findMaxElement (values, { startIndex, endIndex }) {
 
 export function getMaxValue (renderWindow, ...values) {
   const max = findMaxElement(values, renderWindow)
-  if (Number.isNaN(max)) {
-    debugger
-  }
   if (max % 10 === 0) return max
   if (max % 5 === 0) return max
   return max + (5 - max % 5)
