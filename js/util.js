@@ -9,7 +9,7 @@ function findMaxElement (values, { startIndex, endIndex }) {
   return max
 }
 
-export function getMaxValue (renderWindow, ...values) {
+export function getMaxValue (renderWindow, values) {
   const max = findMaxElement(values, renderWindow)
   if (max % 10 === 0) return max
   if (max % 5 === 0) return max
@@ -51,13 +51,13 @@ export function mapDataToCoords (data, max, targetContainer, { startIndex, endIn
 
 function interpolatePoint (point, values) {
   return interpolate(
-    [Math.floor(point), Math.ceil(point)],
-    [values[Math.floor(point)], values[Math.ceil(point)]],
+    Math.floor(point), Math.ceil(point),
+    values[Math.floor(point)], values[Math.ceil(point)],
     point,
   )
 }
 
-function interpolate ([x1, x2], [y1, y2], x) {
+function interpolate (x1, x2, y1, y2, x) {
   if (x === x1) return y1
   if (x === x2) return y2
   return (y2 - y1) / (x2 - x1) * (x - x1) + y1

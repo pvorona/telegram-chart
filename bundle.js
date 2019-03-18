@@ -41,14 +41,14 @@
     containerElement.className = 'x-axis';
     containerElement.style.width = `${width}px`;
     const shiftingContainer = div();
-    shiftingContainer.classList.add('shifting-container');
+    shiftingContainer.className = 'shifting-container';
     containerElement.appendChild(shiftingContainer);
     const legendValues = [];
 
     for (let i = 0; i < points.length; i++) {
       const xValueElement = div();
       xValueElement.textContent = points[i].label;
-      xValueElement.classList.add(LEGEND_ITEM_CLASS);
+      xValueElement.className = LEGEND_ITEM_CLASS;
       legendValues.push(xValueElement);
       shiftingContainer.appendChild(xValueElement);
     }
@@ -74,7 +74,10 @@
       }
     }
 
-    return [containerElement, update]
+    return {
+      element: containerElement,
+      update
+    }
 
     function update ({ type }) {
       if (type === VIEW_BOX_CHANGE) {
@@ -122,11 +125,8 @@
     return max
   }
 
-  function getMaxValue (renderWindow, ...values) {
+  function getMaxValue (renderWindow, values) {
     const max = findMaxElement(values, renderWindow);
-    if (Number.isNaN(max)) {
-      debugger
-    }
     if (max % 10 === 0) return max
     if (max % 5 === 0) return max
     return max + (5 - max % 5)
@@ -167,13 +167,13 @@
 
   function interpolatePoint (point, values) {
     return interpolate(
-      [Math.floor(point), Math.ceil(point)],
-      [values[Math.floor(point)], values[Math.ceil(point)]],
+      Math.floor(point), Math.ceil(point),
+      values[Math.floor(point)], values[Math.ceil(point)],
       point,
     )
   }
 
-  function interpolate ([x1, x2], [y1, y2], x) {
+  function interpolate (x1, x2, y1, y2, x) {
     if (x === x1) return y1
     if (x === x2) return y2
     return (y2 - y1) / (x2 - x1) * (x - x1) + y1
@@ -237,14 +237,14 @@
     canvasesContainer.style.height = `${height}px`;
 
     const canvases = {};
-    for (const graphName of config.graphNames) {
+    for (let i = 0; i < config.graphNames.length; i++) {
       const canvas = document.createElement('canvas');
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       canvas.width = width * devicePixelRatio;
       canvas.height = height * devicePixelRatio;
       canvas.className = 'graph__layer';
-      canvases[graphName] = canvas;
+      canvases[config.graphNames[i]] = canvas;
       canvasesContainer.appendChild(canvas);
     }
 
@@ -268,25 +268,26 @@
       startIndex,
       endIndex,
     };
-    let max = getMaxValue(viewBox, ...config.graphNames.reduce(
-      (reduced, graphName) => [...reduced, config.data[graphName]], []
-    ));
+    let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames));
     let transitionDuration;
-    let xAxis;
     let updateXAxis;
 
     if (showXAxis) {
-      [xAxis, updateXAxis] = XAxis({
+      const { element, update } = XAxis({
         points: getXAxisPoints(),
         viewBox,
         width,
       });
-      fragment.appendChild(xAxis);
+      updateXAxis = update;
+      fragment.appendChild(element);
     }
 
     render();
 
-    return [fragment, update]
+    return {
+      element: fragment,
+      update,
+    }
 
     function update (event) {
       updateVisibilityState(event);
@@ -294,8 +295,8 @@
       if (showXAxis) { updateXAxis(event); }
       const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
       if (!visibleGraphNames.length) return
-      const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], []);
-      const newMax = getMaxValue(viewBox, ...arrayOfDataArrays);
+      const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
+      const newMax = getMaxValue(viewBox, arrayOfDataArrays);
       // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
       if (max !== newMax && newMax !== currentAnimationTarget) {
         if (cancelAnimation) cancelAnimation();
@@ -310,13 +311,13 @@
     }
 
     function render () {
-      const arrayOfDataArrays = config.graphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], []);
+      const arrayOfDataArrays = getArrayOfDataArrays(config.graphNames);
 
-      for (const graphName of config.graphNames) {
-        clearCanvas(contexts[graphName], canvases[graphName]);
+      for (let i = 0; i < config.graphNames.length; i++) {
+        clearCanvas(contexts[config.graphNames[i]], canvases[config.graphNames[i]]);
         renderPath(
-          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
-          contexts[graphName],
+          mapDataToCoords(config.data[config.graphNames[i]], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
+          contexts[config.graphNames[i]],
         );
       }
     }
@@ -341,6 +342,14 @@
         label: getLabelText(timestamp)
       }))
     }
+
+    function getArrayOfDataArrays (graphNames) {
+      const arrayOfDataArrays = [];
+      for (let i = 0; i < graphNames.length; i++) {
+        arrayOfDataArrays.push(config.data[graphNames[i]]);
+      }
+      return arrayOfDataArrays
+    }
   }
 
   function getLabelText (timestamp) {
@@ -358,7 +367,7 @@
   function Framer (parentElement, chartConfig, onViewBoxChange) {
     const frameContainer = div();
     frameContainer.classList.add('overview');
-    const [graphs, updateFrameGraphs] = Graphs(chartConfig, {
+    const { element: graphs, update: updateFrameGraphs } = Graphs(chartConfig, {
       width: chartConfig.FRAME_CANVAS_WIDTH,
       height: chartConfig.FRAME_CANVAS_HEIGHT,
       strokeStyles: chartConfig.colors,
@@ -519,7 +528,7 @@
   function Chart (chartConfig) {
     const containerElement = div();
     containerElement.appendChild(Title('Followers'));
-    const [graphs, updateGraphs] = Graphs(chartConfig, {
+    const { element: graphs, update: updateGraphs } = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
       lineWidth: chartConfig.lineWidth,

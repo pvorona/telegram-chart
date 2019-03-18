@@ -9,14 +9,14 @@ export function XAxis ({ points, viewBox, width }) {
   containerElement.className = 'x-axis'
   containerElement.style.width = `${width}px`
   const shiftingContainer = div()
-  shiftingContainer.classList.add('shifting-container')
+  shiftingContainer.className = 'shifting-container'
   containerElement.appendChild(shiftingContainer)
   const legendValues = []
 
   for (let i = 0; i < points.length; i++) {
     const xValueElement = div()
     xValueElement.textContent = points[i].label
-    xValueElement.classList.add(LEGEND_ITEM_CLASS)
+    xValueElement.className = LEGEND_ITEM_CLASS
     legendValues.push(xValueElement)
     shiftingContainer.appendChild(xValueElement)
   }
@@ -42,7 +42,10 @@ export function XAxis ({ points, viewBox, width }) {
     }
   }
 
-  return [containerElement, update]
+  return {
+    element: containerElement,
+    update
+  }
 
   function update ({ type }) {
     if (type === VIEW_BOX_CHANGE) {

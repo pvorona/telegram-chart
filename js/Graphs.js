@@ -26,14 +26,14 @@ export function Graphs (config, {
   canvasesContainer.style.height = `${height}px`
 
   const canvases = {}
-  for (const graphName of config.graphNames) {
+  for (let i = 0; i < config.graphNames.length; i++) {
     const canvas = document.createElement('canvas')
     canvas.style.width = `${width}px`
     canvas.style.height = `${height}px`
     canvas.width = width * devicePixelRatio
     canvas.height = height * devicePixelRatio
     canvas.className = 'graph__layer'
-    canvases[graphName] = canvas
+    canvases[config.graphNames[i]] = canvas
     canvasesContainer.appendChild(canvas)
   }
 
@@ -57,25 +57,26 @@ export function Graphs (config, {
     startIndex,
     endIndex,
   }
-  let max = getMaxValue(viewBox, ...config.graphNames.reduce(
-    (reduced, graphName) => [...reduced, config.data[graphName]], []
-  ))
+  let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames))
   let transitionDuration
-  let xAxis
   let updateXAxis
 
   if (showXAxis) {
-    [xAxis, updateXAxis] = XAxis({
+    const { element, update } = XAxis({
       points: getXAxisPoints(),
       viewBox,
       width,
     })
-    fragment.appendChild(xAxis)
+    updateXAxis = update
+    fragment.appendChild(element)
   }
 
   render()
 
-  return [fragment, update]
+  return {
+    element: fragment,
+    update,
+  }
 
   function update (event) {
     updateVisibilityState(event)
@@ -83,8 +84,8 @@ export function Graphs (config, {
     if (showXAxis) { updateXAxis(event) }
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
-    const arrayOfDataArrays = visibleGraphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], [])
-    const newMax = getMaxValue(viewBox, ...arrayOfDataArrays)
+    const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames)
+    const newMax = getMaxValue(viewBox, arrayOfDataArrays)
     // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
     if (max !== newMax && newMax !== currentAnimationTarget) {
       if (cancelAnimation) cancelAnimation()
@@ -99,13 +100,13 @@ export function Graphs (config, {
   }
 
   function render () {
-    const arrayOfDataArrays = config.graphNames.reduce((reduced, graphName) => [...reduced, config.data[graphName]], [])
+    const arrayOfDataArrays = getArrayOfDataArrays(config.graphNames)
 
-    for (const graphName of config.graphNames) {
-      clearCanvas(contexts[graphName], canvases[graphName])
+    for (let i = 0; i < config.graphNames.length; i++) {
+      clearCanvas(contexts[config.graphNames[i]], canvases[config.graphNames[i]])
       renderPath(
-        mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
-        contexts[graphName],
+        mapDataToCoords(config.data[config.graphNames[i]], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
+        contexts[config.graphNames[i]],
       )
     }
   }
@@ -129,6 +130,14 @@ export function Graphs (config, {
       x: width / (config.domain.length - 1) * index,
       label: getLabelText(timestamp)
     }))
+  }
+
+  function getArrayOfDataArrays (graphNames) {
+    const arrayOfDataArrays = []
+    for (let i = 0; i < graphNames.length; i++) {
+      arrayOfDataArrays.push(config.data[graphNames[i]])
+    }
+    return arrayOfDataArrays
   }
 }
 

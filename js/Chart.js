@@ -8,7 +8,7 @@ import { div } from './html'
 export function Chart (chartConfig) {
   const containerElement = div()
   containerElement.appendChild(Title('Followers'))
-  const [graphs, updateGraphs] = Graphs(chartConfig, {
+  const { element: graphs, update: updateGraphs } = Graphs(chartConfig, {
     width: chartConfig.width,
     height: chartConfig.height,
     lineWidth: chartConfig.lineWidth,

@@ -12,7 +12,7 @@ const classes = {
 export function Framer (parentElement, chartConfig, onViewBoxChange) {
   const frameContainer = div()
   frameContainer.classList.add('overview')
-  const [graphs, updateFrameGraphs] = Graphs(chartConfig, {
+  const { element: graphs, update: updateFrameGraphs } = Graphs(chartConfig, {
     width: chartConfig.FRAME_CANVAS_WIDTH,
     height: chartConfig.FRAME_CANVAS_HEIGHT,
     strokeStyles: chartConfig.colors,
