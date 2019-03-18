@@ -1,4 +1,4 @@
-import { ThemeSwitcher, createChartConfig, Chart } from './js/index'
+import { ThemeSwitcher, createChartConfig, Chart } from './js'
 import './css/styles.css'
 import './css/cursors.css'
 
