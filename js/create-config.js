@@ -7,12 +7,12 @@ const FRAME_CANVAS_HEIGHT = 50
 const FRAME_CANVAS_WIDTH = CANVAS_WIDTH
 
 export function createChartConfig (chartData) {
-  const graphNames = chartData.columns
+  const graphNames = chartData['columns']
     .map(column => column[0])
-    .filter(graphName => chartData.types[graphName] === 'line')
-  const domain = chartData.columns.find(column => column[0] === 'x').slice(1)
+    .filter(graphName => chartData['types'][graphName] === 'line')
+  const domain = chartData['columns'].find(column => column[0] === 'x').slice(1)
 
-  const data = chartData.columns.reduce((data, column) => ({
+  const data = chartData['columns'].reduce((data, column) => ({
     ...data,
     [column[0]]: column.slice(1),
     total: max(data.total, column.length - 1)
@@ -34,7 +34,7 @@ export function createChartConfig (chartData) {
     graphNames,
     visibilityState,
     renderWindow,
-    colors: chartData.colors,
+    colors: chartData['colors'],
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     lineWidth: LINE_WIDTH,
