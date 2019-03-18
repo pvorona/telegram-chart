@@ -3,6 +3,7 @@ import { renderPath } from './canvas-renderer'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from './events'
 import { getMaxValue, clearCanvas, mapDataToCoords, animate } from './util'
 import { div } from './html'
+import { devicePixelRatio } from './constants'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'

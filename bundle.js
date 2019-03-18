@@ -30,10 +30,8 @@
     return element
   }
 
-  const EVENTS = {
-    TOGGLE_VISIBILITY_STATE: 0,
-    VIEW_BOX_CHANGE: 1,
-  };
+  const TOGGLE_VISIBILITY_STATE = 0;
+  const VIEW_BOX_CHANGE = 1;
 
   const LEGEND_ITEM_CLASS = 'legend-item-value';
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
@@ -79,7 +77,7 @@
     return [containerElement, update]
 
     function update ({ type }) {
-      if (type === EVENTS.VIEW_BOX_CHANGE) {
+      if (type === VIEW_BOX_CHANGE) {
         reconcile();
       }
     }
@@ -216,11 +214,13 @@
     }
   }
 
+  const devicePixelRatio = window.devicePixelRatio;
+
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
   const TRANSITION_DURATIONS = {
-    [EVENTS.VIEW_BOX_CHANGE]: 150,
-    [EVENTS.TOGGLE_VISIBILITY_STATE]: 250,
+    [VIEW_BOX_CHANGE]: 150,
+    [TOGGLE_VISIBILITY_STATE]: 250,
   };
 
   function Graphs (config, {
@@ -322,14 +322,14 @@
     }
 
     function updateVisibilityState ({ type, graphName }) {
-      if (type === EVENTS.TOGGLE_VISIBILITY_STATE) {
+      if (type === TOGGLE_VISIBILITY_STATE) {
         canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS);
         transitionDuration = TRANSITION_DURATIONS[type];
       }
     }
 
     function updateViewBoxState ({ type, viewBox: newViewBox }) {
-      if (type === EVENTS.VIEW_BOX_CHANGE) {
+      if (type === VIEW_BOX_CHANGE) {
         Object.assign(viewBox, newViewBox);
         transitionDuration = TRANSITION_DURATIONS[type];
       }
@@ -536,18 +536,18 @@
     function onButtonClick (graphName) {
       chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
       updateGraphs({
-        type: EVENTS.TOGGLE_VISIBILITY_STATE,
+        type: TOGGLE_VISIBILITY_STATE,
         graphName,
       });
       updateFrameGraphs({
-        type: EVENTS.TOGGLE_VISIBILITY_STATE,
+        type: TOGGLE_VISIBILITY_STATE,
         graphName,
       });
     }
 
     function onViewBoxChange (viewBox) {
       updateGraphs({
-        type: EVENTS.VIEW_BOX_CHANGE,
+        type: VIEW_BOX_CHANGE,
         viewBox,
       });
     }
