@@ -4,11 +4,11 @@ import resolve from 'rollup-plugin-node-resolve'
 module.exports = {
   input: 'app.js',
   output: {
-    file: 'bundle.js',
+    file: './dist/bundle.js',
     format: 'iife'
   },
   plugins: [
-    css({ output: 'bundle.css' }),
+    css({ output: './dist/bundle.css' }),
     resolve(),
   ],
 }
