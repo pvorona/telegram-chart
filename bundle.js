@@ -17,11 +17,14 @@
     return element
   }
 
+  const devicePixelRatio = window.devicePixelRatio;
+  const length = 'length';
+
   const { max, ceil, floor, pow } = Math;
 
   function findMaxElement (values, { startIndex, endIndex }) {
     let maxValue = values[0][ceil(startIndex)];
-    for (let j = 0; j < values.length; j++) {
+    for (let j = 0; j < values[length]; j++) {
       maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]));
       for (let i = ceil(startIndex); i <= endIndex; i++) {
         maxValue = max(values[j][i], maxValue);
@@ -134,7 +137,7 @@
     containerElement.appendChild(shiftingContainer);
     const legendValues = [];
 
-    for (let i = 0; i < points.length; i++) {
+    for (let i = 0; i < points[length]; i++) {
       const xValueElement = div();
       xValueElement.textContent = points[i].label;
       xValueElement.className = LEGEND_ITEM_CLASS;
@@ -146,10 +149,10 @@
 
     function reconcile () {
       const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
-      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
-      const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
+      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points[length] - 1);
+      const shift = -1 / xScale * width * viewBox.startIndex / (points[length] - 1);
       shiftingContainer.style.transform = `translateX(${shift}px)`;
-      for (let i = 0; i < points.length; i++) {
+      for (let i = 0; i < points[length]; i++) {
         const xValueElement = legendValues[i];
         const offset = points[i].x / xScale;
         xValueElement.style.transform = `translateX(${offset}px)`;
@@ -186,15 +189,13 @@
   function canvasRenderer (points, context) {
     context.beginPath();
 
-    for (let i = 0; i < points.length; i++) {
+    for (let i = 0; i < points[length]; i++) {
       const { x, y } = points[i];
       context.lineTo(x, y);
     }
 
     context.stroke();
   }
-
-  const devicePixelRatio = window.devicePixelRatio;
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
@@ -217,7 +218,7 @@
     canvasesContainer.style.height = `${height}px`;
 
     const canvases = {};
-    for (let i = 0; i < config.graphNames.length; i++) {
+    for (let i = 0; i < config.graphNames[length]; i++) {
       const canvas = document.createElement('canvas');
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
@@ -274,7 +275,7 @@
       updateViewBoxState(event);
       if (showXAxis) { updateXAxis(event); }
       const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
-      if (!visibleGraphNames.length) return
+      if (!visibleGraphNames[length]) return
       const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
       const newMax = getMaxValue(viewBox, arrayOfDataArrays);
       // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
@@ -293,7 +294,7 @@
     function render () {
       const arrayOfDataArrays = getArrayOfDataArrays(config.graphNames);
 
-      for (let i = 0; i < config.graphNames.length; i++) {
+      for (let i = 0; i < config.graphNames[length]; i++) {
         clearCanvas(contexts[config.graphNames[i]], canvases[config.graphNames[i]]);
         renderPath(
           mapDataToCoords(config.data[config.graphNames[i]], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
@@ -318,14 +319,14 @@
 
     function getXAxisPoints () {
       return config.domain.map((timestamp, index) => ({
-        x: width / (config.domain.length - 1) * index,
+        x: width / (config.domain[length] - 1) * index,
         label: getLabelText(timestamp)
       }))
     }
 
     function getArrayOfDataArrays (graphNames) {
       const arrayOfDataArrays = [];
-      for (let i = 0; i < graphNames.length; i++) {
+      for (let i = 0; i < graphNames[length]; i++) {
         arrayOfDataArrays.push(config.data[graphNames[i]]);
       }
       return arrayOfDataArrays
@@ -588,7 +589,7 @@
     const data = chartData['columns'].reduce((data, column) => ({
       ...data,
       [column[0]]: column.slice(1),
-      total: max(data.total, column.length - 1)
+      total: max(data.total, column[length] - 1)
     }), {
       total: 0,
     });

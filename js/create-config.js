@@ -1,4 +1,5 @@
 import { ceil, max } from './util'
+import { length } from './constants'
 const LINE_WIDTH = 2
 const FRAME_LINE_WIDTH = 1
 const CANVAS_WIDTH = 768
@@ -15,7 +16,7 @@ export function createChartConfig (chartData) {
   const data = chartData['columns'].reduce((data, column) => ({
     ...data,
     [column[0]]: column.slice(1),
-    total: max(data.total, column.length - 1)
+    total: max(data.total, column[length] - 1)
   }), {
     total: 0,
   })

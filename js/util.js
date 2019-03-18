@@ -1,9 +1,11 @@
+import { length } from './constants'
+
 const { max, ceil, floor, pow } = Math
 export { max, ceil, floor, pow }
 
 function findMaxElement (values, { startIndex, endIndex }) {
   let maxValue = values[0][ceil(startIndex)]
-  for (let j = 0; j < values.length; j++) {
+  for (let j = 0; j < values[length]; j++) {
     maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
     for (let i = ceil(startIndex); i <= endIndex; i++) {
       maxValue = max(values[j][i], maxValue)

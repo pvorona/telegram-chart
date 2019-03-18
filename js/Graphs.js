@@ -3,7 +3,7 @@ import { renderPath } from './canvas-renderer'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from './events'
 import { getMaxValue, clearCanvas, mapDataToCoords, animate } from './util'
 import { div } from './html'
-import { devicePixelRatio } from './constants'
+import { devicePixelRatio, length } from './constants'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
@@ -26,7 +26,7 @@ export function Graphs (config, {
   canvasesContainer.style.height = `${height}px`
 
   const canvases = {}
-  for (let i = 0; i < config.graphNames.length; i++) {
+  for (let i = 0; i < config.graphNames[length]; i++) {
     const canvas = document.createElement('canvas')
     canvas.style.width = `${width}px`
     canvas.style.height = `${height}px`
@@ -83,7 +83,7 @@ export function Graphs (config, {
     updateViewBoxState(event)
     if (showXAxis) { updateXAxis(event) }
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
-    if (!visibleGraphNames.length) return
+    if (!visibleGraphNames[length]) return
     const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames)
     const newMax = getMaxValue(viewBox, arrayOfDataArrays)
     // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
@@ -102,7 +102,7 @@ export function Graphs (config, {
   function render () {
     const arrayOfDataArrays = getArrayOfDataArrays(config.graphNames)
 
-    for (let i = 0; i < config.graphNames.length; i++) {
+    for (let i = 0; i < config.graphNames[length]; i++) {
       clearCanvas(contexts[config.graphNames[i]], canvases[config.graphNames[i]])
       renderPath(
         mapDataToCoords(config.data[config.graphNames[i]], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
@@ -127,14 +127,14 @@ export function Graphs (config, {
 
   function getXAxisPoints () {
     return config.domain.map((timestamp, index) => ({
-      x: width / (config.domain.length - 1) * index,
+      x: width / (config.domain[length] - 1) * index,
       label: getLabelText(timestamp)
     }))
   }
 
   function getArrayOfDataArrays (graphNames) {
     const arrayOfDataArrays = []
-    for (let i = 0; i < graphNames.length; i++) {
+    for (let i = 0; i < graphNames[length]; i++) {
       arrayOfDataArrays.push(config.data[graphNames[i]])
     }
     return arrayOfDataArrays

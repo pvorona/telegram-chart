@@ -1,6 +1,7 @@
 import { pow } from './util'
 import { VIEW_BOX_CHANGE } from './events'
 import { div } from './html'
+import { length } from './constants'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
 const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden'
@@ -14,7 +15,7 @@ export function XAxis ({ points, viewBox, width }) {
   containerElement.appendChild(shiftingContainer)
   const legendValues = []
 
-  for (let i = 0; i < points.length; i++) {
+  for (let i = 0; i < points[length]; i++) {
     const xValueElement = div()
     xValueElement.textContent = points[i].label
     xValueElement.className = LEGEND_ITEM_CLASS
@@ -26,10 +27,10 @@ export function XAxis ({ points, viewBox, width }) {
 
   function reconcile () {
     const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex)
-    const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1)
-    const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1)
+    const xScale = (viewBox.endIndex - viewBox.startIndex) / (points[length] - 1)
+    const shift = -1 / xScale * width * viewBox.startIndex / (points[length] - 1)
     shiftingContainer.style.transform = `translateX(${shift}px)`
-    for (let i = 0; i < points.length; i++) {
+    for (let i = 0; i < points[length]; i++) {
       const xValueElement = legendValues[i]
       const offset = points[i].x / xScale
       xValueElement.style.transform = `translateX(${offset}px)`
