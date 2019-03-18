@@ -1,4 +1,4 @@
-import { EVENTS } from './constants'
+import { VIEW_BOX_CHANGE } from './events'
 import { div } from './html'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
@@ -45,7 +45,7 @@ export function XAxis ({ points, viewBox, width }) {
   return [containerElement, update]
 
   function update ({ type }) {
-    if (type === EVENTS.VIEW_BOX_CHANGE) {
+    if (type === VIEW_BOX_CHANGE) {
       reconcile()
     }
   }

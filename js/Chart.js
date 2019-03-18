@@ -2,7 +2,7 @@ import { Title } from './Title'
 import { Graphs } from './Graphs'
 import { Framer } from './Framer'
 import { Controls } from './Controls'
-import { EVENTS } from './constants'
+import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from './events'
 import { div } from './html'
 
 export function Chart (chartConfig) {
@@ -25,18 +25,18 @@ export function Chart (chartConfig) {
   function onButtonClick (graphName) {
     chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
     updateGraphs({
-      type: EVENTS.TOGGLE_VISIBILITY_STATE,
+      type: TOGGLE_VISIBILITY_STATE,
       graphName,
     })
     updateFrameGraphs({
-      type: EVENTS.TOGGLE_VISIBILITY_STATE,
+      type: TOGGLE_VISIBILITY_STATE,
       graphName,
     })
   }
 
   function onViewBoxChange (viewBox) {
     updateGraphs({
-      type: EVENTS.VIEW_BOX_CHANGE,
+      type: VIEW_BOX_CHANGE,
       viewBox,
     })
   }

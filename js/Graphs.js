@@ -1,14 +1,14 @@
 import { XAxis } from './XAxis'
 import { renderPath } from './canvas-renderer'
-import { EVENTS } from './constants'
+import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from './events'
 import { getMaxValue, clearCanvas, mapDataToCoords, animate } from './util'
 import { div } from './html'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
 const TRANSITION_DURATIONS = {
-  [EVENTS.VIEW_BOX_CHANGE]: 150,
-  [EVENTS.TOGGLE_VISIBILITY_STATE]: 250,
+  [VIEW_BOX_CHANGE]: 150,
+  [TOGGLE_VISIBILITY_STATE]: 250,
 }
 
 export function Graphs (config, {
@@ -110,14 +110,14 @@ export function Graphs (config, {
   }
 
   function updateVisibilityState ({ type, graphName }) {
-    if (type === EVENTS.TOGGLE_VISIBILITY_STATE) {
+    if (type === TOGGLE_VISIBILITY_STATE) {
       canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS)
       transitionDuration = TRANSITION_DURATIONS[type]
     }
   }
 
   function updateViewBoxState ({ type, viewBox: newViewBox }) {
-    if (type === EVENTS.VIEW_BOX_CHANGE) {
+    if (type === VIEW_BOX_CHANGE) {
       Object.assign(viewBox, newViewBox)
       transitionDuration = TRANSITION_DURATIONS[type]
     }
