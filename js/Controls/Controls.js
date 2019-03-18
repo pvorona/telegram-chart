@@ -1,4 +1,4 @@
-import { createElement } from './html'
+import { createElement } from '../html'
 
 export function Controls (config, onButtonClick) {
   return createElement('div', { style: 'margin-top: 20px'}, config.graphNames.map(graphName =>

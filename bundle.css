@@ -1,0 +1,222 @@
+body {
+  margin: 0;
+  padding: 40px;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background-color .3s ease-in-out;
+}
+
+body.theme-dark {
+  background-color: #242F3F;
+}
+
+.theme-light .shifting-container {
+  color: #536779;
+}
+
+.theme-dark .shifting-container {
+  color: #96A2AA;
+}
+.cursor-w-resize {
+  cursor: w-resize !important;
+}
+
+.cursor-e-resize {
+  cursor: e-resize !important;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}
+.theme-switcher {
+  background: none;
+  font-size: 18px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: color .3s ease-in-out;
+}
+
+.theme-light .theme-switcher {
+  color: #0087E6;
+}
+
+.theme-dark .theme-switcher {
+  color: #2DA7F4;
+}
+.title {
+  font-size: 28px;
+  margin-bottom: 30px;
+  transition: color .3s ease-in-out;
+}
+
+.theme-dark .title {
+  color: #FFF;
+}
+
+.theme-light .title {
+  color: #222222;
+}.graph__layer {
+  position: absolute;
+  transform: translazeZ(0);
+  will-change: opacity;
+  transition: opacity .25s;
+}
+
+.graph__layer--hidden {
+  opacity: 0;
+}
+.overview {
+  position: relative;
+}.overview__overflow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition: background-color .3s ease-in-out;
+}
+
+.overview__overflow--left {
+  left: 0;
+}
+
+.overview__overflow--right {
+  right: 0;
+}
+
+.theme-light .overview__overflow {
+  background-color: #f4f9fbcc;
+}
+
+.theme-dark .overview__overflow {
+  background-color: #19222eb3;
+}
+.overview__resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  transition: background-color .3s ease-in-out;
+}
+
+.overview__resizer--left {
+  left: 0;
+  cursor: w-resize;
+}
+
+.overview__resizer--right {
+  right: 0;
+  cursor: e-resize;
+}
+
+.theme-light .overview__resizer {
+  background-color: #e3ecf2cc;
+}
+
+.theme-dark .overview__resizer {
+  background-color: #39496080;
+}.overview__viewbox {
+  border-top: 4px solid;
+  border-bottom: 4px solid;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  cursor: grab;
+  transition: border-color .3s ease-in-out;
+}
+
+.theme-light .overview__viewbox {
+  border-color: #e3ecf2cc;
+}
+
+.theme-dark .overview__viewbox {
+  border-color: #39496080;
+}.button {
+  display: none;
+}
+
+.like-button {
+  display: inline-block;
+  outline: none;
+  border: 1px solid;
+  padding: 11px 19px 11px 42px;
+  background: none;
+  border-radius: 30px;
+  font-family: Tahoma;
+  font-size: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: border-color .3s ease-in-out;
+}
+
+.theme-light .like-button {
+  border-color: #EDEFF0;
+}
+
+.theme-dark .like-button {
+  border-color: #334659;
+}
+
+.like-button::before {
+  content: '';
+  width: 1.5em;
+  height: 1.5em;
+  position: absolute;
+  border: 1px solid currentColor;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 10px;
+  border-radius: 50%;
+  transition: background .2s;
+}
+
+.button:checked ~ .like-button::before {
+  background: currentColor;
+}
+
+.button:checked ~ .like-button::after {
+  content: '';
+  width: 0.3em;
+  height: 0.6em;
+  position: absolute;
+  border-right: 1px solid white;
+  border-bottom: 1px solid white;
+  top: 50%;
+  transform: translateY(-63%) translateX(9px) rotate(55deg) skew(5deg);
+  left: 10px;
+}
+
+.button-text {
+  transition: color .3s ease-in-out;
+}
+
+.theme-light .button-text {
+  color: black;
+}
+
+.theme-dark .button-text {
+  color: #E8ECEE;
+}.shifting-container {
+  display: flex;
+  white-space: nowrap;
+  height: 14px;
+  transition: color .3s ease-in-out;
+}
+
+.legend-item-value {
+  position: absolute;
+  transition: opacity .25s;
+  will-change: opacity;
+}
+
+.legend-item-value--hidden {
+  opacity: 0;
+}
+
+.x-axis {
+  overflow: hidden;
+  padding: 5px 0 15px;
+}

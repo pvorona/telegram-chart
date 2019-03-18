@@ -1,9 +1,9 @@
-import { Title } from './Title'
-import { Graphs } from './Graphs'
-import { Framer } from './Framer'
-import { Controls } from './Controls'
-import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from './events'
-import { div } from './html'
+import { Title } from '../Title'
+import { Graphs } from '../Graphs'
+import { Framer } from '../Overview'
+import { Controls } from '../Controls'
+import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
+import { div } from '../html'
 
 export function Chart (chartConfig) {
   const containerElement = div()

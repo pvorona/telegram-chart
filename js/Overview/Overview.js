@@ -1,5 +1,5 @@
-import { Graphs } from './Graphs'
-import { createElement, div } from './html'
+import { Graphs } from '../Graphs'
+import { createElement, div } from '../html'
 
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40

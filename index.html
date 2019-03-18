@@ -2,57 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Document</title>
-  <link rel="stylesheet" href="./css/styles.css">
-  <link rel="stylesheet" href="./css/cursors.css">
-  <link rel="stylesheet" href="./css/theme-switcher.css">
-  <link rel="stylesheet" href="./css/title.css">
-  <link rel="stylesheet" href="./css/graph-layer.css">
-  <link rel="stylesheet" href="./css/overview.css">
-  <link rel="stylesheet" href="./css/overview-overflow.css">
-  <link rel="stylesheet" href="./css/overview-resizer.css">
-  <link rel="stylesheet" href="./css/overview-viewbox.css">
-  <link rel="stylesheet" href="./css/checkbox-button.css">
+  <title>Pavel V. Chart</title>
+  <link rel="stylesheet" href="./bundle.css">
 </head>
 <body class="theme-dark">
-    <!--   <div class="container">
-    <div class="vertical-legend">
-      <div class="vertical-legend__item">1</div>
-      <div class="vertical-legend__item">2</div>
-      <div class="vertical-legend__item">3</div>
-      <div class="vertical-legend__item">4</div>
-      <div class="vertical-legend__item">5</div>
-    </div>
-  </div>
- -->
   <script type="text/javascript" src="./chart_data.js"></script>
   <script type="text/javascript" src="./bundle.js"></script>
-  <script>
-
-    // O(1)
-    // function renderLattice (numberOfLines) {
-    //   const screenStep = geometry.height / numberOfLines
-
-    //   context.strokeStyle = '#F5F5F5'
-    //   for (let i = 0; i < numberOfLines; i++) {
-    //     context.beginPath();
-    //     context.moveTo(0, geometry.height - screenStep * i - 1);
-    //     context.lineTo(geometry.width, geometry.height - screenStep * i - 1)
-    //     context.stroke();
-    //   }
-    // }
-
-    // O(1)
-    // function renderVerticalLegend (max, numberOfLines) {
-    //   const valueStep = max / numberOfLines
-    //   const screenStep = geometry.height / numberOfLines
-    //   const legendItems = [...document.querySelectorAll('.vertical-legend__item')]
-
-    //   for (let i = 0; i < numberOfLines; i++) {
-    //     legendItems[i].innerText = valueStep * i
-    //     legendItems[i].style = `top: ${geometry.height - screenStep * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
-    //   }
-    // }
-  </script>
 </body>
 </html>

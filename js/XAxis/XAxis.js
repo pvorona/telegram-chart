@@ -1,6 +1,6 @@
-import { pow } from './util'
-import { VIEW_BOX_CHANGE } from './events'
-import { div } from './html'
+import { pow } from '../util'
+import { VIEW_BOX_CHANGE } from '../events'
+import { div } from '../html'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
 const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden'

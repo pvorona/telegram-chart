@@ -1,4 +1,4 @@
-import { div } from './html'
+import { div } from '../html'
 
 export function Title (title) {
   const element = div()

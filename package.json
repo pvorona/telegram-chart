@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "main": "bundle.js",
   "scripts": {
-    "build": "rollup ./app.js --file bundle.js --format iife"
+    "build": "rollup --config"
   },
   "devDependencies": {
-    "rollup": "^1.6.0"
+    "rollup": "^1.6.0",
+    "rollup-plugin-css-only": "^1.0.0",
+    "rollup-plugin-node-resolve": "^4.0.1"
   }
 }
