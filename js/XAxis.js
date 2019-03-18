@@ -1,3 +1,4 @@
+import { pow } from './util'
 import { VIEW_BOX_CHANGE } from './events'
 import { div } from './html'
 
@@ -35,7 +36,7 @@ export function XAxis ({ points, viewBox, width }) {
       // Performance!
       xValueElement.classList.toggle(
         LEGEND_ITEM_HIDDEN_CLASS,
-        i % Math.pow(2, stepMiltiplier)
+        i % pow(2, stepMiltiplier)
         || (offset < -1 * shift)
         || (xValueElement.offsetWidth + offset + shift > width)
       )
@@ -56,15 +57,15 @@ export function XAxis ({ points, viewBox, width }) {
 
 // Not smart enough to find analytic representation for this function
 function calculateMultiplier (size) {
-    if      (size < Math.pow(2, 3)) return 0
-    else if (size < Math.pow(2, 4)) return 1
-    else if (size < Math.pow(2, 5)) return 2
-    else if (size < Math.pow(2, 6)) return 3
-    else if (size < Math.pow(2, 7)) return 4
-    else if (size < Math.pow(2, 8)) return 5
-    else if (size < Math.pow(2, 9)) return 6
-    else if (size < Math.pow(2, 10)) return 7
-    else if (size < Math.pow(2, 11)) return 8
-    else if (size < Math.pow(2, 12)) return 9
-    else if (size < Math.pow(2, 13)) return 10
+    if      (size < pow(2, 3)) return 0
+    else if (size < pow(2, 4)) return 1
+    else if (size < pow(2, 5)) return 2
+    else if (size < pow(2, 6)) return 3
+    else if (size < pow(2, 7)) return 4
+    else if (size < pow(2, 8)) return 5
+    else if (size < pow(2, 9)) return 6
+    else if (size < pow(2, 10)) return 7
+    else if (size < pow(2, 11)) return 8
+    else if (size < pow(2, 12)) return 9
+    else if (size < pow(2, 13)) return 10
 }

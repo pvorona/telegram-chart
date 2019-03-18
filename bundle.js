@@ -30,99 +30,17 @@
     return element
   }
 
-  const TOGGLE_VISIBILITY_STATE = 0;
-  const VIEW_BOX_CHANGE = 1;
-
-  const LEGEND_ITEM_CLASS = 'legend-item-value';
-  const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
-
-  function XAxis ({ points, viewBox, width }) {
-    const containerElement = div();
-    containerElement.className = 'x-axis';
-    containerElement.style.width = `${width}px`;
-    const shiftingContainer = div();
-    shiftingContainer.className = 'shifting-container';
-    containerElement.appendChild(shiftingContainer);
-    const legendValues = [];
-
-    for (let i = 0; i < points.length; i++) {
-      const xValueElement = div();
-      xValueElement.textContent = points[i].label;
-      xValueElement.className = LEGEND_ITEM_CLASS;
-      legendValues.push(xValueElement);
-      shiftingContainer.appendChild(xValueElement);
-    }
-
-    reconcile();
-
-    function reconcile () {
-      const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
-      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
-      const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
-      shiftingContainer.style.transform = `translateX(${shift}px)`;
-      for (let i = 0; i < points.length; i++) {
-        const xValueElement = legendValues[i];
-        const offset = points[i].x / xScale;
-        xValueElement.style.transform = `translateX(${offset}px)`;
-        // Performance!
-        xValueElement.classList.toggle(
-          LEGEND_ITEM_HIDDEN_CLASS,
-          i % Math.pow(2, stepMiltiplier)
-          || (offset < -1 * shift)
-          || (xValueElement.offsetWidth + offset + shift > width)
-        );
-      }
-    }
-
-    return {
-      element: containerElement,
-      update
-    }
-
-    function update ({ type }) {
-      if (type === VIEW_BOX_CHANGE) {
-        reconcile();
-      }
-    }
-  }
-
-  // Not smart enough to find analytic representation for this function
-  function calculateMultiplier (size) {
-      if      (size < Math.pow(2, 3)) return 0
-      else if (size < Math.pow(2, 4)) return 1
-      else if (size < Math.pow(2, 5)) return 2
-      else if (size < Math.pow(2, 6)) return 3
-      else if (size < Math.pow(2, 7)) return 4
-      else if (size < Math.pow(2, 8)) return 5
-      else if (size < Math.pow(2, 9)) return 6
-      else if (size < Math.pow(2, 10)) return 7
-      else if (size < Math.pow(2, 11)) return 8
-      else if (size < Math.pow(2, 12)) return 9
-      else if (size < Math.pow(2, 13)) return 10
-  }
-
-  var renderPath = canvasRenderer;
-
-  function canvasRenderer (points, context) {
-    context.beginPath();
-
-    for (let i = 0; i < points.length; i++) {
-      const { x, y } = points[i];
-      context.lineTo(x, y);
-    }
-
-    context.stroke();
-  }
+  const { max, ceil, floor, pow } = Math;
 
   function findMaxElement (values, { startIndex, endIndex }) {
-    let max = values[0][Math.ceil(startIndex)];
+    let maxValue = values[0][ceil(startIndex)];
     for (let j = 0; j < values.length; j++) {
-      max = Math.max(max, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]));
-      for (let i = Math.ceil(startIndex); i <= endIndex; i++) {
-        max = Math.max(values[j][i], max);
+      maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]));
+      for (let i = ceil(startIndex); i <= endIndex; i++) {
+        maxValue = max(values[j][i], maxValue);
       }
     }
-    return max
+    return maxValue
   }
 
   function getMaxValue (renderWindow, values) {
@@ -148,7 +66,7 @@
       });
     }
 
-    for (let i = Math.ceil(startIndex); i <= Math.floor(endIndex); i++) {
+    for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
       coords.push({
         x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
         y: targetContainer.height - targetContainer.height / max * data[i],
@@ -167,8 +85,8 @@
 
   function interpolatePoint (point, values) {
     return interpolate(
-      Math.floor(point), Math.ceil(point),
-      values[Math.floor(point)], values[Math.ceil(point)],
+      floor(point), ceil(point),
+      values[floor(point)], values[ceil(point)],
       point,
     )
   }
@@ -212,6 +130,90 @@
         cancelAnimationFrame(animationId);
       }
     }
+  }
+
+  const TOGGLE_VISIBILITY_STATE = 0;
+  const VIEW_BOX_CHANGE = 1;
+
+  const LEGEND_ITEM_CLASS = 'legend-item-value';
+  const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
+
+  function XAxis ({ points, viewBox, width }) {
+    const containerElement = div();
+    containerElement.className = 'x-axis';
+    containerElement.style.width = `${width}px`;
+    const shiftingContainer = div();
+    shiftingContainer.className = 'shifting-container';
+    containerElement.appendChild(shiftingContainer);
+    const legendValues = [];
+
+    for (let i = 0; i < points.length; i++) {
+      const xValueElement = div();
+      xValueElement.textContent = points[i].label;
+      xValueElement.className = LEGEND_ITEM_CLASS;
+      legendValues.push(xValueElement);
+      shiftingContainer.appendChild(xValueElement);
+    }
+
+    reconcile();
+
+    function reconcile () {
+      const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
+      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
+      const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
+      shiftingContainer.style.transform = `translateX(${shift}px)`;
+      for (let i = 0; i < points.length; i++) {
+        const xValueElement = legendValues[i];
+        const offset = points[i].x / xScale;
+        xValueElement.style.transform = `translateX(${offset}px)`;
+        // Performance!
+        xValueElement.classList.toggle(
+          LEGEND_ITEM_HIDDEN_CLASS,
+          i % pow(2, stepMiltiplier)
+          || (offset < -1 * shift)
+          || (xValueElement.offsetWidth + offset + shift > width)
+        );
+      }
+    }
+
+    return {
+      element: containerElement,
+      update
+    }
+
+    function update ({ type }) {
+      if (type === VIEW_BOX_CHANGE) {
+        reconcile();
+      }
+    }
+  }
+
+  // Not smart enough to find analytic representation for this function
+  function calculateMultiplier (size) {
+      if      (size < pow(2, 3)) return 0
+      else if (size < pow(2, 4)) return 1
+      else if (size < pow(2, 5)) return 2
+      else if (size < pow(2, 6)) return 3
+      else if (size < pow(2, 7)) return 4
+      else if (size < pow(2, 8)) return 5
+      else if (size < pow(2, 9)) return 6
+      else if (size < pow(2, 10)) return 7
+      else if (size < pow(2, 11)) return 8
+      else if (size < pow(2, 12)) return 9
+      else if (size < pow(2, 13)) return 10
+  }
+
+  var renderPath = canvasRenderer;
+
+  function canvasRenderer (points, context) {
+    context.beginPath();
+
+    for (let i = 0; i < points.length; i++) {
+      const { x, y } = points[i];
+      context.lineTo(x, y);
+    }
+
+    context.stroke();
   }
 
   const devicePixelRatio = window.devicePixelRatio;
@@ -608,7 +610,7 @@
     const data = chartData.columns.reduce((data, column) => ({
       ...data,
       [column[0]]: column.slice(1),
-      total: Math.max(data.total, column.length - 1)
+      total: max(data.total, column.length - 1)
     }), {
       total: 0,
     });
@@ -617,7 +619,7 @@
       [graphName]: true,
     }), {});
     const renderWindow = {
-      startIndex: Math.ceil(data.total / 3 * 2),
+      startIndex: ceil(data.total / 3 * 2),
       endIndex: data.total - 1,
     };
 
