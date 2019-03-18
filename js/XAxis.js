@@ -1,19 +1,20 @@
 import { EVENTS } from './constants'
+import { div } from './html'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
 const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden'
 
 export function XAxis ({ points, viewBox, width }) {
-  const containerElement = document.createElement('div')
+  const containerElement = div()
   containerElement.className = 'x-axis'
   containerElement.style.width = `${width}px`
-  const shiftingContainer = document.createElement('div')
+  const shiftingContainer = div()
   shiftingContainer.classList.add('shifting-container')
   containerElement.appendChild(shiftingContainer)
   const legendValues = []
 
   for (let i = 0; i < points.length; i++) {
-    const xValueElement = document.createElement('div')
+    const xValueElement = div()
     xValueElement.textContent = points[i].label
     xValueElement.classList.add(LEGEND_ITEM_CLASS)
     legendValues.push(xValueElement)

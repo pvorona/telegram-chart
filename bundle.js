@@ -1,8 +1,30 @@
 (function () {
   'use strict';
 
+  function createElement (type, attributes = {}, children = []) {
+    const element = document.createElement(type);
+    setElementAttributes(element, attributes);
+    children.forEach(child => element.appendChild(child));
+    return element
+  }
+
+  function validateElementAttributes (element, props) {
+    for (let prop in props) {
+      if (!(prop in element)) throw Error('No such prop')
+    }
+  }
+
+  function setElementAttributes (element, attributes) {
+    validateElementAttributes(element, attributes);
+    for (const attributeName in attributes) {
+      element[attributeName] = attributes[attributeName];
+    }
+  }
+
+  const div = () => document.createElement('div');
+
   function Title (title) {
-    const element = document.createElement('div');
+    const element = div();
     element.className = 'title';
     element.textContent = title;
     return element
@@ -17,16 +39,16 @@
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
 
   function XAxis ({ points, viewBox, width }) {
-    const containerElement = document.createElement('div');
+    const containerElement = div();
     containerElement.className = 'x-axis';
     containerElement.style.width = `${width}px`;
-    const shiftingContainer = document.createElement('div');
+    const shiftingContainer = div();
     shiftingContainer.classList.add('shifting-container');
     containerElement.appendChild(shiftingContainer);
     const legendValues = [];
 
     for (let i = 0; i < points.length; i++) {
-      const xValueElement = document.createElement('div');
+      const xValueElement = div();
       xValueElement.textContent = points[i].label;
       xValueElement.classList.add(LEGEND_ITEM_CLASS);
       legendValues.push(xValueElement);
@@ -210,7 +232,7 @@
     showXAxis,
   }) {
     const fragment = document.createDocumentFragment();
-    const canvasesContainer = document.createElement('div');
+    const canvasesContainer = div();
     canvasesContainer.style.width = `${width}px`;
     canvasesContainer.style.height = `${height}px`;
 
@@ -326,26 +348,6 @@
     return `${MONTHS[date.getMonth()]} ${date.getDate()}`
   }
 
-  function createElement (type, attributes = {}, children = []) {
-    const element = document.createElement(type);
-    setElementAttributes(element, attributes);
-    children.forEach(child => element.appendChild(child));
-    return element
-  }
-
-  function validateElementAttributes (element, props) {
-    for (let prop in props) {
-      if (!(prop in element)) throw Error('No such prop')
-    }
-  }
-
-  function setElementAttributes (element, attributes) {
-    validateElementAttributes(element, attributes);
-    for (const attributeName in attributes) {
-      element[attributeName] = attributes[attributeName];
-    }
-  }
-
   const minimalPixelsBetweenResizers = 40;
   const classes = {
     left: 'cursor-w-resize',
@@ -354,7 +356,7 @@
   };
 
   function Framer (parentElement, chartConfig, onViewBoxChange) {
-    const frameContainer = document.createElement('div');
+    const frameContainer = div();
     frameContainer.classList.add('overview');
     const [graphs, updateFrameGraphs] = Graphs(chartConfig, {
       width: chartConfig.FRAME_CANVAS_WIDTH,
@@ -515,7 +517,7 @@
   }
 
   function Chart (chartConfig) {
-    const containerElement = document.createElement('div');
+    const containerElement = div();
     containerElement.appendChild(Title('Followers'));
     const [graphs, updateGraphs] = Graphs(chartConfig, {
       width: chartConfig.width,

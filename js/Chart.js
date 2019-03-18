@@ -3,9 +3,10 @@ import { Graphs } from './Graphs'
 import { Framer } from './Framer'
 import { Controls } from './Controls'
 import { EVENTS } from './constants'
+import { div } from './html'
 
 export function Chart (chartConfig) {
-  const containerElement = document.createElement('div')
+  const containerElement = div()
   containerElement.appendChild(Title('Followers'))
   const [graphs, updateGraphs] = Graphs(chartConfig, {
     width: chartConfig.width,

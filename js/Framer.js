@@ -1,5 +1,5 @@
 import { Graphs } from './Graphs'
-import { createElement } from './html'
+import { createElement, div } from './html'
 
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40
@@ -10,7 +10,7 @@ const classes = {
 }
 
 export function Framer (parentElement, chartConfig, onViewBoxChange) {
-  const frameContainer = document.createElement('div')
+  const frameContainer = div()
   frameContainer.classList.add('overview')
   const [graphs, updateFrameGraphs] = Graphs(chartConfig, {
     width: chartConfig.FRAME_CANVAS_WIDTH,

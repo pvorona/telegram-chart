@@ -17,3 +17,5 @@ function setElementAttributes (element, attributes) {
     element[attributeName] = attributes[attributeName]
   }
 }
+
+export const div = () => document.createElement('div')

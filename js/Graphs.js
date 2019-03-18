@@ -2,6 +2,7 @@ import { XAxis } from './XAxis'
 import { renderPath } from './canvas-renderer'
 import { EVENTS } from './constants'
 import { getMaxValue, clearCanvas, mapDataToCoords, animate } from './util'
+import { div } from './html'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
@@ -19,7 +20,7 @@ export function Graphs (config, {
   showXAxis,
 }) {
   const fragment = document.createDocumentFragment()
-  const canvasesContainer = document.createElement('div')
+  const canvasesContainer = div()
   canvasesContainer.style.width = `${width}px`
   canvasesContainer.style.height = `${height}px`
 
