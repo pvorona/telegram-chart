@@ -175,19 +175,10 @@
     }
   }
 
-  // Not smart enough to find analytic representation for this function
-  function calculateMultiplier (size) {
-      if      (size < pow(2, 3)) return 0
-      else if (size < pow(2, 4)) return 1
-      else if (size < pow(2, 5)) return 2
-      else if (size < pow(2, 6)) return 3
-      else if (size < pow(2, 7)) return 4
-      else if (size < pow(2, 8)) return 5
-      else if (size < pow(2, 9)) return 6
-      else if (size < pow(2, 10)) return 7
-      else if (size < pow(2, 11)) return 8
-      else if (size < pow(2, 12)) return 9
-      else if (size < pow(2, 13)) return 10
+  function calculateMultiplier (n) {
+    for (let i = 3; i < 50; i++) {
+      if (n < pow(2,i)) return i - 3
+    }
   }
 
   var renderPath = canvasRenderer;
