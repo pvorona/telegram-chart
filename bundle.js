@@ -13,7 +13,7 @@
   function Title (title) {
     const element = div();
     element.className = 'title';
-    element.textContent = title;
+    element.innerText = title;
     return element
   }
 
@@ -136,7 +136,7 @@
 
     for (let i = 0; i < points.length; i++) {
       const xValueElement = div();
-      xValueElement.textContent = points[i].label;
+      xValueElement.innerText = points[i].label;
       xValueElement.className = LEGEND_ITEM_CLASS;
       legendValues.push(xValueElement);
       shiftingContainer.appendChild(xValueElement);

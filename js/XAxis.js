@@ -16,7 +16,7 @@ export function XAxis ({ points, viewBox, width }) {
 
   for (let i = 0; i < points.length; i++) {
     const xValueElement = div()
-    xValueElement.textContent = points[i].label
+    xValueElement.innerText = points[i].label
     xValueElement.className = LEGEND_ITEM_CLASS
     legendValues.push(xValueElement)
     shiftingContainer.appendChild(xValueElement)
