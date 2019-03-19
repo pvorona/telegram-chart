@@ -1,6 +1,7 @@
 body {
   margin: 0;
   padding: 40px;
+  -webkit-user-select: none; /*Safari*/
   user-select: none;
   display: flex;
   flex-direction: column;
@@ -10,12 +11,4 @@ body {
 
 body.theme-dark {
   background-color: #242F3F;
-}
-
-.theme-light .shifting-container {
-  color: #536779;
-}
-
-.theme-dark .shifting-container {
-  color: #96A2AA;
 }
