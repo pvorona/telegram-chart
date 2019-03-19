@@ -1,0 +1,21 @@
+.shifting-container {
+  display: flex;
+  white-space: nowrap;
+  height: 14px;
+  transition: color .3s ease-in-out;
+}
+
+.legend-item-value {
+  position: absolute;
+  transition: opacity .25s;
+  will-change: opacity;
+}
+
+.legend-item-value--hidden {
+  opacity: 0;
+}
+
+.x-axis {
+  overflow: hidden;
+  padding: 5px 0 15px;
+}

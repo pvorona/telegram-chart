@@ -2,90 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Document</title>
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./cursors.css">
-  <link rel="stylesheet" href="./theme-switcher.css">
-  <link rel="stylesheet" href="./title.css">
-  <link rel="stylesheet" href="./graph-layer.css">
-  <link rel="stylesheet" href="./overview.css">
-  <link rel="stylesheet" href="./overview-overflow.css">
-  <link rel="stylesheet" href="./overview-resizer.css">
-  <link rel="stylesheet" href="./overview-viewbox.css">
-  <link rel="stylesheet" href="./checkbox-button.css">
+  <title>Pavel V. Chart</title>
+  <link rel="stylesheet" href="./dist/bundle.min.css">
 </head>
-<body class="theme-light">
-    <!--   <div class="container">
-    <div class="vertical-legend">
-      <div class="vertical-legend__item">1</div>
-      <div class="vertical-legend__item">2</div>
-      <div class="vertical-legend__item">3</div>
-      <div class="vertical-legend__item">4</div>
-      <div class="vertical-legend__item">5</div>
-    </div>
-    <div class="horizontal-legend">
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-      <div class="horizontal-legend__item"></div>
-    </div>
-  </div>
- -->
-  <script type="text/javascript" src="./constants.js"></script>
-  <script type="text/javascript" src="./util.js"></script>
-  <script type="text/javascript" src="./html.js"></script>
-  <script type="text/javascript" src="./title.js"></script>
-  <script type="text/javascript" src="./x-axis.js"></script>
-  <script type="text/javascript" src="./create-config.js"></script>
-  <script type="text/javascript" src="./canvas-renderer.js"></script>
+<body class="theme-dark">
   <script type="text/javascript" src="./chart_data.js"></script>
-  <script type="text/javascript" src="./Graphs.js"></script>
-  <script type="text/javascript" src="./frame.js"></script>
-  <script type="text/javascript" src="./controls.js"></script>
-  <script type="text/javascript" src="./ThemeSwitcher.js"></script>
-  <script type="text/javascript" src="./chart.js"></script>
-  <script>
-    const LEGEND_FONT_SIZE = 13
-    const LEGEND_PADDING = 5
-    ThemeSwitcher()
-    // 1/3, 1/2, 1/3, 1/3, 1/2
-    // Chart(createChartConfig(chartData[0]))
-    chartData.forEach(data => Chart(createChartConfig(data)))
-
-    // O(1)
-    // function renderLattice (numberOfLines) {
-    //   const screenStep = geometry.height / numberOfLines
-
-    //   context.strokeStyle = '#F5F5F5'
-    //   for (let i = 0; i < numberOfLines; i++) {
-    //     context.beginPath();
-    //     context.moveTo(0, geometry.height - screenStep * i - 1);
-    //     context.lineTo(geometry.width, geometry.height - screenStep * i - 1)
-    //     context.stroke();
-    //   }
-    // }
-
-    // O(1)
-    // function renderVerticalLegend (max, numberOfLines) {
-    //   const valueStep = max / numberOfLines
-    //   const screenStep = geometry.height / numberOfLines
-    //   const legendItems = [...document.querySelectorAll('.vertical-legend__item')]
-
-    //   for (let i = 0; i < numberOfLines; i++) {
-    //     legendItems[i].innerText = valueStep * i
-    //     legendItems[i].style = `top: ${geometry.height - screenStep * i - 1 - LEGEND_FONT_SIZE - LEGEND_PADDING}px;`
-    //   }
-    // }
-
-    // function renderHorizontalLegend () {}
-  </script>
+  <script type="text/javascript" src="./dist/bundle.js"></script>
 </body>
 </html>

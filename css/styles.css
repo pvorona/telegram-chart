@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  padding: 40px;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background-color .3s ease-in-out;
+}
+
+body.theme-dark {
+  background-color: #242F3F;
+}
+
+.theme-light .shifting-container {
+  color: #536779;
+}
+
+.theme-dark .shifting-container {
+  color: #96A2AA;
+}

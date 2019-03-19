@@ -1,32 +1,31 @@
+const { max, ceil, floor, pow } = Math
+export { max, ceil, floor, pow }
+
 function findMaxElement (values, { startIndex, endIndex }) {
-  let max = values[0][Math.ceil(startIndex)]
+  let maxValue = values[0][ceil(startIndex)]
   for (let j = 0; j < values.length; j++) {
-    max = Math.max(max, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
-    for (let i = Math.ceil(startIndex); i <= endIndex; i++) {
-      max = Math.max(values[j][i], max)
+    maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
+    for (let i = ceil(startIndex); i <= endIndex; i++) {
+      maxValue = max(values[j][i], maxValue)
     }
   }
-  return max
+  return maxValue
 }
 
-// O(n)
-function getMaxValue (renderWindow, ...values) {
+export function getMaxValue (renderWindow, values) {
   const max = findMaxElement(values, renderWindow)
-  if (Number.isNaN(max)) {
-    debugger
-  }
   if (max % 10 === 0) return max
   if (max % 5 === 0) return max
   return max + (5 - max % 5)
 }
 
-function clearCanvas (context, canvas) {
+export function clearCanvas (context, canvas) {
   context.clearRect(0, 0, canvas.width, canvas.height)
 }
 
 // h = H * w / W
 // O(n)
-function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
+export function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
   const coords = []
 
   if (!Number.isInteger(startIndex)) {
@@ -36,7 +35,7 @@ function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) 
     })
   }
 
-  for (let i = Math.ceil(startIndex); i <= Math.floor(endIndex); i++) {
+  for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     coords.push({
       x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
       y: targetContainer.height - targetContainer.height / max * data[i],
@@ -55,13 +54,13 @@ function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) 
 
 function interpolatePoint (point, values) {
   return interpolate(
-    [Math.floor(point), Math.ceil(point)],
-    [values[Math.floor(point)], values[Math.ceil(point)]],
+    floor(point), ceil(point),
+    values[floor(point)], values[ceil(point)],
     point,
   )
 }
 
-function interpolate ([x1, x2], [y1, y2], x) {
+function interpolate (x1, x2, y1, y2, x) {
   if (x === x1) return y1
   if (x === x2) return y2
   return (y2 - y1) / (x2 - x1) * (x - x1) + y1
@@ -71,7 +70,7 @@ function easing (t) {
   return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
 }
 
-function animate (from, to, duration, callback) {
+export function animate (from, to, duration, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from
   let animating = true
