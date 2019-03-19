@@ -1,6 +1,6 @@
 .graph__layer {
   position: absolute;
-  transform: translazeZ(0);
+  transform: translateZ(0);
   will-change: opacity;
   transition: opacity .25s;
 }
