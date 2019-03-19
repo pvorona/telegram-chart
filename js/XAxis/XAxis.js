@@ -20,7 +20,6 @@ export function XAxis ({ points, viewBox, width }) {
     xValueElement.innerText = points[i].label
     xValueElement.className = LEGEND_ITEM_CLASS
     legendValues.push(xValueElement)
-    valuesWidths.push(xValueElement.offsetWidth)
     shiftingContainer.appendChild(xValueElement)
   }
 
@@ -35,6 +34,9 @@ export function XAxis ({ points, viewBox, width }) {
       const xValueElement = legendValues[i]
       const offset = points[i].x / xScale
       xValueElement.style.transform = `translateX(${offset}px)`
+      if (!valuesWidths[i]) {
+        valuesWidths[i] = xValueElement.offsetWidth
+      }
       xValueElement.classList.toggle(
         LEGEND_ITEM_HIDDEN_CLASS,
         i % pow(2, stepMiltiplier)
