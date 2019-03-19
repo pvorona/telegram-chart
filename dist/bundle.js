@@ -284,13 +284,15 @@
       if (max !== newMax && newMax !== currentAnimationTarget) {
         if (cancelAnimation) cancelAnimation();
         currentAnimationTarget = newMax;
-        cancelAnimation = animate(max, newMax, transitionDuration, (newMax) => {
-          max = newMax;
-          render();
-        });
+        cancelAnimation = animate(max, newMax, transitionDuration, updateStateAndRender);
       } else {
         render();
       }
+    }
+
+    function updateStateAndRender (newMax) {
+      max = newMax;
+      render();
     }
 
     function render () {
