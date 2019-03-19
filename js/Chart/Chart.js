@@ -7,38 +7,47 @@ import { div } from '../html'
 
 export function Chart (chartConfig) {
   const containerElement = div()
+  containerElement.style.height = '100vh'
   containerElement.appendChild(Title('Followers'))
-  const { element: graphs, update: updateGraphs } = Graphs(chartConfig, {
+  const graphs = Graphs(chartConfig, {
     width: chartConfig.width,
     height: chartConfig.height,
     lineWidth: chartConfig.lineWidth,
     strokeStyles: chartConfig.colors,
     viewBox: chartConfig.renderWindow,
     showXAxis: true,
+    showTooltip: true,
   })
-  containerElement.appendChild(graphs)
-  // const [overview, updateOverview] = Framer(chartConfig, onViewBoxChange)
-  const updateFrameGraphs = Framer(containerElement, chartConfig, onViewBoxChange)
+
+  containerElement.appendChild(graphs.element)
+  const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd)
   containerElement.appendChild(Controls(chartConfig, onButtonClick))
   document.body.appendChild(containerElement)
 
   function onButtonClick (graphName) {
     chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
-    updateGraphs({
+    graphs.update({
       type: TOGGLE_VISIBILITY_STATE,
       graphName,
     })
-    updateFrameGraphs({
+    overview.update({
       type: TOGGLE_VISIBILITY_STATE,
       graphName,
     })
   }
 
   function onViewBoxChange (viewBox) {
-    updateGraphs({
+    graphs.update({
       type: VIEW_BOX_CHANGE,
       viewBox,
     })
   }
 
+  function onDragStart () {
+    graphs.startDrag()
+  }
+
+  function onDragEnd () {
+    graphs.stopDrag()
+  }
 }

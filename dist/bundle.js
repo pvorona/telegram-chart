@@ -37,10 +37,6 @@
     return max + (5 - max % 5)
   }
 
-  function clearCanvas (context, canvas) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
   // h = H * w / W
   // O(n)
   function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
@@ -79,7 +75,6 @@
   }
 
   function interpolate (x1, x2, y1, y2, x) {
-    if (x === x1) return y1
     if (x === x2) return y2
     return (y2 - y1) / (x2 - x1) * (x - x1) + y1
   }
@@ -119,19 +114,17 @@
     }
   }
 
-  const TOGGLE_VISIBILITY_STATE = 0;
-  const VIEW_BOX_CHANGE = 1;
-
   const LEGEND_ITEM_CLASS = 'legend-item-value';
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
+  const APPROX_LABEL_WIDTH = 40;
 
   function XAxis ({ points, viewBox, width }) {
-    const containerElement = div();
-    containerElement.className = 'x-axis';
-    containerElement.style.width = `${width}px`;
+    const element = div();
+    element.className = 'x-axis';
+    element.style.width = `${width}px`;
     const shiftingContainer = div();
     shiftingContainer.className = 'shifting-container';
-    containerElement.appendChild(shiftingContainer);
+    element.appendChild(shiftingContainer);
     const legendValues = [];
     const valuesWidths = [];
 
@@ -143,9 +136,11 @@
       shiftingContainer.appendChild(xValueElement);
     }
 
-    reconcile();
+    setViewBox(viewBox);
 
-    function reconcile () {
+    return { element, setViewBox }
+
+    function setViewBox (viewBox) {
       const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
       const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
       const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
@@ -155,7 +150,7 @@
         const offset = points[i].x / xScale;
         xValueElement.style.transform = `translateX(${offset}px)`;
         if (!valuesWidths[i]) {
-          valuesWidths[i] = xValueElement.offsetWidth;
+          valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH;
         }
         xValueElement.classList.toggle(
           LEGEND_ITEM_HIDDEN_CLASS,
@@ -163,17 +158,6 @@
           || (offset < -1 * shift)
           || (valuesWidths[i] + offset + shift > width)
         );
-      }
-    }
-
-    return {
-      element: containerElement,
-      update
-    }
-
-    function update ({ type }) {
-      if (type === VIEW_BOX_CHANGE) {
-        reconcile();
       }
     }
   }
@@ -184,28 +168,213 @@
     }
   }
 
-  var renderPath = canvasRenderer;
+  const TOGGLE_VISIBILITY_STATE = 0;
+  const VIEW_BOX_CHANGE = 1;
 
-  function canvasRenderer (points, context) {
-    context.beginPath();
+  const devicePixelRatio$1 = window.devicePixelRatio;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    for (let i = 0; i < points.length; i++) {
-      const { x, y } = points[i];
-      context.lineTo(x, y);
+  const DOT_BORDER_SIZE = 2;
+  const DOT_SIZE = 10;
+  const offset = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
+
+  function TooltipCircle ({
+    color,
+    // x,
+    // y,
+    // visible,
+  }) {
+    const element = document.createElement('div');
+    element.style.width = `${DOT_SIZE}px`;
+    element.style.height = `${DOT_SIZE}px`;
+    element.style.borderColor = color;
+    element.className = 'tooltip__dot';
+
+    return { element, hide, show, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
     }
 
-    context.stroke();
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition ({ x, y }) {
+      element.style.transform = `translateX(${x + offset}px) translateY(${y + offset}px)`;
+    }
   }
 
-  const devicePixelRatio = window.devicePixelRatio;
+  const LINE_WIDTH = 1;
 
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function TooltipLine () {
+    const element = document.createElement('div');
+    element.className = 'tooltip-line';
+
+    return { element, show, hide, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition (x) {
+      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
+    }
+  }
+
+  function Tooltip ({
+    graphNames,
+    colors,
+  }) {
+    const element = document.createElement('div');
+    element.className = 'tooltip';
+
+    const tooltipDate = document.createElement('div');
+    tooltipDate.style.padding = '10px 10px 0';
+    element.appendChild(tooltipDate);
+
+    const tooltipLegendContainer = document.createElement('div');
+    tooltipLegendContainer.className = 'tooltip__legend';
+    element.appendChild(tooltipLegendContainer);
+
+    const tooltipValues = {};
+    const graphInfos = {};
+    graphNames.forEach(graphName => {
+      const tooltipGraphInfo = document.createElement('div');
+      tooltipGraphInfo.style.color = colors[graphName];
+      tooltipGraphInfo.style.padding = '0 10px 10px';
+      graphInfos[graphName] = tooltipGraphInfo;
+
+      const tooltipValue = document.createElement('div');
+      tooltipValue.style.fontWeight = 'bold';
+      tooltipGraphInfo.appendChild(tooltipValue);
+
+      const graphNameElement = document.createElement('div');
+      graphNameElement.innerText = graphName;
+      tooltipGraphInfo.appendChild(graphNameElement);
+
+      tooltipValues[graphName] = tooltipValue;
+      tooltipLegendContainer.appendChild(tooltipGraphInfo);
+    });
+
+    return { element, show, hide, setPosition, setDate, showValues }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition (x) {
+      element.style.transform = `translateX(calc(${x}px - 50%))`;
+    }
+
+    function setDate (text) {
+      tooltipDate.innerText = getTooltipDateText(text);
+    }
+
+    function showValues (value) {
+      for (const graphName in tooltipValues) {
+        graphInfos[graphName].hidden = true;
+      }
+      for (const graphName in value) {
+        graphInfos[graphName].hidden = false;
+        tooltipValues[graphName].innerText = getValueText(value[graphName]);
+      }
+    }
+  }
+
+  function getValueText (num) {
+    if(Math.abs(num) < 1000) {
+      return num;
+    }
+
+    var shortNumber;
+    var exponent;
+    var size;
+    var sign = num < 0 ? '-' : '';
+    var suffixes = {
+      'K': 6,
+      'M': 9,
+      'B': 12,
+      'T': 16
+    };
+
+    num = Math.abs(num);
+    size = Math.floor(num).toString().length;
+
+    exponent = size % 3 === 0 ? size - 3 : size - (size % 3);
+    shortNumber = Math.round(10 * (num / Math.pow(10, exponent))) / 10;
+
+    for(var suffix in suffixes) {
+      if(exponent < suffixes[suffix]) {
+        shortNumber += suffix;
+        break;
+      }
+    }
+
+    return sign + shortNumber;
+  }
+
+  function getTooltipDateText (timestamp) {
+    const date = new Date(timestamp);
+    return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
+  }
+
   const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
+
+  function Graph ({
+    width,
+    height,
+    strokeStyle,
+    lineWidth,
+  }) {
+    const element = document.createElement('canvas');
+    element.style.width = `${width}px`;
+    element.style.height = `${height}px`;
+    element.width = width * devicePixelRatio;
+    element.height = height * devicePixelRatio;
+    element.className = 'graph__layer';
+
+    const context = element.getContext('2d');
+    context.strokeStyle = strokeStyle;
+    context.lineWidth = lineWidth * devicePixelRatio;
+
+    return { element, toggleVisibility, clear, renderPath }
+
+    function toggleVisibility () {
+      element.classList.toggle(HIDDEN_LAYER_CLASS);
+    }
+
+    function clear () {
+      context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio);
+    }
+
+    function renderPath (points) {
+      context.beginPath();
+
+      for (let i = 0; i < points.length; i++) {
+        const { x, y } = points[i];
+        context.lineTo(x, y);
+      }
+
+      context.stroke();
+    }
+  }
+
   const TRANSITION_DURATIONS = {
     [VIEW_BOX_CHANGE]: 150,
     [TOGGLE_VISIBILITY_STATE]: 250,
   };
 
+  // graphNames, colors, visibilityStte, data
   function Graphs (config, {
     width,
     height,
@@ -213,38 +382,43 @@
     strokeStyles,
     viewBox: { startIndex, endIndex },
     showXAxis,
+    showTooltip,
   }) {
     const fragment = document.createDocumentFragment();
     const canvasesContainer = div();
     canvasesContainer.style.width = `${width}px`;
     canvasesContainer.style.height = `${height}px`;
+    canvasesContainer.className = 'graphs';
 
     const canvases = {};
     for (let i = 0; i < config.graphNames.length; i++) {
-      const canvas = document.createElement('canvas');
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      canvas.width = width * devicePixelRatio;
-      canvas.height = height * devicePixelRatio;
-      canvas.className = 'graph__layer';
-      canvases[config.graphNames[i]] = canvas;
-      canvasesContainer.appendChild(canvas);
+      const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] });
+      canvases[config.graphNames[i]] = graph;
+      canvasesContainer.appendChild(graph.element);
     }
-
+    let tooltipLine;
+    let tooltip;
+    let tooltipDots;
+    if (showTooltip) {
+      canvasesContainer.addEventListener('mousemove', onContainerMouseMove);
+      canvasesContainer.addEventListener('mouseout', onContainerMouseOut);
+      tooltipLine = TooltipLine();
+      canvasesContainer.appendChild(tooltipLine.element);
+      tooltip = Tooltip({
+        graphNames: config.graphNames,
+        colors: config.colors,
+      });
+      tooltipDots = {};
+      for (let i = 0; i < config.graphNames.length; i++) {
+        const tooltipCircle = TooltipCircle({ color: config.colors[config.graphNames[i]] });
+        canvasesContainer.appendChild(tooltipCircle.element);
+        tooltipDots[config.graphNames[i]] = tooltipCircle;
+      }
+      canvasesContainer.appendChild(tooltip.element);
+    }
     fragment.appendChild(canvasesContainer);
 
-    const contexts = config.graphNames.reduce((contexts, graphName) => ({
-      ...contexts,
-      [graphName]: canvases[graphName].getContext('2d'),
-    }), {});
-
-    config.graphNames.forEach(graphName =>
-      Object.assign(contexts[graphName], {
-        strokeStyle: strokeStyles[graphName],
-        lineWidth: lineWidth * devicePixelRatio,
-      })
-    );
-
+    let dragging = false;
     let cancelAnimation;
     let currentAnimationTarget;
     const viewBox = {
@@ -253,16 +427,15 @@
     };
     let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames));
     let transitionDuration;
-    let updateXAxis;
+    let xAxis;
 
     if (showXAxis) {
-      const { element, update } = XAxis({
+      xAxis = XAxis({
         points: getXAxisPoints(),
         viewBox,
         width,
       });
-      updateXAxis = update;
-      fragment.appendChild(element);
+      fragment.appendChild(xAxis.element);
     }
 
     render();
@@ -270,12 +443,12 @@
     return {
       element: fragment,
       update,
+      startDrag, stopDrag,
     }
 
     function update (event) {
       updateVisibilityState(event);
       updateViewBoxState(event);
-      if (showXAxis) { updateXAxis(event); }
       const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
       if (!visibleGraphNames.length) return
       const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
@@ -295,21 +468,75 @@
       render();
     }
 
-    function render () {
-      const arrayOfDataArrays = getArrayOfDataArrays(config.graphNames);
+    // function setYScale (yScale) {}
 
+    // function setViewBox (viewBox) {}
+
+    // yScale
+    function render () {
       for (let i = 0; i < config.graphNames.length; i++) {
-        clearCanvas(contexts[config.graphNames[i]], canvases[config.graphNames[i]]);
-        renderPath(
-          mapDataToCoords(config.data[config.graphNames[i]], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
-          contexts[config.graphNames[i]],
+        const graphName = config.graphNames[i];
+        canvases[graphName].clear();
+        canvases[graphName].renderPath(
+          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox)
         );
       }
     }
 
+    // all data has already been precolulated
+      // coords are sorted, can use binary search here
+      // need input y here, not screen offset
+    function onContainerMouseMove (e) {
+      if (dragging) return
+
+      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
+      if (!visibleGraphNames.length) return
+      tooltipLine.show();
+
+      const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
+      const coords = mapDataToCoords(
+        config.data[visibleGraphNames[0]],
+        max,
+        { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 },
+        viewBox,
+      );
+      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio$1;
+
+      let closestPointIndex = 0;
+      for (let i = 1; i < coords.length; i++) {
+        if (Math.abs(newLeft - coords[i].x) < Math.abs(newLeft - coords[closestPointIndex].x)) closestPointIndex = i;
+      }
+
+      const values = {};
+      for (let i = 0; i < visibleGraphNames.length; i++) {
+        const graphName = visibleGraphNames[i];
+
+        const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox);
+        tooltipDots[graphName].show();
+        // xShift can be calculated once for all points
+        const x = thisCoords[closestPointIndex].x / devicePixelRatio$1;
+        const y = thisCoords[closestPointIndex].y / devicePixelRatio$1;
+        tooltipDots[visibleGraphNames[i]].setPosition({ x, y });
+
+        tooltip.show();
+        tooltip.setPosition(x);
+        const dataIndex = closestPointIndex + Math.floor(viewBox.startIndex);
+        tooltip.setDate(config.domain[dataIndex]);
+        values[graphName] = config.data[graphName][dataIndex];
+      }
+      tooltip.showValues(values);
+      tooltipLine.setPosition(coords[closestPointIndex].x / devicePixelRatio$1);
+    }
+
+    function onContainerMouseOut () {
+      tooltipLine.hide();
+      tooltip.hide();
+      Object.values(tooltipDots).forEach(dot => dot.hide());
+    }
+
     function updateVisibilityState ({ type, graphName }) {
       if (type === TOGGLE_VISIBILITY_STATE) {
-        canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS);
+        canvases[graphName].toggleVisibility();
         transitionDuration = TRANSITION_DURATIONS[type];
       }
     }
@@ -317,6 +544,7 @@
     function updateViewBoxState ({ type, viewBox: newViewBox }) {
       if (type === VIEW_BOX_CHANGE) {
         Object.assign(viewBox, newViewBox);
+        if (xAxis) { xAxis.setViewBox(viewBox); }
         transitionDuration = TRANSITION_DURATIONS[type];
       }
     }
@@ -335,6 +563,14 @@
       }
       return arrayOfDataArrays
     }
+
+    function startDrag () {
+      dragging = true;
+    }
+
+    function stopDrag () {
+      dragging = false;
+    }
   }
 
   function getLabelText (timestamp) {
@@ -349,10 +585,10 @@
     grabbing: 'cursor-grabbing',
   };
 
-  function Framer (parentElement, chartConfig, onViewBoxChange) {
+  function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
     const frameContainer = div();
     frameContainer.classList.add('overview');
-    const { element: graphs, update: updateFrameGraphs } = Graphs(chartConfig, {
+    const graphs = Graphs(chartConfig, {
       width: chartConfig.FRAME_CANVAS_WIDTH,
       height: chartConfig.FRAME_CANVAS_HEIGHT,
       strokeStyles: chartConfig.colors,
@@ -360,9 +596,9 @@
       viewBox: {
         startIndex: 0,
         endIndex: chartConfig.data.total - 1,
-      }
+      },
     });
-    frameContainer.appendChild(graphs);
+    frameContainer.appendChild(graphs.element);
     const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' });
     const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' });
     const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' });
@@ -388,9 +624,10 @@
 
     parentElement.appendChild(frameContainer);
 
-    return updateFrameGraphs
+    return graphs
 
     function onLeftResizerMouseDown (e) {
+      onDragStart();
       e.stopPropagation();
       e.preventDefault();
       document.body.classList.add(classes.left);
@@ -401,6 +638,7 @@
     }
 
     function removeLeftResizerListener () {
+      onDragEnd();
       document.body.classList.remove(classes.left);
       framer.classList.remove(classes.left);
       document.removeEventListener('mouseup', removeLeftResizerListener);
@@ -417,6 +655,7 @@
     }
 
     function onRightResizerMouseDown (e) {
+      onDragStart();
       e.stopPropagation();
       e.preventDefault();
       document.body.classList.add(classes.right);
@@ -427,6 +666,7 @@
     }
 
     function removeRightResizerListener () {
+      onDragEnd();
       document.body.classList.remove(classes.right);
       framer.classList.remove(classes.right);
       document.removeEventListener('mouseup', removeRightResizerListener);
@@ -454,6 +694,7 @@
     }
 
     function onFramerMouseDown (e) {
+      onDragStart();
       frameState.cursorFramerDelta = getX(e) - (framer.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
       framer.classList.add(classes.grabbing);
       document.body.classList.add(classes.grabbing);
@@ -464,6 +705,7 @@
     }
 
     function onFramerMouseUp () {
+      onDragEnd();
       document.body.classList.remove(classes.grabbing);
       framer.classList.remove(classes.grabbing);
       resizerLeft.classList.remove(classes.grabbing);
@@ -512,40 +754,49 @@
 
   function Chart (chartConfig) {
     const containerElement = div();
+    containerElement.style.height = '100vh';
     containerElement.appendChild(Title('Followers'));
-    const { element: graphs, update: updateGraphs } = Graphs(chartConfig, {
+    const graphs = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
       lineWidth: chartConfig.lineWidth,
       strokeStyles: chartConfig.colors,
       viewBox: chartConfig.renderWindow,
       showXAxis: true,
+      showTooltip: true,
     });
-    containerElement.appendChild(graphs);
-    // const [overview, updateOverview] = Framer(chartConfig, onViewBoxChange)
-    const updateFrameGraphs = Framer(containerElement, chartConfig, onViewBoxChange);
+
+    containerElement.appendChild(graphs.element);
+    const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
     containerElement.appendChild(Controls(chartConfig, onButtonClick));
     document.body.appendChild(containerElement);
 
     function onButtonClick (graphName) {
       chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
-      updateGraphs({
+      graphs.update({
         type: TOGGLE_VISIBILITY_STATE,
         graphName,
       });
-      updateFrameGraphs({
+      overview.update({
         type: TOGGLE_VISIBILITY_STATE,
         graphName,
       });
     }
 
     function onViewBoxChange (viewBox) {
-      updateGraphs({
+      graphs.update({
         type: VIEW_BOX_CHANGE,
         viewBox,
       });
     }
 
+    function onDragStart () {
+      graphs.startDrag();
+    }
+
+    function onDragEnd () {
+      graphs.stopDrag();
+    }
   }
 
   const LIGHT = 0;
@@ -577,7 +828,7 @@
     return button
   }
 
-  const LINE_WIDTH = 2;
+  const LINE_WIDTH$1 = 2;
   const FRAME_LINE_WIDTH = 1;
   const CANVAS_WIDTH = 768;
   const CANVAS_HEIGHT = 300;
@@ -615,7 +866,7 @@
       colors: chartData['colors'],
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
-      lineWidth: LINE_WIDTH,
+      lineWidth: LINE_WIDTH$1,
       FRAME_CANVAS_WIDTH,
       FRAME_CANVAS_HEIGHT,
       FRAME_LINE_WIDTH,

@@ -19,10 +19,6 @@ export function getMaxValue (renderWindow, values) {
   return max + (5 - max % 5)
 }
 
-export function clearCanvas (context, canvas) {
-  context.clearRect(0, 0, canvas.width, canvas.height)
-}
-
 // h = H * w / W
 // O(n)
 export function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
@@ -61,7 +57,6 @@ function interpolatePoint (point, values) {
 }
 
 function interpolate (x1, x2, y1, y2, x) {
-  if (x === x1) return y1
   if (x === x2) return y2
   return (y2 - y1) / (x2 - x1) * (x - x1) + y1
 }
