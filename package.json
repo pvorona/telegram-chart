@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "rollup": "^1.6.0",
-    "rollup-plugin-css-only": "^1.0.0",
+    "rollup-plugin-css-porter": "^1.0.2",
     "rollup-plugin-node-resolve": "^4.0.1"
   }
 }

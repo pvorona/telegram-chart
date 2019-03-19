@@ -19,6 +19,7 @@ body.theme-dark {
 .theme-dark .shifting-container {
   color: #96A2AA;
 }
+
 .cursor-w-resize {
   cursor: w-resize !important;
 }
@@ -30,6 +31,7 @@ body.theme-dark {
 .cursor-grabbing {
   cursor: grabbing !important;
 }
+
 .theme-switcher {
   background: none;
   font-size: 18px;
@@ -46,6 +48,7 @@ body.theme-dark {
 .theme-dark .theme-switcher {
   color: #2DA7F4;
 }
+
 .title {
   font-size: 28px;
   margin-bottom: 30px;
@@ -58,7 +61,8 @@ body.theme-dark {
 
 .theme-light .title {
   color: #222222;
-}.graph__layer {
+}
+.graph__layer {
   position: absolute;
   transform: translazeZ(0);
   will-change: opacity;
@@ -68,6 +72,7 @@ body.theme-dark {
 .graph__layer--hidden {
   opacity: 0;
 }
+
 .button {
   display: none;
 }
@@ -133,9 +138,11 @@ body.theme-dark {
 
 .theme-dark .button-text {
   color: #E8ECEE;
-}.overview {
+}
+.overview {
   position: relative;
-}.overview__overflow {
+}
+.overview__overflow {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -157,6 +164,7 @@ body.theme-dark {
 .theme-dark .overview__overflow {
   background-color: #19222eb3;
 }
+
 .overview__resizer {
   position: absolute;
   top: 0;
@@ -181,7 +189,8 @@ body.theme-dark {
 
 .theme-dark .overview__resizer {
   background-color: #39496080;
-}.overview__viewbox {
+}
+.overview__viewbox {
   border-top: 4px solid;
   border-bottom: 4px solid;
   position: absolute;
@@ -199,7 +208,8 @@ body.theme-dark {
 
 .theme-dark .overview__viewbox {
   border-color: #39496080;
-}.shifting-container {
+}
+.shifting-container {
   display: flex;
   white-space: nowrap;
   height: 14px;

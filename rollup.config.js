@@ -1,4 +1,4 @@
-import css from 'rollup-plugin-css-only'
+import css from 'rollup-plugin-css-porter'
 import resolve from 'rollup-plugin-node-resolve'
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
     format: 'iife'
   },
   plugins: [
-    css({ output: './dist/bundle.css' }),
+    css({ minified: true }),
     resolve(),
   ],
 }
