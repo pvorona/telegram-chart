@@ -158,7 +158,8 @@
           LEGEND_ITEM_HIDDEN_CLASS,
           i % pow(2, stepMiltiplier)
           || (offset < -1 * shift)
-          || (xValueElement.offsetWidth + offset + shift > width)
+          || (40 + offset + shift > width)
+          // || (xValueElement.offsetWidth + offset + shift > width)
         );
       }
     }
