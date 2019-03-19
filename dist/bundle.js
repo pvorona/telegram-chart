@@ -133,12 +133,14 @@
     shiftingContainer.className = 'shifting-container';
     containerElement.appendChild(shiftingContainer);
     const legendValues = [];
+    const valuesWidths = [];
 
     for (let i = 0; i < points.length; i++) {
       const xValueElement = div();
       xValueElement.innerText = points[i].label;
       xValueElement.className = LEGEND_ITEM_CLASS;
       legendValues.push(xValueElement);
+      valuesWidths.push(xValueElement.offsetWidth);
       shiftingContainer.appendChild(xValueElement);
     }
 
@@ -153,12 +155,11 @@
         const xValueElement = legendValues[i];
         const offset = points[i].x / xScale;
         xValueElement.style.transform = `translateX(${offset}px)`;
-        // Performance!
         xValueElement.classList.toggle(
           LEGEND_ITEM_HIDDEN_CLASS,
           i % pow(2, stepMiltiplier)
           || (offset < -1 * shift)
-          || (xValueElement.offsetWidth + offset + shift > width)
+          || (valuesWidths[i] + offset + shift > width)
         );
       }
     }
