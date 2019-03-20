@@ -456,8 +456,15 @@
       // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
       if (max !== newMax && newMax !== currentAnimationTarget) {
         if (cancelAnimation) cancelAnimation();
-        currentAnimationTarget = newMax;
-        cancelAnimation = animate(max, newMax, transitionDuration, updateStateAndRender);
+        if (Math.abs(newMax - max) / Math.min(newMax, max) < .05) {
+          console.log('her');
+          max = newMax;
+          render();
+        } else {
+            currentAnimationTarget = newMax;
+            cancelAnimation = animate(max, newMax, transitionDuration, updateStateAndRender);
+
+          }
       } else {
         render();
       }
