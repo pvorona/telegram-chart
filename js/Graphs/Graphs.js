@@ -1,17 +1,20 @@
 import { XAxis } from '../XAxis'
 import { renderPath } from '../canvas-renderer'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { getMaxValue, clearCanvas, mapDataToCoords, animate } from '../util'
+import { getMaxValue, mapDataToCoords, animate } from '../util'
 import { div } from '../html'
-import { devicePixelRatio } from '../constants'
+import { MONTHS, DAYS, devicePixelRatio } from '../constants'
+import { TooltipCircle } from './TooltipCircle'
+import { TooltipLine } from './TooltipLine'
+import { Tooltip } from './Tooltip'
+import { Graph } from './Graph'
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
 const TRANSITION_DURATIONS = {
   [VIEW_BOX_CHANGE]: 150,
   [TOGGLE_VISIBILITY_STATE]: 250,
 }
 
+// graphNames, colors, visibilityStte, data
 export function Graphs (config, {
   width,
   height,
@@ -19,38 +22,43 @@ export function Graphs (config, {
   strokeStyles,
   viewBox: { startIndex, endIndex },
   showXAxis,
+  showTooltip,
 }) {
   const fragment = document.createDocumentFragment()
   const canvasesContainer = div()
   canvasesContainer.style.width = `${width}px`
   canvasesContainer.style.height = `${height}px`
+  canvasesContainer.className = 'graphs'
 
   const canvases = {}
   for (let i = 0; i < config.graphNames.length; i++) {
-    const canvas = document.createElement('canvas')
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
-    canvas.width = width * devicePixelRatio
-    canvas.height = height * devicePixelRatio
-    canvas.className = 'graph__layer'
-    canvases[config.graphNames[i]] = canvas
-    canvasesContainer.appendChild(canvas)
+    const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] })
+    canvases[config.graphNames[i]] = graph
+    canvasesContainer.appendChild(graph.element)
   }
-
+  let tooltipLine
+  let tooltip
+  let tooltipDots
+  if (showTooltip) {
+    canvasesContainer.addEventListener('mousemove', onContainerMouseMove)
+    canvasesContainer.addEventListener('mouseout', onContainerMouseOut)
+    tooltipLine = TooltipLine()
+    canvasesContainer.appendChild(tooltipLine.element)
+    tooltip = Tooltip({
+      graphNames: config.graphNames,
+      colors: config.colors,
+    })
+    tooltipDots = {}
+    for (let i = 0; i < config.graphNames.length; i++) {
+      const tooltipCircle = TooltipCircle({ color: config.colors[config.graphNames[i]] })
+      canvasesContainer.appendChild(tooltipCircle.element)
+      tooltipDots[config.graphNames[i]] = tooltipCircle
+    }
+    canvasesContainer.appendChild(tooltip.element)
+  }
   fragment.appendChild(canvasesContainer)
 
-  const contexts = config.graphNames.reduce((contexts, graphName) => ({
-    ...contexts,
-    [graphName]: canvases[graphName].getContext('2d'),
-  }), {})
-
-  config.graphNames.forEach(graphName =>
-    Object.assign(contexts[graphName], {
-      strokeStyle: strokeStyles[graphName],
-      lineWidth: lineWidth * devicePixelRatio,
-    })
-  )
-
+  let dragging = false
   let cancelAnimation
   let currentAnimationTarget
   const viewBox = {
@@ -59,16 +67,15 @@ export function Graphs (config, {
   }
   let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames))
   let transitionDuration
-  let updateXAxis
+  let xAxis
 
   if (showXAxis) {
-    const { element, update } = XAxis({
+    xAxis = XAxis({
       points: getXAxisPoints(),
       viewBox,
       width,
     })
-    updateXAxis = update
-    fragment.appendChild(element)
+    fragment.appendChild(xAxis.element)
   }
 
   render()
@@ -76,12 +83,12 @@ export function Graphs (config, {
   return {
     element: fragment,
     update,
+    startDrag, stopDrag,
   }
 
   function update (event) {
     updateVisibilityState(event)
     updateViewBoxState(event)
-    if (showXAxis) { updateXAxis(event) }
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames)
@@ -101,21 +108,75 @@ export function Graphs (config, {
     render()
   }
 
-  function render () {
-    const arrayOfDataArrays = getArrayOfDataArrays(config.graphNames)
+  // function setYScale (yScale) {}
 
+  // function setViewBox (viewBox) {}
+
+  // yScale
+  function render () {
     for (let i = 0; i < config.graphNames.length; i++) {
-      clearCanvas(contexts[config.graphNames[i]], canvases[config.graphNames[i]])
-      renderPath(
-        mapDataToCoords(config.data[config.graphNames[i]], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox),
-        contexts[config.graphNames[i]],
+      const graphName = config.graphNames[i]
+      canvases[graphName].clear()
+      canvases[graphName].renderPath(
+        mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
       )
     }
   }
 
+  // all data has already been precolulated
+    // coords are sorted, can use binary search here
+    // need input y here, not screen offset
+  function onContainerMouseMove (e) {
+    if (dragging) return
+
+    const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
+    if (!visibleGraphNames.length) return
+    tooltipLine.show()
+
+    const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames)
+    const coords = mapDataToCoords(
+      config.data[visibleGraphNames[0]],
+      max,
+      { width: width * devicePixelRatio, height: height * devicePixelRatio },
+      viewBox,
+    )
+    const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio
+
+    let closestPointIndex = 0
+    for (let i = 1; i < coords.length; i++) {
+      if (Math.abs(newLeft - coords[i].x) < Math.abs(newLeft - coords[closestPointIndex].x)) closestPointIndex = i
+    }
+
+    const values = {}
+    for (let i = 0; i < visibleGraphNames.length; i++) {
+      const graphName = visibleGraphNames[i]
+
+      const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
+      tooltipDots[graphName].show()
+      // xShift can be calculated once for all points
+      const x = thisCoords[closestPointIndex].x / devicePixelRatio
+      const y = thisCoords[closestPointIndex].y / devicePixelRatio
+      tooltipDots[visibleGraphNames[i]].setPosition({ x, y })
+
+      tooltip.show()
+      tooltip.setPosition(x)
+      const dataIndex = closestPointIndex + Math.floor(viewBox.startIndex)
+      tooltip.setDate(config.domain[dataIndex])
+      values[graphName] = config.data[graphName][dataIndex]
+    }
+    tooltip.showValues(values)
+    tooltipLine.setPosition(coords[closestPointIndex].x / devicePixelRatio)
+  }
+
+  function onContainerMouseOut () {
+    tooltipLine.hide()
+    tooltip.hide()
+    Object.values(tooltipDots).forEach(dot => dot.hide())
+  }
+
   function updateVisibilityState ({ type, graphName }) {
     if (type === TOGGLE_VISIBILITY_STATE) {
-      canvases[graphName].classList.toggle(HIDDEN_LAYER_CLASS)
+      canvases[graphName].toggleVisibility()
       transitionDuration = TRANSITION_DURATIONS[type]
     }
   }
@@ -123,6 +184,7 @@ export function Graphs (config, {
   function updateViewBoxState ({ type, viewBox: newViewBox }) {
     if (type === VIEW_BOX_CHANGE) {
       Object.assign(viewBox, newViewBox)
+      if (xAxis) { xAxis.setViewBox(viewBox) }
       transitionDuration = TRANSITION_DURATIONS[type]
     }
   }
@@ -140,6 +202,14 @@ export function Graphs (config, {
       arrayOfDataArrays.push(config.data[graphNames[i]])
     }
     return arrayOfDataArrays
+  }
+
+  function startDrag () {
+    dragging = true
+  }
+
+  function stopDrag () {
+    dragging = false
   }
 }
 

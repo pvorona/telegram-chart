@@ -1,3 +1,7 @@
+.graphs {
+    position: relative;
+}
+
 .graph__layer {
   position: absolute;
   transform: translateZ(0);

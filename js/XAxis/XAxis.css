@@ -5,10 +5,18 @@
   transition: color .3s ease-in-out;
 }
 
+.theme-light .shifting-container {
+  color: #536779;
+}
+
+.theme-dark .shifting-container {
+  color: #96A2AA;
+}
+
 .legend-item-value {
   position: absolute;
   transition: opacity .25s;
-  will-change: opacity;
+  will-change: opacity; /* Safari zoom performance */
 }
 
 .legend-item-value--hidden {
