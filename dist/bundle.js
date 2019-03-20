@@ -17,7 +17,87 @@
     return element
   }
 
-  const { max, ceil, floor, pow } = Math;
+  const LEGEND_ITEM_CLASS = 'legend-item-value';
+  const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
+  const APPROX_LABEL_WIDTH = 40;
+
+  function XAxis ({ points, viewBox, width }, store) {
+    const element = div();
+    element.className = 'x-axis';
+    element.style.width = `${width}px`;
+    const shiftingContainer = div();
+    shiftingContainer.className = 'shifting-container';
+    element.appendChild(shiftingContainer);
+    const legendValues = [];
+    const offsets = [];
+    const visibility = [];
+
+    for (let i = 0; i < points.length; i++) {
+      const xValueElement = div();
+      xValueElement.innerText = points[i].label;
+      xValueElement.className = LEGEND_ITEM_CLASS;
+      legendValues.push(xValueElement);
+      shiftingContainer.appendChild(xValueElement);
+    }
+
+    setViewBox(viewBox);
+
+    return { element, setViewBox }
+
+    function setViewBox (viewBox) {
+      const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
+      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
+      const shift = Math.round(-1 / xScale * width * viewBox.startIndex / (points.length - 1));
+      shiftingContainer.style.transform = `translateX(${shift}px)`;
+      for (let i = 0; i < points.length; i++) {
+        const xValueElement = legendValues[i];
+        const offset = Math.round(points[i].x / xScale);
+
+        if (store.resizingViewBox) {
+          xValueElement.style.transform = `translateX(${offset}px)`;
+        } else if (!offsets[i] || offsets[i] !== offset) {
+          offsets[i] = offset;
+          xValueElement.style.transform = `translateX(${offset}px)`;
+        }
+        //
+        // }
+        // if (!valuesWidths[i]) {
+          // valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH
+        // }
+        const isHidden =
+          i % pow(2, stepMiltiplier)
+          || (offset < -1 * shift)
+          || (APPROX_LABEL_WIDTH + offset + shift > width);
+
+        if (visibility.length < i || visibility[i] !== isHidden) {
+          visibility[i] = isHidden;
+          xValueElement.classList.toggle(
+            LEGEND_ITEM_HIDDEN_CLASS,
+            isHidden
+          );
+        }
+      }
+    }
+  }
+
+  function pow (a, b) {
+    var result = a;
+    for (let i = 1; i < b; i++) {
+      result *= a;
+    }
+    return result
+  }
+
+  function calculateMultiplier (n) {
+    for (let i = 3; i < 50; i++) {
+      if (n < pow(2,i)) return i - 3
+    }
+  }
+
+  const TOGGLE_VISIBILITY_STATE = 0;
+  const VIEW_BOX_CHANGE = 1;
+
+  const { max, ceil, floor, pow: pow$1 } = Math;
 
   function findMaxElement (values, { startIndex, endIndex }) {
     let maxValue = values[0][ceil(startIndex)];
@@ -113,63 +193,6 @@
       }
     }
   }
-
-  const LEGEND_ITEM_CLASS = 'legend-item-value';
-  const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
-  const APPROX_LABEL_WIDTH = 40;
-
-  function XAxis ({ points, viewBox, width }) {
-    const element = div();
-    element.className = 'x-axis';
-    element.style.width = `${width}px`;
-    const shiftingContainer = div();
-    shiftingContainer.className = 'shifting-container';
-    element.appendChild(shiftingContainer);
-    const legendValues = [];
-    const valuesWidths = [];
-
-    for (let i = 0; i < points.length; i++) {
-      const xValueElement = div();
-      xValueElement.innerText = points[i].label;
-      xValueElement.className = LEGEND_ITEM_CLASS;
-      legendValues.push(xValueElement);
-      shiftingContainer.appendChild(xValueElement);
-    }
-
-    setViewBox(viewBox);
-
-    return { element, setViewBox }
-
-    function setViewBox (viewBox) {
-      const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
-      const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
-      const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
-      shiftingContainer.style.transform = `translateX(${shift}px)`;
-      for (let i = 0; i < points.length; i++) {
-        const xValueElement = legendValues[i];
-        const offset = points[i].x / xScale;
-        xValueElement.style.transform = `translateX(${offset}px)`;
-        if (!valuesWidths[i]) {
-          valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH;
-        }
-        xValueElement.classList.toggle(
-          LEGEND_ITEM_HIDDEN_CLASS,
-          i % pow(2, stepMiltiplier)
-          || (offset < -1 * shift)
-          || (valuesWidths[i] + offset + shift > width)
-        );
-      }
-    }
-  }
-
-  function calculateMultiplier (n) {
-    for (let i = 3; i < 50; i++) {
-      if (n < pow(2,i)) return i - 3
-    }
-  }
-
-  const TOGGLE_VISIBILITY_STATE = 0;
-  const VIEW_BOX_CHANGE = 1;
 
   const devicePixelRatio$1 = window.devicePixelRatio;
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -383,7 +406,7 @@
     viewBox: { startIndex, endIndex },
     showXAxis,
     showTooltip,
-  }) {
+  }, store) {
     const fragment = document.createDocumentFragment();
     const canvasesContainer = div();
     canvasesContainer.style.width = `${width}px`;
@@ -392,7 +415,7 @@
 
     const canvases = {};
     for (let i = 0; i < config.graphNames.length; i++) {
-      const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] });
+      const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] }, store);
       canvases[config.graphNames[i]] = graph;
       canvasesContainer.appendChild(graph.element);
     }
@@ -434,7 +457,7 @@
         points: getXAxisPoints(),
         viewBox,
         width,
-      });
+      }, store);
       fragment.appendChild(xAxis.element);
     }
 
@@ -585,7 +608,7 @@
     grabbing: 'cursor-grabbing',
   };
 
-  function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+  function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd, store) {
     const frameContainer = div();
     frameContainer.classList.add('overview');
     const graphs = Graphs(chartConfig, {
@@ -628,6 +651,7 @@
 
     function onLeftResizerMouseDown (e) {
       onDragStart();
+      store.startResizingViewBox();
       e.stopPropagation();
       e.preventDefault();
       document.body.classList.add(classes.left);
@@ -639,6 +663,7 @@
 
     function removeLeftResizerListener () {
       onDragEnd();
+      store.stopResizingViewBox();
       document.body.classList.remove(classes.left);
       framer.classList.remove(classes.left);
       document.removeEventListener('mouseup', removeLeftResizerListener);
@@ -656,6 +681,7 @@
 
     function onRightResizerMouseDown (e) {
       onDragStart();
+      store.startResizingViewBox();
       e.stopPropagation();
       e.preventDefault();
       document.body.classList.add(classes.right);
@@ -667,6 +693,7 @@
 
     function removeRightResizerListener () {
       onDragEnd();
+      store.stopResizingViewBox();
       document.body.classList.remove(classes.right);
       framer.classList.remove(classes.right);
       document.removeEventListener('mouseup', removeRightResizerListener);
@@ -695,6 +722,7 @@
 
     function onFramerMouseDown (e) {
       onDragStart();
+      store.startDraggingViewBox();
       frameState.cursorFramerDelta = getX(e) - (framer.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
       framer.classList.add(classes.grabbing);
       document.body.classList.add(classes.grabbing);
@@ -706,6 +734,7 @@
 
     function onFramerMouseUp () {
       onDragEnd();
+      store.stopDraggingViewBox();
       document.body.classList.remove(classes.grabbing);
       framer.classList.remove(classes.grabbing);
       resizerLeft.classList.remove(classes.grabbing);
@@ -731,7 +760,6 @@
       backgroundRight.style.left = `${frameState.right}px`;
       const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1);
       const endIndex = (frameState.right) / (chartConfig.FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1);
-      // console.log(frameState.right / endIndex)
       onViewBoxChange({ startIndex, endIndex });
     }
   }
@@ -752,7 +780,31 @@
     ))
   }
 
+  const createStore = () => ({
+    resizingViewBox: false,
+    draggingViewBox: false,
+
+    startResizingViewBox () {
+      this.resizingViewBox = true;
+      this.draggingViewBox = false;
+    },
+
+    stopResizingViewBox () {
+      this.resizingViewBox = false;
+    },
+
+    startDraggingViewBox () {
+      this.resizingViewBox = false;
+      this.draggingViewBox = true;
+    },
+
+    stopDraggingViewBox () {
+      this.draggingViewBox = false;
+    },
+  });
+
   function Chart (chartConfig) {
+    const store = createStore();
     const containerElement = div();
     containerElement.style.height = '100vh';
     containerElement.appendChild(Title('Followers'));
@@ -764,10 +816,10 @@
       viewBox: chartConfig.renderWindow,
       showXAxis: true,
       showTooltip: true,
-    });
+    }, store);
 
     containerElement.appendChild(graphs.element);
-    const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
+    const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd, store);
     containerElement.appendChild(Controls(chartConfig, onButtonClick));
     document.body.appendChild(containerElement);
 

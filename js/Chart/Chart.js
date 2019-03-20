@@ -4,8 +4,10 @@ import { Framer } from '../Overview'
 import { Controls } from '../Controls'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
 import { div } from '../html'
+import { createStore } from '../store'
 
 export function Chart (chartConfig) {
+  const store = createStore()
   const containerElement = div()
   containerElement.style.height = '100vh'
   containerElement.appendChild(Title('Followers'))
@@ -17,10 +19,10 @@ export function Chart (chartConfig) {
     viewBox: chartConfig.renderWindow,
     showXAxis: true,
     showTooltip: true,
-  })
+  }, store)
 
   containerElement.appendChild(graphs.element)
-  const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd)
+  const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd, store)
   containerElement.appendChild(Controls(chartConfig, onButtonClick))
   document.body.appendChild(containerElement)
 

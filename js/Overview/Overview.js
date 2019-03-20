@@ -9,7 +9,7 @@ const classes = {
   grabbing: 'cursor-grabbing',
 }
 
-export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd, store) {
   const frameContainer = div()
   frameContainer.classList.add('overview')
   const graphs = Graphs(chartConfig, {
@@ -52,6 +52,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function onLeftResizerMouseDown (e) {
     onDragStart()
+    store.startResizingViewBox()
     e.stopPropagation()
     e.preventDefault()
     document.body.classList.add(classes.left)
@@ -63,6 +64,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function removeLeftResizerListener () {
     onDragEnd()
+    store.stopResizingViewBox()
     document.body.classList.remove(classes.left)
     framer.classList.remove(classes.left)
     document.removeEventListener('mouseup', removeLeftResizerListener)
@@ -80,6 +82,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function onRightResizerMouseDown (e) {
     onDragStart()
+    store.startResizingViewBox()
     e.stopPropagation()
     e.preventDefault()
     document.body.classList.add(classes.right)
@@ -91,6 +94,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function removeRightResizerListener () {
     onDragEnd()
+    store.stopResizingViewBox()
     document.body.classList.remove(classes.right)
     framer.classList.remove(classes.right)
     document.removeEventListener('mouseup', removeRightResizerListener)
@@ -119,6 +123,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function onFramerMouseDown (e) {
     onDragStart()
+    store.startDraggingViewBox()
     frameState.cursorFramerDelta = getX(e) - (framer.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
     framer.classList.add(classes.grabbing)
     document.body.classList.add(classes.grabbing)
@@ -130,6 +135,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function onFramerMouseUp () {
     onDragEnd()
+    store.stopDraggingViewBox()
     document.body.classList.remove(classes.grabbing)
     framer.classList.remove(classes.grabbing)
     resizerLeft.classList.remove(classes.grabbing)
@@ -155,7 +161,6 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
     backgroundRight.style.left = `${frameState.right}px`
     const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
     const endIndex = (frameState.right) / (chartConfig.FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1)
-    // console.log(frameState.right / endIndex)
     onViewBoxChange({ startIndex, endIndex })
   }
 }

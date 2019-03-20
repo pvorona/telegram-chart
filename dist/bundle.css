@@ -55,76 +55,6 @@ body.theme-dark {
 .theme-light .title {
   color: #222222;
 }
-.overview {
-  position: relative;
-}
-.overview__resizer {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  transition: background-color .3s ease-in-out;
-}
-
-.overview__resizer--left {
-  left: 0;
-  cursor: w-resize;
-}
-
-.overview__resizer--right {
-  right: 0;
-  cursor: e-resize;
-}
-
-.theme-light .overview__resizer {
-  background-color: #e3ecf2cc;
-}
-
-.theme-dark .overview__resizer {
-  background-color: #39496080;
-}
-.overview__overflow {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  transition: background-color .3s ease-in-out;
-}
-
-.overview__overflow--left {
-  left: 0;
-}
-
-.overview__overflow--right {
-  right: 0;
-}
-
-.theme-light .overview__overflow {
-  background-color: #f4f9fbcc;
-}
-
-.theme-dark .overview__overflow {
-  background-color: #19222eb3;
-}
-
-.overview__viewbox {
-  border-top: 4px solid;
-  border-bottom: 4px solid;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  cursor: grab;
-  transition: border-color .3s ease-in-out;
-}
-
-.theme-light .overview__viewbox {
-  border-color: #e3ecf2cc;
-}
-
-.theme-dark .overview__viewbox {
-  border-color: #39496080;
-}
 .graphs {
     position: relative;
 }
@@ -194,6 +124,76 @@ body.theme-dark {
 .tooltip__legend {
     display: flex;
     margin-top: 10px;
+}
+.overview {
+  position: relative;
+}
+.overview__overflow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition: background-color .3s ease-in-out;
+}
+
+.overview__overflow--left {
+  left: 0;
+}
+
+.overview__overflow--right {
+  right: 0;
+}
+
+.theme-light .overview__overflow {
+  background-color: #f4f9fbcc;
+}
+
+.theme-dark .overview__overflow {
+  background-color: #19222eb3;
+}
+
+.overview__resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  transition: background-color .3s ease-in-out;
+}
+
+.overview__resizer--left {
+  left: 0;
+  cursor: w-resize;
+}
+
+.overview__resizer--right {
+  right: 0;
+  cursor: e-resize;
+}
+
+.theme-light .overview__resizer {
+  background-color: #e3ecf2cc;
+}
+
+.theme-dark .overview__resizer {
+  background-color: #39496080;
+}
+.overview__viewbox {
+  border-top: 4px solid;
+  border-bottom: 4px solid;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  cursor: grab;
+  transition: border-color .3s ease-in-out;
+}
+
+.theme-light .overview__viewbox {
+  border-color: #e3ecf2cc;
+}
+
+.theme-dark .overview__viewbox {
+  border-color: #39496080;
 }
 .button {
   display: none;

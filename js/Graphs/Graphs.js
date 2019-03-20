@@ -23,7 +23,7 @@ export function Graphs (config, {
   viewBox: { startIndex, endIndex },
   showXAxis,
   showTooltip,
-}) {
+}, store) {
   const fragment = document.createDocumentFragment()
   const canvasesContainer = div()
   canvasesContainer.style.width = `${width}px`
@@ -32,7 +32,7 @@ export function Graphs (config, {
 
   const canvases = {}
   for (let i = 0; i < config.graphNames.length; i++) {
-    const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] })
+    const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] }, store)
     canvases[config.graphNames[i]] = graph
     canvasesContainer.appendChild(graph.element)
   }
@@ -74,7 +74,7 @@ export function Graphs (config, {
       points: getXAxisPoints(),
       viewBox,
       width,
-    })
+    }, store)
     fragment.appendChild(xAxis.element)
   }
 
