@@ -1,5 +1,6 @@
 import { Graphs } from '../Graphs'
 import { createElement, div } from '../html'
+import { handleDrag } from '../util'
 
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40
@@ -42,9 +43,21 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
   backgroundLeft.style.width = `${frameState.left}px`
   framer.style.left = `${frameState.left}px`
 
-  resizerLeft.addEventListener('mousedown', onLeftResizerMouseDown)
-  resizerRight.addEventListener('mousedown', onRightResizerMouseDown)
-  framer.addEventListener('mousedown', onFramerMouseDown)
+  handleDrag(resizerLeft, {
+    onDragStart: onLeftResizerMouseDown,
+    onDragMove: onLeftResizerMouseMove,
+    onDragEnd: removeLeftResizerListener,
+  })
+  handleDrag(resizerRight, {
+    onDragStart: onRightResizerMouseDown,
+    onDragMove: onRightResizerMouseMove,
+    onDragEnd: removeRightResizerListener,
+  })
+  handleDrag(framer, {
+    onDragStart: onFramerMouseDown,
+    onDragMove: onFramerMouseMove,
+    onDragEnd: onFramerMouseUp,
+  })
 
   parentElement.appendChild(frameContainer)
 
@@ -52,21 +65,15 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function onLeftResizerMouseDown (e) {
     onDragStart()
-    e.stopPropagation()
-    e.preventDefault()
     document.body.classList.add(classes.left)
     framer.classList.add(classes.left)
-    frameState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
-    document.addEventListener('mouseup', removeLeftResizerListener)
-    document.addEventListener('mousemove', onLeftResizerMouseMove)
+    frameState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left)
   }
 
   function removeLeftResizerListener () {
     onDragEnd()
     document.body.classList.remove(classes.left)
     framer.classList.remove(classes.left)
-    document.removeEventListener('mouseup', removeLeftResizerListener)
-    document.removeEventListener('mousemove', onLeftResizerMouseMove)
   }
 
   function onLeftResizerMouseMove (e) {
@@ -80,21 +87,15 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
 
   function onRightResizerMouseDown (e) {
     onDragStart()
-    e.stopPropagation()
-    e.preventDefault()
     document.body.classList.add(classes.right)
     framer.classList.add(classes.right)
-    frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left),
-    document.addEventListener('mouseup', removeRightResizerListener)
-    document.addEventListener('mousemove', onRightResizerMouseMove)
+    frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left)
   }
 
   function removeRightResizerListener () {
     onDragEnd()
     document.body.classList.remove(classes.right)
     framer.classList.remove(classes.right)
-    document.removeEventListener('mouseup', removeRightResizerListener)
-    document.removeEventListener('mousemove', onRightResizerMouseMove)
   }
 
   function onRightResizerMouseMove (e) {
@@ -124,8 +125,6 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
     document.body.classList.add(classes.grabbing)
     resizerLeft.classList.add(classes.grabbing)
     resizerRight.classList.add(classes.grabbing)
-    document.addEventListener('mouseup', onFramerMouseUp)
-    document.addEventListener('mousemove', onFramerMouseMove)
   }
 
   function onFramerMouseUp () {
@@ -134,8 +133,6 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
     framer.classList.remove(classes.grabbing)
     resizerLeft.classList.remove(classes.grabbing)
     resizerRight.classList.remove(classes.grabbing)
-    document.removeEventListener('mouseup', onFramerMouseUp)
-    document.removeEventListener('mousemove', onFramerMouseMove)
   }
 
   function onFramerMouseMove (e) {
@@ -155,7 +152,6 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
     backgroundRight.style.left = `${frameState.right}px`
     const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1)
     const endIndex = (frameState.right) / (chartConfig.FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1)
-    // console.log(frameState.right / endIndex)
     onViewBoxChange({ startIndex, endIndex })
   }
 }
