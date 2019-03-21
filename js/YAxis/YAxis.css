@@ -1,0 +1,8 @@
+.y-axis-line {
+  position: absolute;
+  width: 100%;
+  background: black;
+  height: 1px;
+  bottom: 0;
+  position: absolute;
+}

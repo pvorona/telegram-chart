@@ -12,6 +12,17 @@ function findMaxElement (values, { startIndex, endIndex }) {
   return maxValue
 }
 
+export function findMinValue ({ startIndex, endIndex }, arrayOfDataArrays) {
+  let minValue = values[0][ceil(startIndex)]
+  for (let j = 0; j < values.length; j++) {
+    minValue = min(minValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
+    for (let i = ceil(startIndex); i <= endIndex; i++) {
+      minValue = min(values[j][i], minValue)
+    }
+  }
+  return minValue
+}
+
 export function getMaxValue (renderWindow, values) {
   const max = findMaxElement(values, renderWindow)
   if (max % 10 === 0) return max

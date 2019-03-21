@@ -168,6 +168,23 @@
     }
   }
 
+  const STEP_COUNT = 5;
+
+  function YAxis (max, height) {
+    const element = document.createDocumentFragment();
+
+    console.log(height);
+    const step = height / STEP_COUNT;
+    for (let i = 0; i < STEP_COUNT; i++) {
+      const line = document.createElement('div');
+      line.className = 'y-axis-line';
+      line.style.bottom = `${step * i}px`;
+      element.appendChild(line);
+    }
+
+    return { element }
+  }
+
   const TOGGLE_VISIBILITY_STATE = 0;
   const VIEW_BOX_CHANGE = 1;
 
@@ -382,6 +399,7 @@
     strokeStyles,
     viewBox: { startIndex, endIndex },
     showXAxis,
+    showYAxis,
     showTooltip,
   }) {
     const fragment = document.createDocumentFragment();
@@ -428,6 +446,7 @@
     let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames));
     let transitionDuration;
     let xAxis;
+    let yAxis;
 
     if (showXAxis) {
       xAxis = XAxis({
@@ -436,6 +455,11 @@
         width,
       });
       fragment.appendChild(xAxis.element);
+    }
+
+    if (showYAxis) {
+      yAxis = YAxis(max, height);
+      canvasesContainer.appendChild(yAxis.element);
     }
 
     render();
@@ -763,6 +787,7 @@
       strokeStyles: chartConfig.colors,
       viewBox: chartConfig.renderWindow,
       showXAxis: true,
+      showYAxis: true,
       showTooltip: true,
     });
 

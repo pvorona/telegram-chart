@@ -1,7 +1,8 @@
 import { XAxis } from '../XAxis'
+import { YAxis } from '../YAxis'
 import { renderPath } from '../canvas-renderer'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { getMaxValue, mapDataToCoords, animate } from '../util'
+import { getMaxValue, findMinValue, mapDataToCoords, animate } from '../util'
 import { div } from '../html'
 import { MONTHS, DAYS, devicePixelRatio } from '../constants'
 import { TooltipCircle } from './TooltipCircle'
@@ -22,6 +23,7 @@ export function Graphs (config, {
   strokeStyles,
   viewBox: { startIndex, endIndex },
   showXAxis,
+  showYAxis,
   showTooltip,
 }) {
   const fragment = document.createDocumentFragment()
@@ -68,6 +70,7 @@ export function Graphs (config, {
   let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames))
   let transitionDuration
   let xAxis
+  let yAxis
 
   if (showXAxis) {
     xAxis = XAxis({
@@ -76,6 +79,11 @@ export function Graphs (config, {
       width,
     })
     fragment.appendChild(xAxis.element)
+  }
+
+  if (showYAxis) {
+    yAxis = YAxis(max, height)
+    canvasesContainer.appendChild(yAxis.element)
   }
 
   render()
