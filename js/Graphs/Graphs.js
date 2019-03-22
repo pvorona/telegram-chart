@@ -24,12 +24,14 @@ export function Graphs (config, {
   viewBox: { startIndex, endIndex },
   showXAxis,
   showTooltip,
+  top,
 }) {
   const fragment = document.createDocumentFragment()
   const canvasesContainer = div()
   canvasesContainer.style.width = `${width}px`
   canvasesContainer.style.height = `${height}px`
   canvasesContainer.className = 'graphs'
+  if (top) canvasesContainer.style.top = `${top}px`
 
   const canvases = {}
   for (let i = 0; i < config.graphNames.length; i++) {

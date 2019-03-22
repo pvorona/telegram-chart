@@ -10,12 +10,17 @@ const classes = {
   grabbing: 'cursor-grabbing',
 }
 
+const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
+
 export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
   const frameContainer = div()
   frameContainer.classList.add('overview')
+  frameContainer.style.height = `${chartConfig.FRAME_CANVAS_HEIGHT}px`
+
   const graphs = Graphs(chartConfig, {
     width: chartConfig.FRAME_CANVAS_WIDTH,
-    height: chartConfig.FRAME_CANVAS_HEIGHT,
+    height: chartConfig.FRAME_CANVAS_HEIGHT - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
+    top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
     strokeStyles: chartConfig.colors,
     lineWidth: chartConfig.FRAME_LINE_WIDTH,
     viewBox: {
