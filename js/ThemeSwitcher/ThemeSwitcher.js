@@ -1,5 +1,5 @@
-const LIGHT = 0
-const DARK = 1
+export const LIGHT = 0
+export const DARK = 1
 
 const label = {
   [LIGHT]: 'Switch to Night Mode',

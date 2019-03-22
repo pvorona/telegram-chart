@@ -7,7 +7,7 @@ import { div } from '../html'
 
 export function Chart (chartConfig) {
   const containerElement = div()
-  containerElement.style.height = '100vh'
+  containerElement.style.marginTop = '110px'
   containerElement.appendChild(Title('Followers'))
   const graphs = Graphs(chartConfig, {
     width: chartConfig.width,

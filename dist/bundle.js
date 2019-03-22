@@ -82,9 +82,9 @@
 
   function getMaxValue (renderWindow, values) {
     const max = findMaxElement(values, renderWindow);
-    if (max % 10 === 0) return max
-    if (max % 5 === 0) return max
-    return max + (5 - max % 5)
+    if (max % 50 === 0) return max
+    // if (max % 5 === 0) return max
+    return max + (50 - max % 50)
   }
 
   // h = H * w / W
@@ -799,7 +799,7 @@
 
   function Chart (chartConfig) {
     const containerElement = div();
-    containerElement.style.height = '100vh';
+    containerElement.style.marginTop = '110px';
     containerElement.appendChild(Title('Followers'));
     const graphs = Graphs(chartConfig, {
       width: chartConfig.width,

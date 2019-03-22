@@ -4,6 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pavel V. Chart</title>
+  <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        margin: 0;
+        padding: 40px;
+        -webkit-user-select: none; /*Safari*/
+        user-select: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: background-color .3s ease-in-out;
+      }
+
+      body.theme-dark {
+        background-color: #242F3F;
+      }
+  </style>
   <link rel="stylesheet" href="./dist/bundle.min.css">
 </head>
 <body class="theme-dark">
