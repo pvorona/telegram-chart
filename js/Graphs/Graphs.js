@@ -8,6 +8,7 @@ import { TooltipCircle } from './TooltipCircle'
 import { TooltipLine } from './TooltipLine'
 import { Tooltip } from './Tooltip'
 import { Graph } from './Graph'
+import { EmptyState } from '../EmptyState'
 
 const TRANSITION_DURATIONS = {
   [VIEW_BOX_CHANGE]: 150,
@@ -56,6 +57,8 @@ export function Graphs (config, {
     }
     canvasesContainer.appendChild(tooltip.element)
   }
+  const emprtState = EmptyState()
+  canvasesContainer.appendChild(emprtState.element)
   fragment.appendChild(canvasesContainer)
 
   let dragging = false
@@ -177,6 +180,8 @@ export function Graphs (config, {
   function updateVisibilityState ({ type, graphName }) {
     if (type === TOGGLE_VISIBILITY_STATE) {
       canvases[graphName].toggleVisibility()
+      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
+      emprtState.setVisibile(visibleGraphNames.length)
       transitionDuration = TRANSITION_DURATIONS[type]
     }
   }
@@ -205,6 +210,11 @@ export function Graphs (config, {
   }
 
   function startDrag () {
+    tooltip.hide()
+    tooltipLine.hide()
+    for (let i = 0; i < config.graphNames.length; i++) {
+      tooltipDots[config.graphNames[i]].hide()
+    }
     dragging = true
   }
 

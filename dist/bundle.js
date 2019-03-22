@@ -419,6 +419,19 @@
     }
   }
 
+  function EmptyState () {
+    const element = document.createElement('div');
+    element.className = 'empty-state';
+    element.innerText = 'Nothing to show';
+    element.style.opacity = 0;
+
+    return { element, setVisibile }
+
+    function setVisibile (visible) {
+      element.style.opacity = visible ? 0 : 1;
+    }
+  }
+
   const TRANSITION_DURATIONS = {
     [VIEW_BOX_CHANGE]: 150,
     [TOGGLE_VISIBILITY_STATE]: 250,
@@ -466,6 +479,8 @@
       }
       canvasesContainer.appendChild(tooltip.element);
     }
+    const emprtState = EmptyState();
+    canvasesContainer.appendChild(emprtState.element);
     fragment.appendChild(canvasesContainer);
 
     let dragging = false;
@@ -587,6 +602,8 @@
     function updateVisibilityState ({ type, graphName }) {
       if (type === TOGGLE_VISIBILITY_STATE) {
         canvases[graphName].toggleVisibility();
+        const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
+        emprtState.setVisibile(visibleGraphNames.length);
         transitionDuration = TRANSITION_DURATIONS[type];
       }
     }
@@ -615,6 +632,11 @@
     }
 
     function startDrag () {
+      tooltip.hide();
+      tooltipLine.hide();
+      for (let i = 0; i < config.graphNames.length; i++) {
+        tooltipDots[config.graphNames[i]].hide();
+      }
       dragging = true;
     }
 
