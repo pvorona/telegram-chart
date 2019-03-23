@@ -1,3 +1,3 @@
-import './graph-layer.css'
+import './Graphs.css'
 
 export * from './Graphs'

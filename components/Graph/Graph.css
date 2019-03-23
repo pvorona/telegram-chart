@@ -1,15 +1,10 @@
-.graphs {
-    position: relative;
-    overflow: hidden;
-}
-
-.graph__layer {
+.graph {
   position: absolute;
   transform: translateZ(0);
   will-change: opacity;
   transition: opacity .25s;
 }
 
-.graph__layer--hidden {
+.graph--hidden {
   opacity: 0;
 }

@@ -344,21 +344,9 @@ body.theme-dark {
   color: #222222;
 }
 .graphs {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
-
-.graph__layer {
-  position: absolute;
-  transform: translateZ(0);
-  will-change: opacity;
-  transition: opacity .25s;
-}
-
-.graph__layer--hidden {
-  opacity: 0;
-}
-
 .tooltip-line {
     position: absolute;
     top: 0;
@@ -747,4 +735,19 @@ body.theme-dark {
 
 .theme-dark .theme-switcher {
   color: #2DA7F4;
+}
+
+.graphs {
+  position: relative;
+  overflow: hidden;
+}
+.graph {
+  position: absolute;
+  transform: translateZ(0);
+  will-change: opacity;
+  transition: opacity .25s;
+}
+
+.graph--hidden {
+  opacity: 0;
 }

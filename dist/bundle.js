@@ -424,7 +424,8 @@
     }
   }
 
-  const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
+  const CLASS_NAME = 'graph';
+  const HIDDEN_LAYER_CLASS = 'graph--hidden';
 
   function Graph ({
     width,
@@ -437,7 +438,7 @@
     element.style.height = `${height}px`;
     element.width = width * devicePixelRatio;
     element.height = height * devicePixelRatio;
-    element.className = 'graph__layer';
+    element.className = CLASS_NAME;
 
     const context = element.getContext('2d');
     context.strokeStyle = strokeStyle;
