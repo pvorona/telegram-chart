@@ -1,0 +1,10 @@
+.graph {
+  position: absolute;
+  transform: translateZ(0);
+  will-change: opacity;
+  transition: opacity .25s;
+}
+
+.graph--hidden {
+  opacity: 0;
+}

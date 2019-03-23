@@ -1,18 +1,16 @@
 (function () {
   'use strict';
 
-  function createElement (type, attributes = {}, children = []) {
-    const element = document.createElement(type);
-    Object.assign(element, attributes);
-    children.forEach(child => element.appendChild(child));
-    return element
-  }
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const LIGHT = 0;
+  const DARK = 1;
 
-  const div = () => document.createElement('div');
+  const ELEMENT_CLASS_NAME = 'title';
 
   function Title (title) {
-    const element = div();
-    element.className = 'title';
+    const element = document.createElement('div');
+    element.className = ELEMENT_CLASS_NAME;
     element.innerText = title;
     return element
   }
@@ -65,68 +63,6 @@
           break
       }
     }
-  }
-
-  const { max, ceil, floor, pow } = Math;
-
-  function findMaxElement (values, { startIndex, endIndex }) {
-    let maxValue = values[0][ceil(startIndex)];
-    for (let j = 0; j < values.length; j++) {
-      maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]));
-      for (let i = ceil(startIndex); i <= endIndex; i++) {
-        maxValue = max(values[j][i], maxValue);
-      }
-    }
-    return maxValue
-  }
-
-  function getMaxValue (renderWindow, values) {
-    const max = findMaxElement(values, renderWindow);
-    if (max % 50 === 0) return max
-    // if (max % 5 === 0) return max
-    return max + (50 - max % 50)
-  }
-
-  // h = H * w / W
-  // O(n)
-  function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
-    const coords = [];
-
-    if (!Number.isInteger(startIndex)) {
-      coords.push({
-        x: 0,
-        y: targetContainer.height - targetContainer.height / max * interpolatePoint(startIndex, data),
-      });
-    }
-
-    for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
-      coords.push({
-        x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
-        y: targetContainer.height - targetContainer.height / max * data[i],
-      });
-    }
-
-    if (!Number.isInteger(endIndex)) {
-      coords.push({
-        x: targetContainer.width,
-        y: targetContainer.height - targetContainer.height / max * interpolatePoint(endIndex, data),
-      });
-    }
-
-    return coords
-  }
-
-  function interpolatePoint (point, values) {
-    return interpolate(
-      floor(point), ceil(point),
-      values[floor(point)], values[ceil(point)],
-      point,
-    )
-  }
-
-  function interpolate (x1, x2, y1, y2, x) {
-    if (x === x2) return y2
-    return (y2 - y1) / (x2 - x1) * (x - x1) + y1
   }
 
   function easing (t) {
@@ -194,6 +130,77 @@
 
     return shortNumber
   }
+
+  const { max, ceil, floor, pow } = Math;
+
+  function interpolatePoint (point, values) {
+    return interpolate(
+      floor(point), ceil(point),
+      values[floor(point)], values[ceil(point)],
+      point,
+    )
+  }
+
+  function interpolate (x1, x2, y1, y2, x) {
+    if (x === x2) return y2
+    return (y2 - y1) / (x2 - x1) * (x - x1) + y1
+  }
+
+  // h = H * w / W
+  // O(n)
+  function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
+    const coords = [];
+
+    if (!Number.isInteger(startIndex)) {
+      coords.push({
+        x: 0,
+        y: targetContainer.height - targetContainer.height / max * interpolatePoint(startIndex, data),
+      });
+    }
+
+    for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
+      coords.push({
+        x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
+        y: targetContainer.height - targetContainer.height / max * data[i],
+      });
+    }
+
+    if (!Number.isInteger(endIndex)) {
+      coords.push({
+        x: targetContainer.width,
+        y: targetContainer.height - targetContainer.height / max * interpolatePoint(endIndex, data),
+      });
+    }
+
+    return coords
+  }
+
+  function findMaxElement (values, { startIndex, endIndex }) {
+    let maxValue = values[0][ceil(startIndex)];
+    for (let j = 0; j < values.length; j++) {
+      maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]));
+      for (let i = ceil(startIndex); i <= endIndex; i++) {
+        maxValue = max(values[j][i], maxValue);
+      }
+    }
+    return maxValue
+  }
+
+  function getMaxValue (viewBox, values) {
+    const max = findMaxElement(values, viewBox);
+    if (max % 50 === 0) return max
+    // if (max % 5 === 0) return max
+    return max + (50 - max % 50)
+  }
+
+  function createElement (type, attributes = {}, children = []) {
+    const element = document.createElement(type);
+    Object.assign(element, attributes);
+    children.forEach(child => element.appendChild(child));
+    return element
+  }
+
+  const div = () => document.createElement('div');
 
   const LEGEND_ITEM_CLASS = 'legend-item-value';
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
@@ -301,62 +308,6 @@
   const TOGGLE_VISIBILITY_STATE = 0;
   const VIEW_BOX_CHANGE = 1;
 
-  const devicePixelRatio$1 = window.devicePixelRatio;
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  const DOT_BORDER_SIZE = 2;
-  const DOT_SIZE = 10;
-  const offset = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
-
-  function TooltipCircle ({
-    color,
-    // x,
-    // y,
-    // visible,
-  }) {
-    const element = document.createElement('div');
-    element.style.width = `${DOT_SIZE}px`;
-    element.style.height = `${DOT_SIZE}px`;
-    element.style.borderColor = color;
-    element.className = 'tooltip__dot';
-
-    return { element, hide, show, setPosition }
-
-    function show () {
-      element.style.visibility = 'visible';
-    }
-
-    function hide () {
-      element.style.visibility = '';
-    }
-
-    function setPosition ({ x, y }) {
-      element.style.transform = `translateX(${x + offset}px) translateY(${y + offset}px)`;
-    }
-  }
-
-  const LINE_WIDTH = 1;
-
-  function TooltipLine () {
-    const element = document.createElement('div');
-    element.className = 'tooltip-line';
-
-    return { element, show, hide, setPosition }
-
-    function show () {
-      element.style.visibility = 'visible';
-    }
-
-    function hide () {
-      element.style.visibility = '';
-    }
-
-    function setPosition (x) {
-      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
-    }
-  }
-
   function Tooltip ({
     graphNames,
     colors,
@@ -416,41 +367,9 @@
       }
       for (const graphName in value) {
         graphInfos[graphName].hidden = false;
-        tooltipValues[graphName].innerText = getValueText(value[graphName]);
+        tooltipValues[graphName].innerText = getShortNumber(value[graphName]);
       }
     }
-  }
-
-  function getValueText (num) {
-    if(Math.abs(num) < 1000) {
-      return num;
-    }
-
-    var shortNumber;
-    var exponent;
-    var size;
-    var sign = num < 0 ? '-' : '';
-    var suffixes = {
-      'K': 6,
-      'M': 9,
-      'B': 12,
-      'T': 16
-    };
-
-    num = Math.abs(num);
-    size = Math.floor(num).toString().length;
-
-    exponent = size % 3 === 0 ? size - 3 : size - (size % 3);
-    shortNumber = Math.round(10 * (num / Math.pow(10, exponent))) / 10;
-
-    for(var suffix in suffixes) {
-      if(exponent < suffixes[suffix]) {
-        shortNumber += suffix;
-        break;
-      }
-    }
-
-    return sign + shortNumber;
   }
 
   function getTooltipDateText (timestamp) {
@@ -458,7 +377,55 @@
     return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
   }
 
-  const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
+  const DOT_BORDER_SIZE = 2;
+  const DOT_SIZE = 10;
+  const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
+
+  function TooltipCircle ({ color }) {
+    const element = document.createElement('div');
+    element.style.width = `${DOT_SIZE}px`;
+    element.style.height = `${DOT_SIZE}px`;
+    element.style.borderColor = color;
+    element.className = 'tooltip__dot';
+
+    return { element, hide, show, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition ({ x, y }) {
+      element.style.transform = `translateX(${x + CENTER_OFFSET}px) translateY(${y + CENTER_OFFSET}px)`;
+    }
+  }
+
+  const LINE_WIDTH = 1;
+
+  function TooltipLine () {
+    const element = document.createElement('div');
+    element.className = 'tooltip-line';
+
+    return { element, show, hide, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition (x) {
+      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
+    }
+  }
+
+  const CLASS_NAME = 'graph';
+  const HIDDEN_LAYER_CLASS = 'graph--hidden';
 
   function Graph ({
     width,
@@ -471,7 +438,7 @@
     element.style.height = `${height}px`;
     element.width = width * devicePixelRatio;
     element.height = height * devicePixelRatio;
-    element.className = 'graph__layer';
+    element.className = CLASS_NAME;
 
     const context = element.getContext('2d');
     context.strokeStyle = strokeStyle;
@@ -529,7 +496,7 @@
     showTooltip,
     top,
   }) {
-    const fragment = document.createDocumentFragment();
+    const element = document.createDocumentFragment();
     const canvasesContainer = div();
     const viewBox = {
       startIndex,
@@ -575,7 +542,7 @@
     }
     const emprtState = EmptyState();
     canvasesContainer.appendChild(emprtState.element);
-    fragment.appendChild(canvasesContainer);
+    element.appendChild(canvasesContainer);
 
     let dragging = false;
     let cancelAnimation;
@@ -589,21 +556,20 @@
         viewBox,
         width,
       });
-      fragment.appendChild(xAxis.element);
+      element.appendChild(xAxis.element);
     }
-
 
     render();
 
     return {
-      element: fragment,
-      update,
-      startDrag, stopDrag,
+      element,
+      changeViewBox,
+      toggleVisibility,
+      startDrag,
+      stopDrag,
     }
 
-    function update (event) {
-      updateVisibilityState(event);
-      updateViewBoxState(event);
+    function update () {
       const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
       if (!visibleGraphNames.length) return
       const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
@@ -634,7 +600,7 @@
         const graphName = config.graphNames[i];
         canvases[graphName].clear();
         canvases[graphName].renderPath(
-          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox)
+          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
         );
       }
     }
@@ -653,10 +619,10 @@
       const coords = mapDataToCoords(
         config.data[visibleGraphNames[0]],
         max,
-        { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 },
+        { width: width * devicePixelRatio, height: height * devicePixelRatio },
         viewBox,
       );
-      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio$1;
+      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio;
 
       let closestPointIndex = 0;
       for (let i = 1; i < coords.length; i++) {
@@ -667,11 +633,11 @@
       for (let i = 0; i < visibleGraphNames.length; i++) {
         const graphName = visibleGraphNames[i];
 
-        const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox);
+        const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox);
         tooltipDots[graphName].show();
         // xShift can be calculated once for all points
-        const x = thisCoords[closestPointIndex].x / devicePixelRatio$1;
-        const y = thisCoords[closestPointIndex].y / devicePixelRatio$1;
+        const x = thisCoords[closestPointIndex].x / devicePixelRatio;
+        const y = thisCoords[closestPointIndex].y / devicePixelRatio;
         tooltipDots[visibleGraphNames[i]].setPosition({ x, y });
 
         tooltip.show();
@@ -681,7 +647,7 @@
         values[graphName] = config.data[graphName][dataIndex];
       }
       tooltip.showValues(values);
-      tooltipLine.setPosition(coords[closestPointIndex].x / devicePixelRatio$1);
+      tooltipLine.setPosition(coords[closestPointIndex].x / devicePixelRatio);
     }
 
     function onContainerMouseOut () {
@@ -690,21 +656,19 @@
       Object.values(tooltipDots).forEach(dot => dot.hide());
     }
 
-    function updateVisibilityState ({ type, graphName }) {
-      if (type === TOGGLE_VISIBILITY_STATE) {
-        canvases[graphName].toggleVisibility();
-        const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
-        emprtState.setVisibile(visibleGraphNames.length);
-        transitionDuration = TRANSITION_DURATIONS[type];
-      }
+    function toggleVisibility (graphName) {
+      canvases[graphName].toggleVisibility();
+      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
+      emprtState.setVisibile(visibleGraphNames.length);
+      transitionDuration = TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE];
+      update();
     }
 
-    function updateViewBoxState ({ type, viewBox: newViewBox }) {
-      if (type === VIEW_BOX_CHANGE) {
-        Object.assign(viewBox, newViewBox);
-        if (xAxis) { xAxis.setViewBox(viewBox); }
-        transitionDuration = TRANSITION_DURATIONS[type];
-      }
+    function changeViewBox (newViewBox) {
+      Object.assign(viewBox, newViewBox);
+      if (xAxis) { xAxis.setViewBox(viewBox); }
+      transitionDuration = TRANSITION_DURATIONS[VIEW_BOX_CHANGE];
+      update();
     }
 
     function getXAxisPoints () {
@@ -747,44 +711,44 @@
     right: 'cursor-e-resize',
     grabbing: 'cursor-grabbing',
   };
-
+  const ELEMENT_CLASS_NAME$1 = 'overview';
   const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 
-  function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
-    const frameContainer = div();
-    frameContainer.classList.add('overview');
-    frameContainer.style.height = `${chartConfig.FRAME_CANVAS_HEIGHT}px`;
+  function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+    const overviewContainer = div();
+    overviewContainer.className = ELEMENT_CLASS_NAME$1;
+    overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`;
 
     const graphs = Graphs(chartConfig, {
-      width: chartConfig.FRAME_CANVAS_WIDTH,
-      height: chartConfig.FRAME_CANVAS_HEIGHT - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
+      width: chartConfig.OVERVIEW_CANVAS_WIDTH,
+      height: chartConfig.OVERVIEW_CANVAS_HEIGHT - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
       top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
       strokeStyles: chartConfig.colors,
-      lineWidth: chartConfig.FRAME_LINE_WIDTH,
+      lineWidth: chartConfig.OVERVIEW_LINE_WIDTH,
       viewBox: {
         startIndex: 0,
         endIndex: chartConfig.data.total - 1,
       },
     });
-    frameContainer.appendChild(graphs.element);
+    overviewContainer.appendChild(graphs.element);
     const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' });
     const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' });
     const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' });
     const resizerRight = createElement('div', { className: 'overview__resizer overview__resizer--right' });
-    const framer = createElement('div', { className: 'overview__viewbox' }, [resizerLeft, resizerRight]);
-    frameContainer.appendChild(backgroundLeft);
-    frameContainer.appendChild(backgroundRight);
-    frameContainer.appendChild(framer);
+    const viewBoxElement = createElement('div', { className: 'overview__viewbox' }, [resizerLeft, resizerRight]);
+    overviewContainer.appendChild(backgroundLeft);
+    overviewContainer.appendChild(backgroundRight);
+    overviewContainer.appendChild(viewBoxElement);
 
-    const frameState = {
-      left: chartConfig.renderWindow.startIndex / (chartConfig.data.total - 1) * chartConfig.FRAME_CANVAS_WIDTH,
-      right: chartConfig.FRAME_CANVAS_WIDTH,
+    const overviewState = {
+      left: chartConfig.viewBox.startIndex / (chartConfig.data.total - 1) * chartConfig.OVERVIEW_CANVAS_WIDTH,
+      right: chartConfig.OVERVIEW_CANVAS_WIDTH,
       cursorResizerDelta: 0,
-      cursorFramerDelta: 0,
+      cursorViewBoxElementDelta: 0,
     };
 
-    backgroundLeft.style.width = `${frameState.left}px`;
-    framer.style.left = `${frameState.left}px`;
+    backgroundLeft.style.width = `${overviewState.left}px`;
+    viewBoxElement.style.left = `${overviewState.left}px`;
 
     handleDrag(resizerLeft, {
       onDragStart: onLeftResizerMouseDown,
@@ -796,105 +760,106 @@
       onDragMove: onRightResizerMouseMove,
       onDragEnd: removeRightResizerListener,
     });
-    handleDrag(framer, {
-      onDragStart: onFramerMouseDown,
-      onDragMove: onFramerMouseMove,
-      onDragEnd: onFramerMouseUp,
+    handleDrag(viewBoxElement, {
+      onDragStart: onViewBoxElementMouseDown,
+      onDragMove: onViewBoxElementMouseMove,
+      onDragEnd: onViewBoxElementMouseUp,
     });
 
-    parentElement.appendChild(frameContainer);
-
-    return graphs
+    return {
+      element: overviewContainer,
+      toggleVisibility: graphs.toggleVisibility,
+    }
 
     function onLeftResizerMouseDown (e) {
       onDragStart();
       document.body.classList.add(classes.left);
-      framer.classList.add(classes.left);
-      frameState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left);
+      viewBoxElement.classList.add(classes.left);
+      overviewState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left);
     }
 
     function removeLeftResizerListener () {
       onDragEnd();
       document.body.classList.remove(classes.left);
-      framer.classList.remove(classes.left);
+      viewBoxElement.classList.remove(classes.left);
     }
 
     function onLeftResizerMouseMove (e) {
-      const left = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta);
-      frameState.left = left > frameState.right - minimalPixelsBetweenResizers ? (frameState.right - minimalPixelsBetweenResizers) : left;
-      backgroundLeft.style.width = `${frameState.left}px`;
-      framer.style.left = `${frameState.left}px`;
-      const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1);
+      const left = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta);
+      overviewState.left = left > overviewState.right - minimalPixelsBetweenResizers ? (overviewState.right - minimalPixelsBetweenResizers) : left;
+      backgroundLeft.style.width = `${overviewState.left}px`;
+      viewBoxElement.style.left = `${overviewState.left}px`;
+      const startIndex = overviewState.left / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1);
       onViewBoxChange({ startIndex });
     }
 
     function onRightResizerMouseDown (e) {
       onDragStart();
       document.body.classList.add(classes.right);
-      framer.classList.add(classes.right);
-      frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left);
+      viewBoxElement.classList.add(classes.right);
+      overviewState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left);
     }
 
     function removeRightResizerListener () {
       onDragEnd();
       document.body.classList.remove(classes.right);
-      framer.classList.remove(classes.right);
+      viewBoxElement.classList.remove(classes.right);
     }
 
     function onRightResizerMouseMove (e) {
-      const right = ensureInFrameBounds(getX(e) - frameState.cursorResizerDelta);
-      frameState.right = right < frameState.left + minimalPixelsBetweenResizers ? (frameState.left + minimalPixelsBetweenResizers) : right;
-      backgroundRight.style.left = `${frameState.right}px`;
-      framer.style.right = `${chartConfig.FRAME_CANVAS_WIDTH - (frameState.right)}px`;
-      const endIndex = (frameState.right) / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1);
+      const right = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta);
+      overviewState.right = right < overviewState.left + minimalPixelsBetweenResizers ? (overviewState.left + minimalPixelsBetweenResizers) : right;
+      backgroundRight.style.left = `${overviewState.right}px`;
+      viewBoxElement.style.right = `${chartConfig.OVERVIEW_CANVAS_WIDTH - (overviewState.right)}px`;
+      const endIndex = (overviewState.right) / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1);
       onViewBoxChange({ endIndex });
     }
 
     function getX (event) {
-      const { left } = frameContainer.getBoundingClientRect();
+      const { left } = overviewContainer.getBoundingClientRect();
       return event.clientX - left + window.scrollX - document.documentElement.scrollLeft
     }
 
-    function ensureInFrameBounds (x) {
-      if (x > chartConfig.FRAME_CANVAS_WIDTH) return chartConfig.FRAME_CANVAS_WIDTH
+    function ensureInOverviewBounds (x) {
+      if (x > chartConfig.OVERVIEW_CANVAS_WIDTH) return chartConfig.OVERVIEW_CANVAS_WIDTH
       if (x < 0) return 0
       return x
     }
 
-    function onFramerMouseDown (e) {
+    function onViewBoxElementMouseDown (e) {
       onDragStart();
-      frameState.cursorFramerDelta = getX(e) - (framer.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
-      framer.classList.add(classes.grabbing);
+      overviewState.cursorViewBoxElementDelta = getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
+      viewBoxElement.classList.add(classes.grabbing);
       document.body.classList.add(classes.grabbing);
       resizerLeft.classList.add(classes.grabbing);
       resizerRight.classList.add(classes.grabbing);
     }
 
-    function onFramerMouseUp () {
+    function onViewBoxElementMouseUp () {
       onDragEnd();
       document.body.classList.remove(classes.grabbing);
-      framer.classList.remove(classes.grabbing);
+      viewBoxElement.classList.remove(classes.grabbing);
       resizerLeft.classList.remove(classes.grabbing);
       resizerRight.classList.remove(classes.grabbing);
     }
 
-    function onFramerMouseMove (e) {
-      const width = frameState.right - frameState.left;
-      const nextLeft = getX(e) - frameState.cursorFramerDelta;
+    function onViewBoxElementMouseMove (e) {
+      const width = overviewState.right - overviewState.left;
+      const nextLeft = getX(e) - overviewState.cursorViewBoxElementDelta;
       if (nextLeft < 0) {
-        frameState.left = 0;
-      } else if (nextLeft > chartConfig.FRAME_CANVAS_WIDTH - width) {
-        frameState.left = chartConfig.FRAME_CANVAS_WIDTH - width;
+        overviewState.left = 0;
+      } else if (nextLeft > chartConfig.OVERVIEW_CANVAS_WIDTH - width) {
+        overviewState.left = chartConfig.OVERVIEW_CANVAS_WIDTH - width;
       } else {
-        frameState.left = nextLeft;
+        overviewState.left = nextLeft;
       }
-      frameState.right = frameState.left + width;
-      framer.style.left = `${frameState.left}px`;
-      framer.style.right = `${chartConfig.FRAME_CANVAS_WIDTH - (frameState.right)}px`;
-      backgroundLeft.style.width = `${frameState.left}px`;
-      backgroundRight.style.left = `${frameState.right}px`;
-      const startIndex = frameState.left / chartConfig.FRAME_CANVAS_WIDTH * (chartConfig.data.total - 1);
-      const endIndex = (frameState.right) / (chartConfig.FRAME_CANVAS_WIDTH) * (chartConfig.data.total - 1);
+      overviewState.right = overviewState.left + width;
+      viewBoxElement.style.left = `${overviewState.left}px`;
+      viewBoxElement.style.right = `${chartConfig.OVERVIEW_CANVAS_WIDTH - (overviewState.right)}px`;
+      backgroundLeft.style.width = `${overviewState.left}px`;
+      backgroundRight.style.left = `${overviewState.right}px`;
+      const startIndex = overviewState.left / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1);
+      const endIndex = (overviewState.right) / (chartConfig.OVERVIEW_CANVAS_WIDTH) * (chartConfig.data.total - 1);
       onViewBoxChange({ startIndex, endIndex });
     }
   }
@@ -916,42 +881,42 @@
   }
 
   function Chart (chartConfig) {
-    const containerElement = div();
-    containerElement.style.marginTop = '110px';
-    containerElement.appendChild(Title('Followers'));
+    const element = document.createElement('div');
+    element.style.marginTop = '110px';
+    element.appendChild(Title(chartConfig.title));
     const graphs = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
       lineWidth: chartConfig.lineWidth,
       strokeStyles: chartConfig.colors,
-      viewBox: chartConfig.renderWindow,
+      viewBox: chartConfig.viewBox,
       showXAxis: true,
       showYAxis: true,
       showTooltip: true,
+
+      // colors: chartConfig.colors,
+      // graphNames: chartConfig.graphNames,
+      // data: chartConfig.data,
+      // domain: chartConfig.domain,
+      // visibleGraphNames: get ()
+      // maxVisibleValue: get ()
     });
 
-    containerElement.appendChild(graphs.element);
-    const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
-    containerElement.appendChild(Controls(chartConfig, onButtonClick));
-    document.body.appendChild(containerElement);
+    const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd);
+    element.appendChild(graphs.element);
+    element.appendChild(overview.element);
+    element.appendChild(Controls(chartConfig, onButtonClick));
+
+    return { element }
 
     function onButtonClick (graphName) {
       chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
-      graphs.update({
-        type: TOGGLE_VISIBILITY_STATE,
-        graphName,
-      });
-      overview.update({
-        type: TOGGLE_VISIBILITY_STATE,
-        graphName,
-      });
+      graphs.toggleVisibility(graphName);
+      overview.toggleVisibility(graphName);
     }
 
     function onViewBoxChange (viewBox) {
-      graphs.update({
-        type: VIEW_BOX_CHANGE,
-        viewBox,
-      });
+      graphs.changeViewBox(viewBox);
     }
 
     function onDragStart () {
@@ -963,41 +928,45 @@
     }
   }
 
-  const LIGHT = 0;
-  const DARK = 1;
+  const NEXT_THEME = {
+    [LIGHT]: DARK,
+    [DARK]: LIGHT,
+  };
 
-  const label = {
+  const LABELS = {
     [LIGHT]: 'Switch to Night Mode',
     [DARK]: 'Switch to Day Mode',
   };
 
-  const classNames = {
+  const THEME_CLASS_NAMES = {
     [LIGHT]: 'theme-light',
     [DARK]: 'theme-dark',
   };
+
+  const ELEMENT_CLASS_NAME$2 = 'theme-switcher';
 
   function ThemeSwitcher (initialTheme) {
     let theme = initialTheme;
 
     const button = document.createElement('button');
-    button.innerText = label[theme];
-    button.classList.add('theme-switcher');
+    button.innerText = LABELS[theme];
+    button.classList.add(ELEMENT_CLASS_NAME$2);
     button.addEventListener('click', function () {
-      document.body.classList.remove(classNames[theme]);
-      theme = theme === LIGHT ? DARK : LIGHT;
-      button.innerText = label[theme];
-      document.body.classList.add(classNames[theme]);
+      document.body.classList.remove(THEME_CLASS_NAMES[theme]);
+      theme = NEXT_THEME[theme];
+      button.innerText = LABELS[theme];
+      document.body.classList.add(THEME_CLASS_NAMES[theme]);
     });
 
     return button
   }
 
   const LINE_WIDTH$1 = 2;
-  const FRAME_LINE_WIDTH = 1;
+  const OVERVIEW_LINE_WIDTH = 1;
   const CANVAS_WIDTH = 768;
   const CANVAS_HEIGHT = 300;
-  const FRAME_CANVAS_HEIGHT = 50;
-  const FRAME_CANVAS_WIDTH = CANVAS_WIDTH;
+  const OVERVIEW_CANVAS_HEIGHT = 50;
+  const OVERVIEW_CANVAS_WIDTH = CANVAS_WIDTH;
 
   function createChartConfig (chartData) {
     const graphNames = chartData['columns']
@@ -1016,31 +985,34 @@
       ...visibilityState,
       [graphName]: true,
     }), {});
-    const renderWindow = {
+    const viewBox = {
       startIndex: ceil(data.total / 3 * 2),
       endIndex: data.total - 1,
     };
 
     return {
+      title: 'Followers',
       data,
       domain,
       graphNames,
       visibilityState,
-      renderWindow,
+      viewBox,
       colors: chartData['colors'],
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
       lineWidth: LINE_WIDTH$1,
-      FRAME_CANVAS_WIDTH,
-      FRAME_CANVAS_HEIGHT,
-      FRAME_LINE_WIDTH,
+      OVERVIEW_CANVAS_WIDTH,
+      OVERVIEW_CANVAS_HEIGHT,
+      OVERVIEW_LINE_WIDTH,
     }
   }
 
-  document.body.appendChild(ThemeSwitcher(1));
+  document.body.appendChild(ThemeSwitcher(DARK));
 
   // 1/3, 1/2, 1/3, 1/3, 1/2
   // Chart(createChartConfig(chartData[0]))
-  chartData.forEach(data => Chart(createChartConfig(data)));
+  chartData
+    .map(data => Chart(createChartConfig(data)))
+    .forEach(chart => document.body.appendChild(chart.element));
 
 }());
