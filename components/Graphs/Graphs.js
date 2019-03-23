@@ -151,7 +151,7 @@ export function Graphs (config, {
       { width: width * devicePixelRatio, height: height * devicePixelRatio },
       viewBox,
     )
-    const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio
+    const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().left) * devicePixelRatio
 
     let closestPointIndex = 0
     for (let i = 1; i < coords.length; i++) {
