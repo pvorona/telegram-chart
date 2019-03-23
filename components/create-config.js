@@ -29,12 +29,13 @@ export function createChartConfig (chartData) {
   }
 
   return {
+    title: 'Followers',
     data,
     domain,
     graphNames,
     visibilityState,
     renderWindow,
-    colors: chartData['colors'],
+    colors: chartData.colors,
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     lineWidth: LINE_WIDTH,

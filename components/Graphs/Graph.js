@@ -1,26 +1,34 @@
-const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
+import { TOGGLE_VISIBILITY_STATE } from '../events'
+
+const CLASS = 'graph__layer'
+const CLASS_HIDDEN = 'graph__layer--hidden'
 
 export function Graph ({
+  graphName,
   width,
   height,
   strokeStyle,
   lineWidth,
-}) {
+}, store) {
+  store.subscribe(TOGGLE_VISIBILITY_STATE, toggleVisibility)
+
   const element = document.createElement('canvas')
   element.style.width = `${width}px`
   element.style.height = `${height}px`
   element.width = width * devicePixelRatio
   element.height = height * devicePixelRatio
-  element.className = 'graph__layer'
+  element.className = CLASS
 
   const context = element.getContext('2d')
   context.strokeStyle = strokeStyle
   context.lineWidth = lineWidth * devicePixelRatio
 
-  return { element, toggleVisibility, clear, renderPath }
+  return { element, clear, renderPath }
 
-  function toggleVisibility () {
-    element.classList.toggle(HIDDEN_LAYER_CLASS)
+  function toggleVisibility (toggleGraphName) {
+    if (graphName === toggleGraphName) {
+      element.classList.toggle(CLASS_HIDDEN)
+    }
   }
 
   function clear () {

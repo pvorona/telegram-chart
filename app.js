@@ -1,4 +1,4 @@
-import { ThemeSwitcher, createChartConfig, Chart } from './js'
+import { ThemeSwitcher, createChartConfig, Chart } from './components'
 import './css/cursors.css'
 
 document.body.appendChild(ThemeSwitcher(1))

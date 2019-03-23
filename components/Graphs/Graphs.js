@@ -1,21 +1,17 @@
 import { XAxis } from '../XAxis'
-import { renderPath } from '../canvas-renderer'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
 import { getMaxValue, mapDataToCoords, animate } from '../util'
-import { div } from '../html'
 import { MONTHS, DAYS, devicePixelRatio } from '../constants'
-import { TooltipCircle } from './TooltipCircle'
-import { TooltipLine } from './TooltipLine'
-import { Tooltip } from './Tooltip'
+import { Tooltip, TooltipCircle, TooltipLine } from '../Tooltip'
 import { Graph } from './Graph'
 import { EmptyState } from '../EmptyState'
+import { DRAG_START, DRAG_END } from '../../events'
 
 const TRANSITION_DURATIONS = {
   [VIEW_BOX_CHANGE]: 150,
-  [TOGGLE_VISIBILITY_STATE]: 250,
+  ON_TOGGLE_VISIBILITY_STATE_TRANSITION: 250,
 }
 
-// graphNames, colors, visibilityStte, data
 export function Graphs (config, {
   width,
   height,
@@ -25,9 +21,15 @@ export function Graphs (config, {
   showXAxis,
   showTooltip,
   top,
-}) {
-  const fragment = document.createDocumentFragment()
-  const canvasesContainer = div()
+}, store) {
+  store.subscribe(TOGGLE_VISIBILITY_STATE, toggleVisibility)
+  if (showTooltip) {
+    store.subscribe(DRAG_START, onDragStart)
+    store.subscribe(DRAG_END, onDragEnd)
+  }
+
+  const element = document.createDocumentFragment()
+  const canvasesContainer = document.createElement('div')
   canvasesContainer.style.width = `${width}px`
   canvasesContainer.style.height = `${height}px`
   canvasesContainer.className = 'graphs'
@@ -35,13 +37,13 @@ export function Graphs (config, {
 
   const canvases = {}
   for (let i = 0; i < config.graphNames.length; i++) {
-    const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] })
+    const graph = Graph({ graphName: config.graphNames[i], width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] }, store)
     canvases[config.graphNames[i]] = graph
     canvasesContainer.appendChild(graph.element)
   }
   let tooltipLine
   let tooltip
-  let tooltipDots
+  let tooltipCircles
   if (showTooltip) {
     canvasesContainer.addEventListener('mousemove', onContainerMouseMove)
     canvasesContainer.addEventListener('mouseout', onContainerMouseOut)
@@ -51,17 +53,17 @@ export function Graphs (config, {
       graphNames: config.graphNames,
       colors: config.colors,
     })
-    tooltipDots = {}
+    tooltipCircles = {}
     for (let i = 0; i < config.graphNames.length; i++) {
       const tooltipCircle = TooltipCircle({ color: config.colors[config.graphNames[i]] })
       canvasesContainer.appendChild(tooltipCircle.element)
-      tooltipDots[config.graphNames[i]] = tooltipCircle
+      tooltipCircles[config.graphNames[i]] = tooltipCircle
     }
     canvasesContainer.appendChild(tooltip.element)
   }
-  const emprtState = EmptyState()
-  canvasesContainer.appendChild(emprtState.element)
-  fragment.appendChild(canvasesContainer)
+  const emptyState = EmptyState(store)
+  canvasesContainer.appendChild(emptyState.element)
+  element.appendChild(canvasesContainer)
 
   let dragging = false
   let cancelAnimation
@@ -80,20 +82,18 @@ export function Graphs (config, {
       viewBox,
       width,
     })
-    fragment.appendChild(xAxis.element)
+    element.appendChild(xAxis.element)
   }
 
   render()
 
   return {
-    element: fragment,
+    element,
     update,
-    startDrag, stopDrag,
   }
 
   function update (event) {
-    updateVisibilityState(event)
-    updateViewBoxState(event)
+    // updateViewBoxState(event)
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames)
@@ -157,11 +157,11 @@ export function Graphs (config, {
       const graphName = visibleGraphNames[i]
 
       const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
-      tooltipDots[graphName].show()
+      tooltipCircles[graphName].show()
       // xShift can be calculated once for all points
       const x = thisCoords[closestPointIndex].x / devicePixelRatio
       const y = thisCoords[closestPointIndex].y / devicePixelRatio
-      tooltipDots[visibleGraphNames[i]].setPosition({ x, y })
+      tooltipCircles[visibleGraphNames[i]].setPosition({ x, y })
 
       tooltip.show()
       tooltip.setPosition(x)
@@ -176,16 +176,14 @@ export function Graphs (config, {
   function onContainerMouseOut () {
     tooltipLine.hide()
     tooltip.hide()
-    Object.values(tooltipDots).forEach(dot => dot.hide())
+    Object.values(tooltipCircles).forEach(dot => dot.hide())
   }
 
-  function updateVisibilityState ({ type, graphName }) {
-    if (type === TOGGLE_VISIBILITY_STATE) {
-      canvases[graphName].toggleVisibility()
-      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
-      emprtState.setVisibile(visibleGraphNames.length)
-      transitionDuration = TRANSITION_DURATIONS[type]
-    }
+  function toggleVisibility (graphName) {
+    // const hasVisibleGraphs = store.state.graphNames.filter(graphName => store.state.visibilityState[graphName]).length
+    // emptyState.setVisibile(hasVisibleGraphs)
+    transitionDuration = TRANSITION_DURATIONS.ON_TOGGLE_VISIBILITY_STATE_TRANSITION
+    update()
   }
 
   function updateViewBoxState ({ type, viewBox: newViewBox }) {
@@ -211,16 +209,16 @@ export function Graphs (config, {
     return arrayOfDataArrays
   }
 
-  function startDrag () {
+  function onDragStart () {
     tooltip.hide()
     tooltipLine.hide()
     for (let i = 0; i < config.graphNames.length; i++) {
-      tooltipDots[config.graphNames[i]].hide()
+      tooltipCircles[config.graphNames[i]].hide()
     }
     dragging = true
   }
 
-  function stopDrag () {
+  function onDragEnd () {
     dragging = false
   }
 }

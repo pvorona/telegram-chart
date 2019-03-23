@@ -1,7 +1,5 @@
-import { div } from '../html'
-
 export function Title (title) {
-  const element = div()
+  const element = document.createElement('div')
   element.className = 'title'
   element.innerText = title
   return element

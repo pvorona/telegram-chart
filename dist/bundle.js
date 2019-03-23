@@ -1,17 +1,8 @@
 (function () {
   'use strict';
 
-  function createElement (type, attributes = {}, children = []) {
-    const element = document.createElement(type);
-    Object.assign(element, attributes);
-    children.forEach(child => element.appendChild(child));
-    return element
-  }
-
-  const div = () => document.createElement('div');
-
   function Title (title) {
-    const element = div();
+    const element = document.createElement('div');
     element.className = 'title';
     element.innerText = title;
     return element
@@ -164,6 +155,55 @@
     }
   }
 
+  function getShortNumber (num) {
+    if (Math.abs(num) < 1000) {
+      return num
+    }
+
+    var shortNumber;
+    var exponent;
+    var size;
+    var suffixes = {
+      'K': 6,
+      'M': 9,
+      'B': 12,
+      'T': 16
+    };
+
+    num = Math.abs(num);
+    size = Math.floor(num).toString().length;
+
+    exponent = size % 3 === 0 ? size - 3 : size - (size % 3);
+    shortNumber = Math.round(10 * (num / Math.pow(10, exponent))) / 10;
+
+    for (var suffix in suffixes) {
+      if (exponent < suffixes[suffix]) {
+        shortNumber += suffix;
+        break
+      }
+    }
+
+    return shortNumber
+  }
+
+  const devicePixelRatio$1 = window.devicePixelRatio;
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  function getDayMonthDateString (timestamp) {
+    const date = new Date(timestamp);
+    return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
+  }
+
+  function createElement (type, attributes = {}, children = []) {
+    const element = document.createElement(type);
+    Object.assign(element, attributes);
+    children.forEach(child => element.appendChild(child));
+    return element
+  }
+
+  const div = () => document.createElement('div');
+
   const LEGEND_ITEM_CLASS = 'legend-item-value';
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
   const APPROX_LABEL_WIDTH = 40;
@@ -221,61 +261,7 @@
   const TOGGLE_VISIBILITY_STATE = 0;
   const VIEW_BOX_CHANGE = 1;
 
-  const devicePixelRatio$1 = window.devicePixelRatio;
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  const DOT_BORDER_SIZE = 2;
-  const DOT_SIZE = 10;
-  const offset = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
-
-  function TooltipCircle ({
-    color,
-    // x,
-    // y,
-    // visible,
-  }) {
-    const element = document.createElement('div');
-    element.style.width = `${DOT_SIZE}px`;
-    element.style.height = `${DOT_SIZE}px`;
-    element.style.borderColor = color;
-    element.className = 'tooltip__dot';
-
-    return { element, hide, show, setPosition }
-
-    function show () {
-      element.style.visibility = 'visible';
-    }
-
-    function hide () {
-      element.style.visibility = '';
-    }
-
-    function setPosition ({ x, y }) {
-      element.style.transform = `translateX(${x + offset}px) translateY(${y + offset}px)`;
-    }
-  }
-
-  const LINE_WIDTH = 1;
-
-  function TooltipLine () {
-    const element = document.createElement('div');
-    element.className = 'tooltip-line';
-
-    return { element, show, hide, setPosition }
-
-    function show () {
-      element.style.visibility = 'visible';
-    }
-
-    function hide () {
-      element.style.visibility = '';
-    }
-
-    function setPosition (x) {
-      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
-    }
-  }
+  const LEGEND_CLASS = 'tooltip__legend';
 
   function Tooltip ({
     graphNames,
@@ -289,7 +275,7 @@
     element.appendChild(tooltipDate);
 
     const tooltipLegendContainer = document.createElement('div');
-    tooltipLegendContainer.className = 'tooltip__legend';
+    tooltipLegendContainer.className = LEGEND_CLASS;
     element.appendChild(tooltipLegendContainer);
 
     const tooltipValues = {};
@@ -327,7 +313,7 @@
     }
 
     function setDate (text) {
-      tooltipDate.innerText = getTooltipDateText(text);
+      tooltipDate.innerText = getDayMonthDateString(text);
     }
 
     function showValues (value) {
@@ -336,71 +322,85 @@
       }
       for (const graphName in value) {
         graphInfos[graphName].hidden = false;
-        tooltipValues[graphName].innerText = getValueText(value[graphName]);
+        tooltipValues[graphName].innerText = getShortNumber(value[graphName]);
       }
     }
   }
 
-  function getValueText (num) {
-    if(Math.abs(num) < 1000) {
-      return num;
+  const DOT_BORDER_SIZE = 2;
+  const DOT_SIZE = 10;
+  const OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
+
+  function TooltipCircle ({ color }) {
+    const element = document.createElement('div');
+    element.style.borderColor = color;
+    element.className = 'tooltip__dot';
+
+    return { element, hide, show, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
     }
 
-    var shortNumber;
-    var exponent;
-    var size;
-    var sign = num < 0 ? '-' : '';
-    var suffixes = {
-      'K': 6,
-      'M': 9,
-      'B': 12,
-      'T': 16
-    };
-
-    num = Math.abs(num);
-    size = Math.floor(num).toString().length;
-
-    exponent = size % 3 === 0 ? size - 3 : size - (size % 3);
-    shortNumber = Math.round(10 * (num / Math.pow(10, exponent))) / 10;
-
-    for(var suffix in suffixes) {
-      if(exponent < suffixes[suffix]) {
-        shortNumber += suffix;
-        break;
-      }
+    function hide () {
+      element.style.visibility = '';
     }
 
-    return sign + shortNumber;
+    function setPosition ({ x, y }) {
+      element.style.transform = `translateX(${x + OFFSET}px) translateY(${y + OFFSET}px)`;
+    }
   }
 
-  function getTooltipDateText (timestamp) {
-    const date = new Date(timestamp);
-    return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
+  const LINE_WIDTH = 1;
+
+  function TooltipLine () {
+    const element = document.createElement('div');
+    element.className = 'tooltip-line';
+
+    return { element, show, hide, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition (x) {
+      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
+    }
   }
 
-  const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
+  const CLASS = 'graph__layer';
+  const CLASS_HIDDEN = 'graph__layer--hidden';
 
   function Graph ({
+    graphName,
     width,
     height,
     strokeStyle,
     lineWidth,
-  }) {
+  }, store) {
+    store.subscribe(TOGGLE_VISIBILITY_STATE, toggleVisibility);
+
     const element = document.createElement('canvas');
     element.style.width = `${width}px`;
     element.style.height = `${height}px`;
     element.width = width * devicePixelRatio;
     element.height = height * devicePixelRatio;
-    element.className = 'graph__layer';
+    element.className = CLASS;
 
     const context = element.getContext('2d');
     context.strokeStyle = strokeStyle;
     context.lineWidth = lineWidth * devicePixelRatio;
 
-    return { element, toggleVisibility, clear, renderPath }
+    return { element, clear, renderPath }
 
-    function toggleVisibility () {
-      element.classList.toggle(HIDDEN_LAYER_CLASS);
+    function toggleVisibility (toggleGraphName) {
+      if (graphName === toggleGraphName) {
+        element.classList.toggle(CLASS_HIDDEN);
+      }
     }
 
     function clear () {
@@ -419,25 +419,29 @@
     }
   }
 
-  function EmptyState () {
+  function EmptyState (store) {
+    store.subscribe(TOGGLE_VISIBILITY_STATE, toggleVisibility);
+
     const element = document.createElement('div');
     element.className = 'empty-state';
     element.innerText = 'Nothing to show';
     element.style.opacity = 0;
 
-    return { element, setVisibile }
+    return { element }
 
-    function setVisibile (visible) {
-      element.style.opacity = visible ? 0 : 1;
+    function toggleVisibility () {
+      element.style.opacity = store.state.hasVisibleGraphNames ? 0 : 1;
     }
   }
 
+  const DRAG_START = 'DRAG_START';
+  const DRAG_END = 'DRAG_END';
+
   const TRANSITION_DURATIONS = {
     [VIEW_BOX_CHANGE]: 150,
-    [TOGGLE_VISIBILITY_STATE]: 250,
+    ON_TOGGLE_VISIBILITY_STATE_TRANSITION: 250,
   };
 
-  // graphNames, colors, visibilityStte, data
   function Graphs (config, {
     width,
     height,
@@ -447,9 +451,15 @@
     showXAxis,
     showTooltip,
     top,
-  }) {
-    const fragment = document.createDocumentFragment();
-    const canvasesContainer = div();
+  }, store) {
+    store.subscribe(TOGGLE_VISIBILITY_STATE, toggleVisibility);
+    if (showTooltip) {
+      store.subscribe(DRAG_START, onDragStart);
+      store.subscribe(DRAG_END, onDragEnd);
+    }
+
+    const element = document.createDocumentFragment();
+    const canvasesContainer = document.createElement('div');
     canvasesContainer.style.width = `${width}px`;
     canvasesContainer.style.height = `${height}px`;
     canvasesContainer.className = 'graphs';
@@ -457,13 +467,13 @@
 
     const canvases = {};
     for (let i = 0; i < config.graphNames.length; i++) {
-      const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] });
+      const graph = Graph({ graphName: config.graphNames[i], width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] }, store);
       canvases[config.graphNames[i]] = graph;
       canvasesContainer.appendChild(graph.element);
     }
     let tooltipLine;
     let tooltip;
-    let tooltipDots;
+    let tooltipCircles;
     if (showTooltip) {
       canvasesContainer.addEventListener('mousemove', onContainerMouseMove);
       canvasesContainer.addEventListener('mouseout', onContainerMouseOut);
@@ -473,17 +483,17 @@
         graphNames: config.graphNames,
         colors: config.colors,
       });
-      tooltipDots = {};
+      tooltipCircles = {};
       for (let i = 0; i < config.graphNames.length; i++) {
         const tooltipCircle = TooltipCircle({ color: config.colors[config.graphNames[i]] });
         canvasesContainer.appendChild(tooltipCircle.element);
-        tooltipDots[config.graphNames[i]] = tooltipCircle;
+        tooltipCircles[config.graphNames[i]] = tooltipCircle;
       }
       canvasesContainer.appendChild(tooltip.element);
     }
-    const emprtState = EmptyState();
-    canvasesContainer.appendChild(emprtState.element);
-    fragment.appendChild(canvasesContainer);
+    const emptyState = EmptyState(store);
+    canvasesContainer.appendChild(emptyState.element);
+    element.appendChild(canvasesContainer);
 
     let dragging = false;
     let cancelAnimation;
@@ -502,20 +512,18 @@
         viewBox,
         width,
       });
-      fragment.appendChild(xAxis.element);
+      element.appendChild(xAxis.element);
     }
 
     render();
 
     return {
-      element: fragment,
+      element,
       update,
-      startDrag, stopDrag,
     }
 
     function update (event) {
-      updateVisibilityState(event);
-      updateViewBoxState(event);
+      // updateViewBoxState(event)
       const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
       if (!visibleGraphNames.length) return
       const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
@@ -579,11 +587,11 @@
         const graphName = visibleGraphNames[i];
 
         const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox);
-        tooltipDots[graphName].show();
+        tooltipCircles[graphName].show();
         // xShift can be calculated once for all points
         const x = thisCoords[closestPointIndex].x / devicePixelRatio$1;
         const y = thisCoords[closestPointIndex].y / devicePixelRatio$1;
-        tooltipDots[visibleGraphNames[i]].setPosition({ x, y });
+        tooltipCircles[visibleGraphNames[i]].setPosition({ x, y });
 
         tooltip.show();
         tooltip.setPosition(x);
@@ -598,24 +606,14 @@
     function onContainerMouseOut () {
       tooltipLine.hide();
       tooltip.hide();
-      Object.values(tooltipDots).forEach(dot => dot.hide());
+      Object.values(tooltipCircles).forEach(dot => dot.hide());
     }
 
-    function updateVisibilityState ({ type, graphName }) {
-      if (type === TOGGLE_VISIBILITY_STATE) {
-        canvases[graphName].toggleVisibility();
-        const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
-        emprtState.setVisibile(visibleGraphNames.length);
-        transitionDuration = TRANSITION_DURATIONS[type];
-      }
-    }
-
-    function updateViewBoxState ({ type, viewBox: newViewBox }) {
-      if (type === VIEW_BOX_CHANGE) {
-        Object.assign(viewBox, newViewBox);
-        if (xAxis) { xAxis.setViewBox(viewBox); }
-        transitionDuration = TRANSITION_DURATIONS[type];
-      }
+    function toggleVisibility (graphName) {
+      // const hasVisibleGraphs = store.state.graphNames.filter(graphName => store.state.visibilityState[graphName]).length
+      // emptyState.setVisibile(hasVisibleGraphs)
+      transitionDuration = TRANSITION_DURATIONS.ON_TOGGLE_VISIBILITY_STATE_TRANSITION;
+      update();
     }
 
     function getXAxisPoints () {
@@ -633,16 +631,16 @@
       return arrayOfDataArrays
     }
 
-    function startDrag () {
+    function onDragStart () {
       tooltip.hide();
       tooltipLine.hide();
       for (let i = 0; i < config.graphNames.length; i++) {
-        tooltipDots[config.graphNames[i]].hide();
+        tooltipCircles[config.graphNames[i]].hide();
       }
       dragging = true;
     }
 
-    function stopDrag () {
+    function onDragEnd () {
       dragging = false;
     }
   }
@@ -661,7 +659,7 @@
 
   const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 
-  function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+  function Framer (parentElement, chartConfig, onViewBoxChange, eventChannel) {
     const frameContainer = div();
     frameContainer.classList.add('overview');
     frameContainer.style.height = `${chartConfig.FRAME_CANVAS_HEIGHT}px`;
@@ -676,7 +674,7 @@
         startIndex: 0,
         endIndex: chartConfig.data.total - 1,
       },
-    });
+    }, eventChannel);
     frameContainer.appendChild(graphs.element);
     const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' });
     const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' });
@@ -718,14 +716,14 @@
     return graphs
 
     function onLeftResizerMouseDown (e) {
-      onDragStart();
+      eventChannel.publish(DRAG_START);
       document.body.classList.add(classes.left);
       framer.classList.add(classes.left);
       frameState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left);
     }
 
     function removeLeftResizerListener () {
-      onDragEnd();
+      eventChannel.publish(DRAG_END);
       document.body.classList.remove(classes.left);
       framer.classList.remove(classes.left);
     }
@@ -740,14 +738,14 @@
     }
 
     function onRightResizerMouseDown (e) {
-      onDragStart();
+      eventChannel.publish(DRAG_START);
       document.body.classList.add(classes.right);
       framer.classList.add(classes.right);
       frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left);
     }
 
     function removeRightResizerListener () {
-      onDragEnd();
+      eventChannel.publish(DRAG_END);
       document.body.classList.remove(classes.right);
       framer.classList.remove(classes.right);
     }
@@ -773,7 +771,7 @@
     }
 
     function onFramerMouseDown (e) {
-      onDragStart();
+      eventChannel.publish(DRAG_START);
       frameState.cursorFramerDelta = getX(e) - (framer.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
       framer.classList.add(classes.grabbing);
       document.body.classList.add(classes.grabbing);
@@ -782,7 +780,7 @@
     }
 
     function onFramerMouseUp () {
-      onDragEnd();
+      eventChannel.publish(DRAG_END);
       document.body.classList.remove(classes.grabbing);
       framer.classList.remove(classes.grabbing);
       resizerLeft.classList.remove(classes.grabbing);
@@ -810,14 +808,14 @@
     }
   }
 
-  function Controls (config, onButtonClick) {
+  function Controls (config, eventChannel) {
     return createElement('div', { style: 'margin-top: 20px'}, config.graphNames.map(graphName =>
       createElement('label', { style: `color: ${config.colors[graphName]}; margin-right: 20px` }, [
         createElement('input', {
           checked: true,
           type: 'checkbox',
           className: 'button',
-          onclick: () => onButtonClick(graphName),
+          onclick: () => eventChannel.publish(TOGGLE_VISIBILITY_STATE, graphName),
         }),
         createElement('div', { className: 'like-button' }, [
           createElement('div', { className: 'button-text', innerText: graphName })
@@ -826,10 +824,71 @@
     ))
   }
 
+  function createReducer (reducer) {
+    return function (state, event, payload) {
+      reducer[event](state, payload);
+    }
+  }
+
+  const reducer = createReducer({
+    [TOGGLE_VISIBILITY_STATE]: (state, graphName) => {
+      state.visibilityState[graphName] = !state.visibilityState[graphName];
+    }
+  });
+
+  function EventChannel () {
+    this.listeners = [];
+  }
+
+  EventChannel.prototype.publish = function (event, payload) {
+    this.listeners
+      .filter(listener => listener.event === event)
+      .forEach(listener => listener.callback(payload));
+  };
+
+  EventChannel.prototype.subscribe = function (event, listener) {
+    this.listeners.push({
+      event,
+      callback: listener,
+    });
+  };
+
+  function Store (initialState, reducer, selectors) {
+    this.eventChannel = new EventChannel();
+    this.state = initialState;
+    for (const selectorName in selectors) {
+      Object.defineProperty(this.state, selectorName, {
+        get: selectors[selectorName].bind(undefined, this.state)
+      });
+    }
+    this.reducer = reducer;
+  }
+
+  Store.prototype.subscribe = function (event, listener) {
+    this.eventChannel.subscribe(event, listener);
+  };
+
+  Store.prototype.publish = function (event, payload) {
+    this.updateState(event, payload);
+    this.eventChannel.publish(event, payload);
+  };
+
+  Store.prototype.updateState = function (event, payload) {
+    this.reducer(this.state, event, payload);
+  };
+
+  const selectors = {
+    hasVisibleGraphNames (state) {
+      return state.graphNames.filter(graphName => state.visibilityState[graphName]).length
+    }
+  };
+
   function Chart (chartConfig) {
+    const store = new Store(chartConfig, reducer, selectors);
+
     const containerElement = div();
     containerElement.style.marginTop = '110px';
-    containerElement.appendChild(Title('Followers'));
+    containerElement.appendChild(Title(chartConfig.title));
     const graphs = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
@@ -838,38 +897,18 @@
       viewBox: chartConfig.renderWindow,
       showXAxis: true,
       showTooltip: true,
-    });
+    }, store);
 
     containerElement.appendChild(graphs.element);
-    const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
-    containerElement.appendChild(Controls(chartConfig, onButtonClick));
+    const overview = Framer(containerElement, chartConfig, onViewBoxChange, store);
+    containerElement.appendChild(Controls(chartConfig, store));
     document.body.appendChild(containerElement);
-
-    function onButtonClick (graphName) {
-      chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
-      graphs.update({
-        type: TOGGLE_VISIBILITY_STATE,
-        graphName,
-      });
-      overview.update({
-        type: TOGGLE_VISIBILITY_STATE,
-        graphName,
-      });
-    }
 
     function onViewBoxChange (viewBox) {
       graphs.update({
         type: VIEW_BOX_CHANGE,
         viewBox,
       });
-    }
-
-    function onDragStart () {
-      graphs.startDrag();
-    }
-
-    function onDragEnd () {
-      graphs.stopDrag();
     }
   }
 
@@ -932,12 +971,13 @@
     };
 
     return {
+      title: 'Followers',
       data,
       domain,
       graphNames,
       visibilityState,
       renderWindow,
-      colors: chartData['colors'],
+      colors: chartData.colors,
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
       lineWidth: LINE_WIDTH$1,
