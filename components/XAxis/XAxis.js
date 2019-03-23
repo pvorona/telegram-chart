@@ -39,12 +39,14 @@ export function XAxis ({ points, viewBox, width }) {
       if (!valuesWidths[i]) {
         valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH
       }
-      xValueElement.classList.toggle(
-        LEGEND_ITEM_HIDDEN_CLASS,
-        i % pow(2, stepMiltiplier)
+      var hidden = i % pow(2, stepMiltiplier)
         || (offset < -1 * shift)
         || (valuesWidths[i] + offset + shift > width)
-      )
+      if (hidden) {
+        xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
+      } else {
+        xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+      }
     }
   }
 }
