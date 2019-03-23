@@ -1,3 +1,4 @@
+import { DRAG_START, DRAG_END } from '../../events'
 import { Graphs } from '../Graphs'
 import { createElement, div } from '../html'
 import { handleDrag } from '../util'
@@ -12,7 +13,7 @@ const classes = {
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 
-export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+export function Framer (parentElement, chartConfig, onViewBoxChange, eventChannel) {
   const frameContainer = div()
   frameContainer.classList.add('overview')
   frameContainer.style.height = `${chartConfig.FRAME_CANVAS_HEIGHT}px`
@@ -27,7 +28,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
       startIndex: 0,
       endIndex: chartConfig.data.total - 1,
     },
-  })
+  }, eventChannel)
   frameContainer.appendChild(graphs.element)
   const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' })
   const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' })
@@ -69,14 +70,14 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
   return graphs
 
   function onLeftResizerMouseDown (e) {
-    onDragStart()
+    eventChannel.publish(DRAG_START)
     document.body.classList.add(classes.left)
     framer.classList.add(classes.left)
     frameState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left)
   }
 
   function removeLeftResizerListener () {
-    onDragEnd()
+    eventChannel.publish(DRAG_END)
     document.body.classList.remove(classes.left)
     framer.classList.remove(classes.left)
   }
@@ -91,14 +92,14 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
   }
 
   function onRightResizerMouseDown (e) {
-    onDragStart()
+    eventChannel.publish(DRAG_START)
     document.body.classList.add(classes.right)
     framer.classList.add(classes.right)
     frameState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - frameContainer.getBoundingClientRect().left)
   }
 
   function removeRightResizerListener () {
-    onDragEnd()
+    eventChannel.publish(DRAG_END)
     document.body.classList.remove(classes.right)
     framer.classList.remove(classes.right)
   }
@@ -124,7 +125,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
   }
 
   function onFramerMouseDown (e) {
-    onDragStart()
+    eventChannel.publish(DRAG_START)
     frameState.cursorFramerDelta = getX(e) - (framer.getBoundingClientRect().left - frameContainer.getBoundingClientRect().left),
     framer.classList.add(classes.grabbing)
     document.body.classList.add(classes.grabbing)
@@ -133,7 +134,7 @@ export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart
   }
 
   function onFramerMouseUp () {
-    onDragEnd()
+    eventChannel.publish(DRAG_END)
     document.body.classList.remove(classes.grabbing)
     framer.classList.remove(classes.grabbing)
     resizerLeft.classList.remove(classes.grabbing)

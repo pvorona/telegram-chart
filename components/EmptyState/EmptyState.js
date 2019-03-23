@@ -1,5 +1,3 @@
-import './EmptyState.css'
-
 export function EmptyState () {
   const element = document.createElement('div')
   element.className = 'empty-state'
