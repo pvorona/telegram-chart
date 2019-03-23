@@ -1,3 +1,4 @@
+import './polyfills'
 import { DARK } from './components/constants'
 import { ThemeSwitcher, createChartConfig, Chart } from './components'
 import './css/cursors.css'
