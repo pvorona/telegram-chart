@@ -1,5 +1,6 @@
 .graphs {
     position: relative;
+    overflow: hidden;
 }
 
 .graph__layer {

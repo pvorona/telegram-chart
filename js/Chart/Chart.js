@@ -16,6 +16,7 @@ export function Chart (chartConfig) {
     strokeStyles: chartConfig.colors,
     viewBox: chartConfig.renderWindow,
     showXAxis: true,
+    showYAxis: true,
     showTooltip: true,
   })
 
