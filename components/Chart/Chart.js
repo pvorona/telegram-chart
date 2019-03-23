@@ -2,7 +2,6 @@ import { Title } from '../Title'
 import { Graphs } from '../Graphs'
 import { Overview } from '../Overview'
 import { Controls } from '../Controls'
-import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
 import { div } from '../html'
 
 export function Chart (chartConfig) {
@@ -27,21 +26,12 @@ export function Chart (chartConfig) {
 
   function onButtonClick (graphName) {
     chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
-    graphs.update({
-      type: TOGGLE_VISIBILITY_STATE,
-      graphName,
-    })
-    overview.update({
-      type: TOGGLE_VISIBILITY_STATE,
-      graphName,
-    })
+    graphs.toggleVisibility(graphName)
+    overview.toggleVisibility(graphName)
   }
 
   function onViewBoxChange (viewBox) {
-    graphs.update({
-      type: VIEW_BOX_CHANGE,
-      viewBox,
-    })
+    graphs.changeViewBox(viewBox)
   }
 
   function onDragStart () {

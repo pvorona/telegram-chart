@@ -496,7 +496,7 @@
     showTooltip,
     top,
   }) {
-    const fragment = document.createDocumentFragment();
+    const element = document.createDocumentFragment();
     const canvasesContainer = div();
     const viewBox = {
       startIndex,
@@ -542,7 +542,7 @@
     }
     const emprtState = EmptyState();
     canvasesContainer.appendChild(emprtState.element);
-    fragment.appendChild(canvasesContainer);
+    element.appendChild(canvasesContainer);
 
     let dragging = false;
     let cancelAnimation;
@@ -556,21 +556,21 @@
         viewBox,
         width,
       });
-      fragment.appendChild(xAxis.element);
+      element.appendChild(xAxis.element);
     }
 
 
     render();
 
     return {
-      element: fragment,
-      update,
-      startDrag, stopDrag,
+      element,
+      changeViewBox,
+      toggleVisibility,
+      startDrag,
+      stopDrag,
     }
 
-    function update (event) {
-      updateVisibilityState(event);
-      updateViewBoxState(event);
+    function update () {
       const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
       if (!visibleGraphNames.length) return
       const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
@@ -657,21 +657,19 @@
       Object.values(tooltipDots).forEach(dot => dot.hide());
     }
 
-    function updateVisibilityState ({ type, graphName }) {
-      if (type === TOGGLE_VISIBILITY_STATE) {
-        canvases[graphName].toggleVisibility();
-        const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
-        emprtState.setVisibile(visibleGraphNames.length);
-        transitionDuration = TRANSITION_DURATIONS[type];
-      }
+    function toggleVisibility (graphName) {
+      canvases[graphName].toggleVisibility();
+      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
+      emprtState.setVisibile(visibleGraphNames.length);
+      transitionDuration = TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE];
+      update();
     }
 
-    function updateViewBoxState ({ type, viewBox: newViewBox }) {
-      if (type === VIEW_BOX_CHANGE) {
-        Object.assign(viewBox, newViewBox);
-        if (xAxis) { xAxis.setViewBox(viewBox); }
-        transitionDuration = TRANSITION_DURATIONS[type];
-      }
+    function changeViewBox (newViewBox) {
+      Object.assign(viewBox, newViewBox);
+      if (xAxis) { xAxis.setViewBox(viewBox); }
+      transitionDuration = TRANSITION_DURATIONS[VIEW_BOX_CHANGE];
+      update();
     }
 
     function getXAxisPoints () {
@@ -904,21 +902,12 @@
 
     function onButtonClick (graphName) {
       chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
-      graphs.update({
-        type: TOGGLE_VISIBILITY_STATE,
-        graphName,
-      });
-      overview.update({
-        type: TOGGLE_VISIBILITY_STATE,
-        graphName,
-      });
+      graphs.toggleVisibility(graphName);
+      overview.toggleVisibility(graphName);
     }
 
     function onViewBoxChange (viewBox) {
-      graphs.update({
-        type: VIEW_BOX_CHANGE,
-        viewBox,
-      });
+      graphs.changeViewBox(viewBox);
     }
 
     function onDragStart () {
