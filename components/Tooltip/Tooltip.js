@@ -47,7 +47,7 @@ export function Tooltip ({
   }
 
   function setPosition (x) {
-    element.style.transform = `translateX(calc(${x}px - 50%))`
+    element.style.transform = `translateX(${x - element.offsetWidth / 2}px)`
   }
 
   function setDate (text) {

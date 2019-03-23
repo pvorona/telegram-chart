@@ -1,17 +1,30 @@
-import { createElement } from '../html'
-
 export function Controls (config, onButtonClick) {
-  return createElement('div', { style: 'margin-top: 20px'}, config.graphNames.map(graphName =>
-    createElement('label', { style: `color: ${config.colors[graphName]}; margin-right: 20px` }, [
-      createElement('input', {
-        checked: true,
-        type: 'checkbox',
-        className: 'button',
-        onclick: () => onButtonClick(graphName),
-      }),
-      createElement('div', { className: 'like-button' }, [
-        createElement('div', { className: 'button-text', innerText: graphName })
-      ])
-    ])
-  ))
+  const element = document.createElement('div')
+  element.style.marginTop = '20px'
+
+  config.graphNames.forEach(graphName => {
+    const label = document.createElement('label')
+    label.style.marginRight = '20px'
+
+    const input = document.createElement('input')
+    input.checked = true
+    input.type = 'checkbox'
+    input.className = 'button'
+    input.onclick = () => onButtonClick(graphName)
+
+    const button = document.createElement('div')
+    button.className = 'like-button'
+    button.style.color = config.colors[graphName]
+
+    const text = document.createElement('div')
+    text.className = 'button-text'
+    text.innerText = graphName
+
+    button.appendChild(text)
+    label.appendChild(input)
+    label.appendChild(button)
+    element.appendChild(label)
+  })
+
+  return element
 }

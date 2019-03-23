@@ -62,11 +62,11 @@
 }
 
 .theme-light .overview__overflow {
-  background-color: #f4f9fbcc;
+  background-color: hsla(197, 47%, 97%, 0.8);
 }
 
 .theme-dark .overview__overflow {
-  background-color: #19222eb3;
+  background-color: hsla(214, 30%, 14%, 0.7);
 }
 
 .overview__resizer {
@@ -88,11 +88,11 @@
 }
 
 .theme-light .overview__resizer {
-  background-color: #e3ecf2cc;
+  background-color: hsla(204, 37%, 92%, 0.8);
 }
 
 .theme-dark .overview__resizer {
-  background-color: #39496080;
+  background-color: hsla(215, 25%, 30%, 0.5);
 }
 .overview__viewbox {
   border-top: 4px solid;
@@ -107,12 +107,13 @@
 }
 
 .theme-light .overview__viewbox {
-  border-color: #e3ecf2cc;
+  border-color: hsla(204, 37%, 92%, 0.8);
 }
 
 .theme-dark .overview__viewbox {
-  border-color: #39496080;
+  border-color: hsla(215, 25%, 30%, 0.5);
 }
+
 .button {
   display: none;
 }
@@ -124,7 +125,6 @@
   padding: 11px 19px 11px 42px;
   background: none;
   border-radius: 30px;
-  font-family: Tahoma;
   font-size: 14px;
   position: relative;
   cursor: pointer;
@@ -280,6 +280,7 @@
     box-shadow: 0 0 5px #00000030;
     border-radius: 5px;
     visibility: hidden;
+    pointer-events: none;
 }
 
 .theme-light .tooltip {

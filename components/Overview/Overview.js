@@ -115,7 +115,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
 
   function getX (event) {
     const { left } = overviewContainer.getBoundingClientRect()
-    return event.clientX - left + window.scrollX - document.documentElement.scrollLeft
+    return event.clientX - left
   }
 
   function ensureInOverviewBounds (x) {

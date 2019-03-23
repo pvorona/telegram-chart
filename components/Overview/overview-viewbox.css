@@ -11,9 +11,9 @@
 }
 
 .theme-light .overview__viewbox {
-  border-color: #e3ecf2cc;
+  border-color: hsla(204, 37%, 92%, 0.8);
 }
 
 .theme-dark .overview__viewbox {
-  border-color: #39496080;
+  border-color: hsla(215, 25%, 30%, 0.5);
 }

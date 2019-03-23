@@ -1,6 +1,35 @@
 (function () {
   'use strict';
 
+  // For IE11
+  Array.prototype.find = Array.prototype.find || function (predicate) {
+    for (var i = 0; i < this.length; i++) {
+      if (predicate(this[i], i, this)) return this[i]
+    }
+  };
+
+  Object.assign = Object.assign || function (target) {
+    var sources = Array.prototype.slice.call(arguments).slice(1);
+    sources.forEach(function (source) {
+      for (var key in source) {
+        target[key] = source[key];
+      }
+    });
+    return target
+  };
+
+  Number.isInteger = Number.isInteger || function (n) {
+    return !(n % 1)
+  };
+
+  Object.values = Object.values || function (source) {
+    var values = [];
+    for (var key in source) {
+      values.push(source[key]);
+    }
+    return values
+  };
+
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const LIGHT = 0;
@@ -240,12 +269,14 @@
         if (!valuesWidths[i]) {
           valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH;
         }
-        xValueElement.classList.toggle(
-          LEGEND_ITEM_HIDDEN_CLASS,
-          i % pow(2, stepMiltiplier)
+        var hidden = i % pow(2, stepMiltiplier)
           || (offset < -1 * shift)
-          || (valuesWidths[i] + offset + shift > width)
-        );
+          || (valuesWidths[i] + offset + shift > width);
+        if (hidden) {
+          xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
+        } else {
+          xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+        }
       }
     }
   }
@@ -354,7 +385,7 @@
     }
 
     function setPosition (x) {
-      element.style.transform = `translateX(calc(${x}px - 50%))`;
+      element.style.transform = `translateX(${x - element.offsetWidth / 2}px)`;
     }
 
     function setDate (text) {
@@ -622,7 +653,7 @@
         { width: width * devicePixelRatio, height: height * devicePixelRatio },
         viewBox,
       );
-      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio;
+      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().left) * devicePixelRatio;
 
       let closestPointIndex = 0;
       for (let i = 1; i < coords.length; i++) {
@@ -817,7 +848,7 @@
 
     function getX (event) {
       const { left } = overviewContainer.getBoundingClientRect();
-      return event.clientX - left + window.scrollX - document.documentElement.scrollLeft
+      return event.clientX - left
     }
 
     function ensureInOverviewBounds (x) {
@@ -865,19 +896,34 @@
   }
 
   function Controls (config, onButtonClick) {
-    return createElement('div', { style: 'margin-top: 20px'}, config.graphNames.map(graphName =>
-      createElement('label', { style: `color: ${config.colors[graphName]}; margin-right: 20px` }, [
-        createElement('input', {
-          checked: true,
-          type: 'checkbox',
-          className: 'button',
-          onclick: () => onButtonClick(graphName),
-        }),
-        createElement('div', { className: 'like-button' }, [
-          createElement('div', { className: 'button-text', innerText: graphName })
-        ])
-      ])
-    ))
+    const element = document.createElement('div');
+    element.style.marginTop = '20px';
+
+    config.graphNames.forEach(graphName => {
+      const label = document.createElement('label');
+      label.style.marginRight = '20px';
+
+      const input = document.createElement('input');
+      input.checked = true;
+      input.type = 'checkbox';
+      input.className = 'button';
+      input.onclick = () => onButtonClick(graphName);
+
+      const button = document.createElement('div');
+      button.className = 'like-button';
+      button.style.color = config.colors[graphName];
+
+      const text = document.createElement('div');
+      text.className = 'button-text';
+      text.innerText = graphName;
+
+      button.appendChild(text);
+      label.appendChild(input);
+      label.appendChild(button);
+      element.appendChild(label);
+    });
+
+    return element
   }
 
   function Chart (chartConfig) {

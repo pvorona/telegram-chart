@@ -17,9 +17,9 @@
 }
 
 .theme-light .overview__resizer {
-  background-color: #e3ecf2cc;
+  background-color: hsla(204, 37%, 92%, 0.8);
 }
 
 .theme-dark .overview__resizer {
-  background-color: #39496080;
+  background-color: hsla(215, 25%, 30%, 0.5);
 }

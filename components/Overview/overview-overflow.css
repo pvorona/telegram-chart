@@ -14,9 +14,9 @@
 }
 
 .theme-light .overview__overflow {
-  background-color: #f4f9fbcc;
+  background-color: hsla(197, 47%, 97%, 0.8);
 }
 
 .theme-dark .overview__overflow {
-  background-color: #19222eb3;
+  background-color: hsla(214, 30%, 14%, 0.7);
 }
