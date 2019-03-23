@@ -12,7 +12,7 @@ const classes = {
 const ELEMENT_CLASS_NAME = 'overview'
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 
-export function Overview (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
   const overviewContainer = div()
   overviewContainer.className = ELEMENT_CLASS_NAME
   overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`
@@ -64,9 +64,10 @@ export function Overview (parentElement, chartConfig, onViewBoxChange, onDragSta
     onDragEnd: onViewBoxElementMouseUp,
   })
 
-  parentElement.appendChild(overviewContainer)
-
-  return graphs
+  return {
+    element: overviewContainer,
+    toggleVisibility: graphs.toggleVisibility,
+  }
 
   function onLeftResizerMouseDown (e) {
     onDragStart()

@@ -88,7 +88,6 @@ export function Graphs (config, {
     element.appendChild(xAxis.element)
   }
 
-
   render()
 
   return {

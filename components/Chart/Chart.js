@@ -5,9 +5,9 @@ import { Controls } from '../Controls'
 import { div } from '../html'
 
 export function Chart (chartConfig) {
-  const containerElement = div()
-  containerElement.style.marginTop = '110px'
-  containerElement.appendChild(Title('Followers'))
+  const element = div()
+  element.style.marginTop = '110px'
+  element.appendChild(Title('Followers'))
   const graphs = Graphs(chartConfig, {
     width: chartConfig.width,
     height: chartConfig.height,
@@ -19,10 +19,14 @@ export function Chart (chartConfig) {
     showTooltip: true,
   })
 
-  containerElement.appendChild(graphs.element)
-  const overview = Overview(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd)
-  containerElement.appendChild(Controls(chartConfig, onButtonClick))
-  document.body.appendChild(containerElement)
+  element.appendChild(graphs.element)
+  const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd)
+  element.appendChild(overview.element)
+  element.appendChild(Controls(chartConfig, onButtonClick))
+
+  return {
+    element
+  }
 
   function onButtonClick (graphName) {
     chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]

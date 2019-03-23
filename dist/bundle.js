@@ -559,7 +559,6 @@
       element.appendChild(xAxis.element);
     }
 
-
     render();
 
     return {
@@ -715,7 +714,7 @@
   const ELEMENT_CLASS_NAME$1 = 'overview';
   const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 
-  function Overview (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+  function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
     const overviewContainer = div();
     overviewContainer.className = ELEMENT_CLASS_NAME$1;
     overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`;
@@ -767,9 +766,10 @@
       onDragEnd: onViewBoxElementMouseUp,
     });
 
-    parentElement.appendChild(overviewContainer);
-
-    return graphs
+    return {
+      element: overviewContainer,
+      toggleVisibility: graphs.toggleVisibility,
+    }
 
     function onLeftResizerMouseDown (e) {
       onDragStart();
@@ -881,9 +881,9 @@
   }
 
   function Chart (chartConfig) {
-    const containerElement = div();
-    containerElement.style.marginTop = '110px';
-    containerElement.appendChild(Title('Followers'));
+    const element = div();
+    element.style.marginTop = '110px';
+    element.appendChild(Title('Followers'));
     const graphs = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
@@ -895,10 +895,14 @@
       showTooltip: true,
     });
 
-    containerElement.appendChild(graphs.element);
-    const overview = Overview(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
-    containerElement.appendChild(Controls(chartConfig, onButtonClick));
-    document.body.appendChild(containerElement);
+    element.appendChild(graphs.element);
+    const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd);
+    element.appendChild(overview.element);
+    element.appendChild(Controls(chartConfig, onButtonClick));
+
+    return {
+      element
+    }
 
     function onButtonClick (graphName) {
       chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
@@ -1001,6 +1005,8 @@
 
   // 1/3, 1/2, 1/3, 1/3, 1/2
   // Chart(createChartConfig(chartData[0]))
-  chartData.forEach(data => Chart(createChartConfig(data)));
+  chartData
+    .map(data => Chart(createChartConfig(data)))
+    .forEach(chart => document.body.appendChild(chart.element));
 
 }());
