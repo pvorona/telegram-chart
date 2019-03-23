@@ -1,7 +1,7 @@
 import { XAxis } from '../XAxis'
 import { YAxis } from '../YAxis'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { getMaxValue, mapDataToCoords, animate } from '../util'
+import { getMaxValue, mapDataToCoords, animate } from '../../util'
 import { div } from '../html'
 import { MONTHS, DAYS } from '../constants'
 import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'

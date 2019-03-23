@@ -1,5 +1,5 @@
 import { MONTHS, DAYS } from '../constants'
-import { getShortNumber } from '../util'
+import { getShortNumber } from '../../util'
 
 export function Tooltip ({
   graphNames,

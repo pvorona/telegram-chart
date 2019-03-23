@@ -1,6 +1,6 @@
 import { Graphs } from '../Graphs'
 import { createElement, div } from '../html'
-import { handleDrag } from '../util'
+import { handleDrag } from '../../util'
 
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40

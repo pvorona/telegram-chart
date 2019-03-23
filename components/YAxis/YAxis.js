@@ -1,4 +1,4 @@
-import { getShortNumber } from '../util'
+import { getShortNumber } from '../../util'
 
 const CLASS = 'y-axis-line'
 const NUMBER_CLASS = 'y-axis-number'

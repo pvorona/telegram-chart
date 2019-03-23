@@ -1,4 +1,4 @@
-import { ceil, max } from './util'
+import { ceil, max } from '../util'
 const LINE_WIDTH = 2
 const OVERVIEW_LINE_WIDTH = 1
 const CANVAS_WIDTH = 768

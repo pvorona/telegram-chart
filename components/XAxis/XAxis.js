@@ -1,4 +1,4 @@
-import { pow } from '../util'
+import { pow } from '../../util'
 import { div } from '../html'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
