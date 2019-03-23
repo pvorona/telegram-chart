@@ -1,10 +1,10 @@
 import { ceil, max } from './util'
 const LINE_WIDTH = 2
-const FRAME_LINE_WIDTH = 1
+const OVERVIEW_LINE_WIDTH = 1
 const CANVAS_WIDTH = 768
 const CANVAS_HEIGHT = 300
-const FRAME_CANVAS_HEIGHT = 50
-const FRAME_CANVAS_WIDTH = CANVAS_WIDTH
+const OVERVIEW_CANVAS_HEIGHT = 50
+const OVERVIEW_CANVAS_WIDTH = CANVAS_WIDTH
 
 export function createChartConfig (chartData) {
   const graphNames = chartData['columns']
@@ -38,8 +38,8 @@ export function createChartConfig (chartData) {
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     lineWidth: LINE_WIDTH,
-    FRAME_CANVAS_WIDTH,
-    FRAME_CANVAS_HEIGHT,
-    FRAME_LINE_WIDTH,
+    OVERVIEW_CANVAS_WIDTH,
+    OVERVIEW_CANVAS_HEIGHT,
+    OVERVIEW_LINE_WIDTH,
   }
 }
