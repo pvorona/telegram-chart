@@ -1,3 +1,3 @@
-import './theme-switcher.css'
+import './ThemeSwitcher.css'
 
 export * from './ThemeSwitcher'

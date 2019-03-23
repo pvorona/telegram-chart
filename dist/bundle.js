@@ -1,24 +1,16 @@
 (function () {
   'use strict';
 
-  const devicePixelRatio$1 = window.devicePixelRatio;
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const LIGHT = 0;
   const DARK = 1;
 
-  function createElement (type, attributes = {}, children = []) {
-    const element = document.createElement(type);
-    Object.assign(element, attributes);
-    children.forEach(child => element.appendChild(child));
-    return element
-  }
-
-  const div = () => document.createElement('div');
+  const ELEMENT_CLASS_NAME = 'title';
 
   function Title (title) {
-    const element = div();
-    element.className = 'title';
+    const element = document.createElement('div');
+    element.className = ELEMENT_CLASS_NAME;
     element.innerText = title;
     return element
   }
@@ -201,6 +193,15 @@
     return shortNumber
   }
 
+  function createElement (type, attributes = {}, children = []) {
+    const element = document.createElement(type);
+    Object.assign(element, attributes);
+    children.forEach(child => element.appendChild(child));
+    return element
+  }
+
+  const div = () => document.createElement('div');
+
   const LEGEND_ITEM_CLASS = 'legend-item-value';
   const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden';
   const APPROX_LABEL_WIDTH = 40;
@@ -366,41 +367,9 @@
       }
       for (const graphName in value) {
         graphInfos[graphName].hidden = false;
-        tooltipValues[graphName].innerText = getValueText(value[graphName]);
+        tooltipValues[graphName].innerText = getShortNumber(value[graphName]);
       }
     }
-  }
-
-  function getValueText (num) {
-    if(Math.abs(num) < 1000) {
-      return num;
-    }
-
-    var shortNumber;
-    var exponent;
-    var size;
-    var sign = num < 0 ? '-' : '';
-    var suffixes = {
-      'K': 6,
-      'M': 9,
-      'B': 12,
-      'T': 16
-    };
-
-    num = Math.abs(num);
-    size = Math.floor(num).toString().length;
-
-    exponent = size % 3 === 0 ? size - 3 : size - (size % 3);
-    shortNumber = Math.round(10 * (num / Math.pow(10, exponent))) / 10;
-
-    for(var suffix in suffixes) {
-      if(exponent < suffixes[suffix]) {
-        shortNumber += suffix;
-        break;
-      }
-    }
-
-    return sign + shortNumber;
   }
 
   function getTooltipDateText (timestamp) {
@@ -636,7 +605,7 @@
         const graphName = config.graphNames[i];
         canvases[graphName].clear();
         canvases[graphName].renderPath(
-          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox)
+          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
         );
       }
     }
@@ -655,10 +624,10 @@
       const coords = mapDataToCoords(
         config.data[visibleGraphNames[0]],
         max,
-        { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 },
+        { width: width * devicePixelRatio, height: height * devicePixelRatio },
         viewBox,
       );
-      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio$1;
+      const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().x) * devicePixelRatio;
 
       let closestPointIndex = 0;
       for (let i = 1; i < coords.length; i++) {
@@ -669,11 +638,11 @@
       for (let i = 0; i < visibleGraphNames.length; i++) {
         const graphName = visibleGraphNames[i];
 
-        const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio$1, height: height * devicePixelRatio$1 }, viewBox);
+        const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox);
         tooltipDots[graphName].show();
         // xShift can be calculated once for all points
-        const x = thisCoords[closestPointIndex].x / devicePixelRatio$1;
-        const y = thisCoords[closestPointIndex].y / devicePixelRatio$1;
+        const x = thisCoords[closestPointIndex].x / devicePixelRatio;
+        const y = thisCoords[closestPointIndex].y / devicePixelRatio;
         tooltipDots[visibleGraphNames[i]].setPosition({ x, y });
 
         tooltip.show();
@@ -683,7 +652,7 @@
         values[graphName] = config.data[graphName][dataIndex];
       }
       tooltip.showValues(values);
-      tooltipLine.setPosition(coords[closestPointIndex].x / devicePixelRatio$1);
+      tooltipLine.setPosition(coords[closestPointIndex].x / devicePixelRatio);
     }
 
     function onContainerMouseOut () {
@@ -965,27 +934,34 @@
     }
   }
 
-  const label = {
+  const NEXT_THEME = {
+    [LIGHT]: DARK,
+    [DARK]: LIGHT,
+  };
+
+  const LABELS = {
     [LIGHT]: 'Switch to Night Mode',
     [DARK]: 'Switch to Day Mode',
   };
 
-  const classNames = {
+  const THEME_CLASS_NAMES = {
     [LIGHT]: 'theme-light',
     [DARK]: 'theme-dark',
   };
+
+  const ELEMENT_CLASS_NAME$1 = 'theme-switcher';
 
   function ThemeSwitcher (initialTheme) {
     let theme = initialTheme;
 
     const button = document.createElement('button');
-    button.innerText = label[theme];
-    button.classList.add('theme-switcher');
+    button.innerText = LABELS[theme];
+    button.classList.add(ELEMENT_CLASS_NAME$1);
     button.addEventListener('click', function () {
-      document.body.classList.remove(classNames[theme]);
-      theme = theme === LIGHT ? DARK : LIGHT;
-      button.innerText = label[theme];
-      document.body.classList.add(classNames[theme]);
+      document.body.classList.remove(THEME_CLASS_NAMES[theme]);
+      theme = NEXT_THEME[theme];
+      button.innerText = LABELS[theme];
+      document.body.classList.add(THEME_CLASS_NAMES[theme]);
     });
 
     return button

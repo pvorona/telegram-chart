@@ -1,26 +1,22 @@
-import { LIGHT, DARK } from '../constants'
+import {
+  LABELS,
+  THEME_CLASS_NAMES,
+  NEXT_THEME,
+} from './ThemeSwitcher.constants'
 
-const label = {
-  [LIGHT]: 'Switch to Night Mode',
-  [DARK]: 'Switch to Day Mode',
-}
-
-const classNames = {
-  [LIGHT]: 'theme-light',
-  [DARK]: 'theme-dark',
-}
+const ELEMENT_CLASS_NAME = 'theme-switcher'
 
 export function ThemeSwitcher (initialTheme) {
   let theme = initialTheme
 
   const button = document.createElement('button')
-  button.innerText = label[theme]
-  button.classList.add('theme-switcher')
+  button.innerText = LABELS[theme]
+  button.classList.add(ELEMENT_CLASS_NAME)
   button.addEventListener('click', function () {
-    document.body.classList.remove(classNames[theme])
-    theme = theme === LIGHT ? DARK : LIGHT
-    button.innerText = label[theme]
-    document.body.classList.add(classNames[theme])
+    document.body.classList.remove(THEME_CLASS_NAMES[theme])
+    theme = NEXT_THEME[theme]
+    button.innerText = LABELS[theme]
+    document.body.classList.add(THEME_CLASS_NAMES[theme])
   })
 
   return button

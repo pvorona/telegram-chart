@@ -1,8 +1,8 @@
-import { div } from '../html'
+const ELEMENT_CLASS_NAME = 'title'
 
 export function Title (title) {
-  const element = div()
-  element.className = 'title'
+  const element = document.createElement('div')
+  element.className = ELEMENT_CLASS_NAME
   element.innerText = title
   return element
 }
