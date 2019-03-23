@@ -260,11 +260,11 @@
     function setViewBox (viewBox) {
       const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
       const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
-      const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
+      const shift = Math.round(-1 / xScale * width * viewBox.startIndex / (points.length - 1));
       shiftingContainer.style.transform = `translateX(${shift}px)`;
       for (let i = 0; i < points.length; i++) {
         const xValueElement = legendValues[i];
-        const offset = points[i].x / xScale;
+        const offset = Math.round(points[i].x / xScale);
         xValueElement.style.transform = `translateX(${offset}px)`;
         if (!valuesWidths[i]) {
           valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH;
