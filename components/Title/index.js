@@ -1,3 +1,3 @@
-import './title.css'
+import './Title.css'
 
 export * from './Title'

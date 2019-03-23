@@ -1,4 +1,6 @@
-import { MONTHS, DAYS } from '../constants'
+import { getShortNumber, getDayMonthDateString } from '../util'
+
+const LEGEND_CLASS = 'tooltip__legend'
 
 export function Tooltip ({
   graphNames,
@@ -12,7 +14,7 @@ export function Tooltip ({
   element.appendChild(tooltipDate)
 
   const tooltipLegendContainer = document.createElement('div')
-  tooltipLegendContainer.className = 'tooltip__legend'
+  tooltipLegendContainer.className = LEGEND_CLASS
   element.appendChild(tooltipLegendContainer)
 
   const tooltipValues = {}
@@ -50,7 +52,7 @@ export function Tooltip ({
   }
 
   function setDate (text) {
-    tooltipDate.innerText = getTooltipDateText(text)
+    tooltipDate.innerText = getDayMonthDateString(text)
   }
 
   function showValues (value) {
@@ -59,44 +61,7 @@ export function Tooltip ({
     }
     for (const graphName in value) {
       graphInfos[graphName].hidden = false
-      tooltipValues[graphName].innerText = getValueText(value[graphName])
+      tooltipValues[graphName].innerText = getShortNumber(value[graphName])
     }
   }
-}
-
-function getValueText (num) {
-  if(Math.abs(num) < 1000) {
-    return num;
-  }
-
-  var shortNumber;
-  var exponent;
-  var size;
-  var sign = num < 0 ? '-' : '';
-  var suffixes = {
-    'K': 6,
-    'M': 9,
-    'B': 12,
-    'T': 16
-  };
-
-  num = Math.abs(num);
-  size = Math.floor(num).toString().length;
-
-  exponent = size % 3 === 0 ? size - 3 : size - (size % 3);
-  shortNumber = Math.round(10 * (num / Math.pow(10, exponent))) / 10;
-
-  for(var suffix in suffixes) {
-    if(exponent < suffixes[suffix]) {
-      shortNumber += suffix;
-      break;
-    }
-  }
-
-  return sign + shortNumber;
-}
-
-function getTooltipDateText (timestamp) {
-  const date = new Date(timestamp)
-  return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
 }

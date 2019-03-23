@@ -21,6 +21,8 @@
     position: absolute;
     border-radius: 50%;
     border: 2px solid;
+    width: 10px;
+    height: 10px;
 }
 
 .theme-light .tooltip__dot {

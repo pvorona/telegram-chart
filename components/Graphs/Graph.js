@@ -1,4 +1,5 @@
-const HIDDEN_LAYER_CLASS = 'graph__layer--hidden'
+const CLASS = 'graph__layer'
+const CLASS_HIDDEN = 'graph__layer--hidden'
 
 export function Graph ({
   width,
@@ -11,7 +12,7 @@ export function Graph ({
   element.style.height = `${height}px`
   element.width = width * devicePixelRatio
   element.height = height * devicePixelRatio
-  element.className = 'graph__layer'
+  element.className = CLASS
 
   const context = element.getContext('2d')
   context.strokeStyle = strokeStyle
@@ -20,7 +21,7 @@ export function Graph ({
   return { element, toggleVisibility, clear, renderPath }
 
   function toggleVisibility () {
-    element.classList.toggle(HIDDEN_LAYER_CLASS)
+    element.classList.toggle(CLASS_HIDDEN)
   }
 
   function clear () {
