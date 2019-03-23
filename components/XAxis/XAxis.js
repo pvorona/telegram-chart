@@ -36,14 +36,19 @@ export function XAxis ({ points, viewBox, width }) {
     for (let i = 0; i < points.length; i++) {
       const xValueElement = legendValues[i]
       const offset = Math.round(points[i].x / xScale)
-      xValueElement.style.transform = `translateX(${offset}px)`
 
       if (!valuesWidths[i]) {
         valuesWidths[i] = xValueElement.offsetWidth
       }
-      var hidden = i % pow(2, stepMiltiplier)
+
+      const hidden = i % pow(2, stepMiltiplier)
         || (offset < -1 * shift)
         || ((valuesWidths[i] || APPROX_LABEL_WIDTH) + offset + shift > width)
+
+      if (!hidden) {
+        xValueElement.style.transform = `translateX(${offset}px)`
+      }
+
       if (visibilityState[i] !== hidden) {
         visibilityState[i] = hidden
         if (hidden) {
