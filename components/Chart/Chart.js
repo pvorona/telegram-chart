@@ -1,6 +1,6 @@
 import { Title } from '../Title'
 import { Graphs } from '../Graphs'
-import { Framer } from '../Overview'
+import { Overview } from '../Overview'
 import { Controls } from '../Controls'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
 import { div } from '../html'
@@ -21,7 +21,7 @@ export function Chart (chartConfig) {
   })
 
   containerElement.appendChild(graphs.element)
-  const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd)
+  const overview = Overview(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd)
   containerElement.appendChild(Controls(chartConfig, onButtonClick))
   document.body.appendChild(containerElement)
 

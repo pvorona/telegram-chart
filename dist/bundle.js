@@ -305,58 +305,6 @@
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const DOT_BORDER_SIZE = 2;
-  const DOT_SIZE = 10;
-  const offset = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
-
-  function TooltipCircle ({
-    color,
-    // x,
-    // y,
-    // visible,
-  }) {
-    const element = document.createElement('div');
-    element.style.width = `${DOT_SIZE}px`;
-    element.style.height = `${DOT_SIZE}px`;
-    element.style.borderColor = color;
-    element.className = 'tooltip__dot';
-
-    return { element, hide, show, setPosition }
-
-    function show () {
-      element.style.visibility = 'visible';
-    }
-
-    function hide () {
-      element.style.visibility = '';
-    }
-
-    function setPosition ({ x, y }) {
-      element.style.transform = `translateX(${x + offset}px) translateY(${y + offset}px)`;
-    }
-  }
-
-  const LINE_WIDTH = 1;
-
-  function TooltipLine () {
-    const element = document.createElement('div');
-    element.className = 'tooltip-line';
-
-    return { element, show, hide, setPosition }
-
-    function show () {
-      element.style.visibility = 'visible';
-    }
-
-    function hide () {
-      element.style.visibility = '';
-    }
-
-    function setPosition (x) {
-      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
-    }
-  }
-
   function Tooltip ({
     graphNames,
     colors,
@@ -456,6 +404,58 @@
   function getTooltipDateText (timestamp) {
     const date = new Date(timestamp);
     return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
+  }
+
+  const DOT_BORDER_SIZE = 2;
+  const DOT_SIZE = 10;
+  const offset = - DOT_SIZE / 2 - DOT_BORDER_SIZE;
+
+  function TooltipCircle ({
+    color,
+    // x,
+    // y,
+    // visible,
+  }) {
+    const element = document.createElement('div');
+    element.style.width = `${DOT_SIZE}px`;
+    element.style.height = `${DOT_SIZE}px`;
+    element.style.borderColor = color;
+    element.className = 'tooltip__dot';
+
+    return { element, hide, show, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition ({ x, y }) {
+      element.style.transform = `translateX(${x + offset}px) translateY(${y + offset}px)`;
+    }
+  }
+
+  const LINE_WIDTH = 1;
+
+  function TooltipLine () {
+    const element = document.createElement('div');
+    element.className = 'tooltip-line';
+
+    return { element, show, hide, setPosition }
+
+    function show () {
+      element.style.visibility = 'visible';
+    }
+
+    function hide () {
+      element.style.visibility = '';
+    }
+
+    function setPosition (x) {
+      element.style.transform = `translateX(${x - LINE_WIDTH / 2}px)`;
+    }
   }
 
   const HIDDEN_LAYER_CLASS = 'graph__layer--hidden';
@@ -750,7 +750,7 @@
 
   const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 
-  function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+  function Overview (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
     const frameContainer = div();
     frameContainer.classList.add('overview');
     frameContainer.style.height = `${chartConfig.FRAME_CANVAS_HEIGHT}px`;
@@ -931,7 +931,7 @@
     });
 
     containerElement.appendChild(graphs.element);
-    const overview = Framer(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
+    const overview = Overview(containerElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd);
     containerElement.appendChild(Controls(chartConfig, onButtonClick));
     document.body.appendChild(containerElement);
 

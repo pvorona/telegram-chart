@@ -12,7 +12,7 @@ const classes = {
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 
-export function Framer (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+export function Overview (parentElement, chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
   const frameContainer = div()
   frameContainer.classList.add('overview')
   frameContainer.style.height = `${chartConfig.FRAME_CANVAS_HEIGHT}px`
