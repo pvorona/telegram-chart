@@ -14,6 +14,7 @@ export function XAxis ({ points, viewBox, width }) {
   element.appendChild(shiftingContainer)
   const legendValues = []
   const valuesWidths = []
+  const visibilityState = []
 
   for (let i = 0; i < points.length; i++) {
     const xValueElement = div()
@@ -36,16 +37,20 @@ export function XAxis ({ points, viewBox, width }) {
       const xValueElement = legendValues[i]
       const offset = Math.round(points[i].x / xScale)
       xValueElement.style.transform = `translateX(${offset}px)`
+
       if (!valuesWidths[i]) {
-        valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH
+        valuesWidths[i] = xValueElement.offsetWidth
       }
       var hidden = i % pow(2, stepMiltiplier)
         || (offset < -1 * shift)
-        || (valuesWidths[i] + offset + shift > width)
-      if (hidden) {
-        xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
-      } else {
-        xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+        || ((valuesWidths[i] || APPROX_LABEL_WIDTH) + offset + shift > width)
+      if (visibilityState[i] !== hidden) {
+        visibilityState[i] = hidden
+        if (hidden) {
+          xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
+        } else {
+          xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+        }
       }
     }
   }
