@@ -14,7 +14,10 @@ export function XAxis ({ points, viewBox, width }) {
   element.appendChild(shiftingContainer)
   const legendValues = []
   const valuesWidths = []
-  const visibilityState = []
+  const visibilityState = {}
+  const scheduledToHide = {}
+
+  shiftingContainer.addEventListener('transitionend', onTransitionEnd)
 
   for (let i = 0; i < points.length; i++) {
     const xValueElement = div()
@@ -28,34 +31,50 @@ export function XAxis ({ points, viewBox, width }) {
 
   return { element, setViewBox }
 
+  function onTransitionEnd (e) {
+    const elementIndex = legendValues.indexOf(e.target)
+    scheduledToHide[elementIndex] = false
+  }
+
   function setViewBox (viewBox) {
     const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex)
     const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1)
-    const shift = Math.round(-1 / xScale * width * viewBox.startIndex / (points.length - 1))
-    shiftingContainer.style.transform = `translateX(${shift}px)`
+    const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1)
+    shiftingContainer.style.transform = `translateX(${shift.toFixed(1)}px)`
     for (let i = 0; i < points.length; i++) {
       const xValueElement = legendValues[i]
-      const offset = Math.round(points[i].x / xScale)
+      const offset = points[i].x / xScale
 
       if (!valuesWidths[i]) {
         valuesWidths[i] = xValueElement.offsetWidth
       }
 
-      const hidden = i % pow(2, stepMiltiplier)
+      // Can be calculated based on viewBox indexes
+      // instead of geometry
+      const visible = !(
+        i % pow(2, stepMiltiplier)
         || (offset < -1 * shift)
         || ((valuesWidths[i] || APPROX_LABEL_WIDTH) + offset + shift > width)
+      )
 
-      if (!hidden) {
-        xValueElement.style.transform = `translateX(${offset}px)`
+      if (visibilityState[i] !== visible) {
+        if (visible) {
+          scheduledToHide[i] = false
+          visibilityState[i] = true
+          xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+        } else {
+          if (i in scheduledToHide) {
+            scheduledToHide[i] = true
+          } else {
+            scheduledToHide[i] = false
+          }
+          visibilityState[i] = false
+          xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
+        }
       }
 
-      if (visibilityState[i] !== hidden) {
-        visibilityState[i] = hidden
-        if (hidden) {
-          xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
-        } else {
-          xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
-        }
+      if (visible || scheduledToHide[i]) {
+        xValueElement.style.transform = `translateX(${offset.toFixed(1)}px)`
       }
     }
   }
