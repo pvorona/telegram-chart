@@ -1,6 +1,12 @@
 (function () {
   'use strict';
 
+  const devicePixelRatio$1 = window.devicePixelRatio;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const LIGHT = 0;
+  const DARK = 1;
+
   function createElement (type, attributes = {}, children = []) {
     const element = document.createElement(type);
     Object.assign(element, attributes);
@@ -300,10 +306,6 @@
 
   const TOGGLE_VISIBILITY_STATE = 0;
   const VIEW_BOX_CHANGE = 1;
-
-  const devicePixelRatio$1 = window.devicePixelRatio;
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   function Tooltip ({
     graphNames,
@@ -963,9 +965,6 @@
     }
   }
 
-  const LIGHT = 0;
-  const DARK = 1;
-
   const label = {
     [LIGHT]: 'Switch to Night Mode',
     [DARK]: 'Switch to Day Mode',
@@ -1037,7 +1036,7 @@
     }
   }
 
-  document.body.appendChild(ThemeSwitcher(1));
+  document.body.appendChild(ThemeSwitcher(DARK));
 
   // 1/3, 1/2, 1/3, 1/3, 1/2
   // Chart(createChartConfig(chartData[0]))

@@ -1,5 +1,4 @@
-export const LIGHT = 0
-export const DARK = 1
+import { LIGHT, DARK } from '../constants'
 
 const label = {
   [LIGHT]: 'Switch to Night Mode',
