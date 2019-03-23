@@ -186,8 +186,8 @@
     return maxValue
   }
 
-  function getMaxValue (renderWindow, values) {
-    const max = findMaxElement(values, renderWindow);
+  function getMaxValue (viewBox, values) {
+    const max = findMaxElement(values, viewBox);
     if (max % 50 === 0) return max
     // if (max % 5 === 0) return max
     return max + (50 - max % 50)
@@ -741,7 +741,7 @@
     overviewContainer.appendChild(viewBoxElement);
 
     const overviewState = {
-      left: chartConfig.renderWindow.startIndex / (chartConfig.data.total - 1) * chartConfig.OVERVIEW_CANVAS_WIDTH,
+      left: chartConfig.viewBox.startIndex / (chartConfig.data.total - 1) * chartConfig.OVERVIEW_CANVAS_WIDTH,
       right: chartConfig.OVERVIEW_CANVAS_WIDTH,
       cursorResizerDelta: 0,
       cursorViewBoxElementDelta: 0,
@@ -881,28 +881,33 @@
   }
 
   function Chart (chartConfig) {
-    const element = div();
+    const element = document.createElement('div');
     element.style.marginTop = '110px';
-    element.appendChild(Title('Followers'));
+    element.appendChild(Title(chartConfig.title));
     const graphs = Graphs(chartConfig, {
       width: chartConfig.width,
       height: chartConfig.height,
       lineWidth: chartConfig.lineWidth,
       strokeStyles: chartConfig.colors,
-      viewBox: chartConfig.renderWindow,
+      viewBox: chartConfig.viewBox,
       showXAxis: true,
       showYAxis: true,
       showTooltip: true,
+
+      // colors: chartConfig.colors,
+      // graphNames: chartConfig.graphNames,
+      // data: chartConfig.data,
+      // domain: chartConfig.domain,
+      // visibleGraphNames: get ()
+      // maxVisibleValue: get ()
     });
 
-    element.appendChild(graphs.element);
     const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd);
+    element.appendChild(graphs.element);
     element.appendChild(overview.element);
     element.appendChild(Controls(chartConfig, onButtonClick));
 
-    return {
-      element
-    }
+    return { element }
 
     function onButtonClick (graphName) {
       chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName];
@@ -980,17 +985,18 @@
       ...visibilityState,
       [graphName]: true,
     }), {});
-    const renderWindow = {
+    const viewBox = {
       startIndex: ceil(data.total / 3 * 2),
       endIndex: data.total - 1,
     };
 
     return {
+      title: 'Followers',
       data,
       domain,
       graphNames,
       visibilityState,
-      renderWindow,
+      viewBox,
       colors: chartData['colors'],
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,

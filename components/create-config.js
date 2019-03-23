@@ -23,17 +23,18 @@ export function createChartConfig (chartData) {
     ...visibilityState,
     [graphName]: true,
   }), {})
-  const renderWindow = {
+  const viewBox = {
     startIndex: ceil(data.total / 3 * 2),
     endIndex: data.total - 1,
   }
 
   return {
+    title: 'Followers',
     data,
     domain,
     graphNames,
     visibilityState,
-    renderWindow,
+    viewBox,
     colors: chartData['colors'],
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,

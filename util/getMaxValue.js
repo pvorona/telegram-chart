@@ -12,8 +12,8 @@ function findMaxElement (values, { startIndex, endIndex }) {
   return maxValue
 }
 
-export function getMaxValue (renderWindow, values) {
-  const max = findMaxElement(values, renderWindow)
+export function getMaxValue (viewBox, values) {
+  const max = findMaxElement(values, viewBox)
   if (max % 50 === 0) return max
   // if (max % 5 === 0) return max
   return max + (50 - max % 50)

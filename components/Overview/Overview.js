@@ -39,7 +39,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   overviewContainer.appendChild(viewBoxElement)
 
   const overviewState = {
-    left: chartConfig.renderWindow.startIndex / (chartConfig.data.total - 1) * chartConfig.OVERVIEW_CANVAS_WIDTH,
+    left: chartConfig.viewBox.startIndex / (chartConfig.data.total - 1) * chartConfig.OVERVIEW_CANVAS_WIDTH,
     right: chartConfig.OVERVIEW_CANVAS_WIDTH,
     cursorResizerDelta: 0,
     cursorViewBoxElementDelta: 0,
