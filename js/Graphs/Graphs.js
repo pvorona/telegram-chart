@@ -1,4 +1,5 @@
 import { XAxis } from '../XAxis'
+import { YAxis } from '../YAxis'
 import { renderPath } from '../canvas-renderer'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
 import { getMaxValue, mapDataToCoords, animate } from '../util'
@@ -11,7 +12,7 @@ import { Graph } from './Graph'
 import { EmptyState } from '../EmptyState'
 
 const TRANSITION_DURATIONS = {
-  [VIEW_BOX_CHANGE]: 150,
+  [VIEW_BOX_CHANGE]: 250,
   [TOGGLE_VISIBILITY_STATE]: 250,
 }
 
@@ -23,11 +24,23 @@ export function Graphs (config, {
   strokeStyles,
   viewBox: { startIndex, endIndex },
   showXAxis,
+  showYAxis,
   showTooltip,
   top,
 }) {
   const fragment = document.createDocumentFragment()
   const canvasesContainer = div()
+  const viewBox = {
+    startIndex,
+    endIndex,
+  }
+  let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames))
+  let yAxis
+  if (showYAxis) {
+    yAxis = YAxis(max, height)
+    canvasesContainer.appendChild(yAxis.element)
+  }
+
   canvasesContainer.style.width = `${width}px`
   canvasesContainer.style.height = `${height}px`
   canvasesContainer.className = 'graphs'
@@ -66,11 +79,6 @@ export function Graphs (config, {
   let dragging = false
   let cancelAnimation
   let currentAnimationTarget
-  const viewBox = {
-    startIndex,
-    endIndex,
-  }
-  let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames))
   let transitionDuration
   let xAxis
 
@@ -82,6 +90,7 @@ export function Graphs (config, {
     })
     fragment.appendChild(xAxis.element)
   }
+
 
   render()
 
@@ -110,6 +119,7 @@ export function Graphs (config, {
 
   function updateStateAndRender (newMax) {
     max = newMax
+    if (yAxis) yAxis.setMax(newMax)
     render()
   }
 
