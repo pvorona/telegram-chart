@@ -177,30 +177,33 @@
 
   // h = H * w / W
   // O(n)
-  function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
+  function mapDataToCoords (data, max, { width, height }, { startIndex, endIndex }) {
     const coords = [];
 
     if (!Number.isInteger(startIndex)) {
       coords.push({
         x: 0,
-        y: targetContainer.height - targetContainer.height / max * interpolatePoint(startIndex, data),
+        y: height - height / max * interpolatePoint(startIndex, data),
       });
     }
 
-    for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
+    // In case there is more data than awailable pixels
+    // we will aggregate data so that there is only
+    // one point per pixel
+    const step = (endIndex - startIndex) / width > 1.5 ? (endIndex - startIndex) / width : 1;
+    for (let i = ceil(startIndex); i <= floor(endIndex); i += step) {
       coords.push({
-        x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
-        y: targetContainer.height - targetContainer.height / max * data[i],
+        x: width / (endIndex - startIndex) * (i - startIndex),
+        y: height - height / max * interpolatePoint(i, data),
       });
     }
 
     if (!Number.isInteger(endIndex)) {
       coords.push({
-        x: targetContainer.width,
-        y: targetContainer.height - targetContainer.height / max * interpolatePoint(endIndex, data),
+        x: width,
+        y: height - height / max * interpolatePoint(endIndex, data),
       });
     }
-
     return coords
   }
 
@@ -244,6 +247,10 @@
     element.appendChild(shiftingContainer);
     const legendValues = [];
     const valuesWidths = [];
+    const visibilityState = {};
+    const scheduledToHide = {};
+
+    shiftingContainer.addEventListener('transitionend', onTransitionEnd);
 
     for (let i = 0; i < points.length; i++) {
       const xValueElement = div();
@@ -257,25 +264,50 @@
 
     return { element, setViewBox }
 
+    function onTransitionEnd (e) {
+      const elementIndex = legendValues.indexOf(e.target);
+      scheduledToHide[elementIndex] = false;
+    }
+
     function setViewBox (viewBox) {
       const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
       const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
       const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
-      shiftingContainer.style.transform = `translateX(${shift}px)`;
+      shiftingContainer.style.transform = `translateX(${shift.toFixed(1)}px)`;
       for (let i = 0; i < points.length; i++) {
         const xValueElement = legendValues[i];
         const offset = points[i].x / xScale;
-        xValueElement.style.transform = `translateX(${offset}px)`;
+
         if (!valuesWidths[i]) {
-          valuesWidths[i] = xValueElement.offsetWidth || APPROX_LABEL_WIDTH;
+          valuesWidths[i] = xValueElement.offsetWidth;
         }
-        var hidden = i % pow(2, stepMiltiplier)
+
+        // Can be calculated based on viewBox indexes
+        // instead of geometry
+        const visible = !(
+          i % pow(2, stepMiltiplier)
           || (offset < -1 * shift)
-          || (valuesWidths[i] + offset + shift > width);
-        if (hidden) {
-          xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
-        } else {
-          xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+          || ((valuesWidths[i] || APPROX_LABEL_WIDTH) + offset + shift > width)
+        );
+
+        if (visibilityState[i] !== visible) {
+          if (visible) {
+            scheduledToHide[i] = false;
+            visibilityState[i] = true;
+            xValueElement.classList.remove(LEGEND_ITEM_HIDDEN_CLASS);
+          } else {
+            if (i in scheduledToHide) {
+              scheduledToHide[i] = true;
+            } else {
+              scheduledToHide[i] = false;
+            }
+            visibilityState[i] = false;
+            xValueElement.classList.add(LEGEND_ITEM_HIDDEN_CLASS);
+          }
+        }
+
+        if (visible || scheduledToHide[i]) {
+          xValueElement.style.transform = `translateX(${offset.toFixed(1)}px)`;
         }
       }
     }
