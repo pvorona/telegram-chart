@@ -216,6 +216,7 @@
   white-space: nowrap;
   height: 14px;
   transition: color .3s ease-in-out;
+  will-change: transform;
 }
 
 .theme-light .shifting-container {
@@ -229,7 +230,8 @@
 .legend-item-value {
   position: absolute;
   transition: opacity .25s;
-  will-change: opacity; /* Safari zoom performance */
+  will-change: transform, opacity; /* Safari zoom performance */
+  contain: layout;
 }
 
 .legend-item-value--hidden {
@@ -241,61 +243,61 @@
   padding: 5px 0 15px;
 }
 .tooltip-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background-color: black;
-    will-change: transform;
-    visibility: hidden;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: black;
+  will-change: transform;
+  visibility: hidden;
 }
 
 .theme-light .tooltip-line {
-    background-color: #DFE6EB;
+  background-color: #DFE6EB;
 }
 
 .theme-dark .tooltip-line {
-    background-color: #3A4A5B;
+  background-color: #3A4A5B;
 }
 
 .tooltip__dot {
-    visibility: hidden;
-    position: absolute;
-    border-radius: 50%;
-    border: 2px solid;
+  visibility: hidden;
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid;
 }
 
 .theme-light .tooltip__dot {
-    background-color: white;
+  background-color: white;
 }
 
 .theme-dark .tooltip__dot {
-    background-color: #242F3F;
+  background-color: #242F3F;
 }
 
 .tooltip {
-    z-index: 1;
-    position: absolute;
-    top: 20px;
-    box-shadow: 0 0 5px #00000030;
-    border-radius: 5px;
-    visibility: hidden;
-    pointer-events: none;
+  z-index: 1;
+  position: absolute;
+  top: 20px;
+  box-shadow: 0 0 5px #00000030;
+  border-radius: 5px;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .theme-light .tooltip {
-    background-color: white;
-    color: #222222;
+  background-color: white;
+  color: #222222;
 }
 
 .theme-dark .tooltip {
-    background-color: #243242;
-    color: white;
+  background-color: #243242;
+  color: white;
 }
 
 .tooltip__legend {
-    display: flex;
-    margin-top: 10px;
+  display: flex;
+  margin-top: 10px;
 }
 .graph {
   position: absolute;

@@ -33,6 +33,8 @@ export function YAxis (max, height) {
   return { element, setMax }
 
   function setMax (newMax) {
+    // if less that CONST elements are visible
+    // add more labels
     elements.forEach(element => {
       const y = max / newMax * element.bottom
 
