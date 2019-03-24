@@ -9,7 +9,7 @@ import { Graph } from '../Graph'
 import { EmptyState } from '../EmptyState'
 
 const TRANSITION_DURATIONS = {
-  [VIEW_BOX_CHANGE]: 250,
+  [VIEW_BOX_CHANGE]: 200,
   [TOGGLE_VISIBILITY_STATE]: 250,
 }
 

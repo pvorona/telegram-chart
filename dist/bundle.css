@@ -301,16 +301,6 @@
   display: flex;
   margin-top: 10px;
 }
-.graph {
-  position: absolute;
-  transform: translateZ(0);
-  will-change: opacity;
-  transition: opacity .25s;
-}
-
-.graph--hidden {
-  opacity: 0;
-}
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -329,4 +319,14 @@
 
 .theme-dark .empty-state {
   color: #96A2AA;
+}
+.graph {
+  position: absolute;
+  transform: translateZ(0);
+  will-change: opacity;
+  transition: opacity .25s;
+}
+
+.graph--hidden {
+  opacity: 0;
 }
