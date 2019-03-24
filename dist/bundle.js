@@ -177,30 +177,33 @@
 
   // h = H * w / W
   // O(n)
-  function mapDataToCoords (data, max, targetContainer, { startIndex, endIndex }) {
+  function mapDataToCoords (data, max, { width, height }, { startIndex, endIndex }) {
     const coords = [];
 
     if (!Number.isInteger(startIndex)) {
       coords.push({
         x: 0,
-        y: targetContainer.height - targetContainer.height / max * interpolatePoint(startIndex, data),
+        y: height - height / max * interpolatePoint(startIndex, data),
       });
     }
 
-    for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
+    // In case there is more data than awailable pixels
+    // we will aggregate data so that there is only
+    // one point per pixel
+    const step = (endIndex - startIndex) / width > 1.5 ? (endIndex - startIndex) / width : 1;
+    for (let i = ceil(startIndex); i <= floor(endIndex); i += step) {
       coords.push({
-        x: targetContainer.width / (endIndex - startIndex) * (i - startIndex),
-        y: targetContainer.height - targetContainer.height / max * data[i],
+        x: width / (endIndex - startIndex) * (i - startIndex),
+        y: height - height / max * interpolatePoint(i, data),
       });
     }
 
     if (!Number.isInteger(endIndex)) {
       coords.push({
-        x: targetContainer.width,
-        y: targetContainer.height - targetContainer.height / max * interpolatePoint(endIndex, data),
+        x: width,
+        y: height - height / max * interpolatePoint(endIndex, data),
       });
     }
-
     return coords
   }
 
