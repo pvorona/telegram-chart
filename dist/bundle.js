@@ -248,7 +248,7 @@
 
   function calculateLogScaleMultiplier (n) {
     for (let i = 3; i < 50; i++) {
-      if (n < Math.pow(2,i)) return i - 3
+      if (n < Math.pow(2, i)) return i - 3
     }
   }
 
@@ -297,7 +297,7 @@
     }
 
     function setViewBox (viewBox) {
-      const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex);
+      const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex) + Number(width <= 400);
       const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
       const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
       shiftingContainer.style.transform = `translateX(${shift.toFixed(1)}px)`;
@@ -379,7 +379,7 @@
         (total, element) => total + (max / newMax * element.bottom + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height),
         0,
       );
-      const multilplier = calculateLogScaleMultiplier(numberOfVisibleSteps);
+      const multilplier = calculateLogScaleMultiplier(numberOfVisibleSteps) + Number(height <= 250);
       elements.forEach((element, index) => {
         const y = max / newMax * element.bottom;
 
@@ -824,6 +824,7 @@
     const overviewContainer = div();
     overviewContainer.className = ELEMENT_CLASS_NAME$1;
     overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`;
+    overviewContainer.style.width = `${chartConfig.OVERVIEW_CANVAS_WIDTH}px`;
 
     const graphs = Graphs(chartConfig, {
       width: chartConfig.OVERVIEW_CANVAS_WIDTH,

@@ -37,7 +37,7 @@ export function XAxis ({ points, viewBox, width }) {
   }
 
   function setViewBox (viewBox) {
-    const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex)
+    const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex) + Number(width <= 400)
     const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1)
     const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1)
     shiftingContainer.style.transform = `translateX(${shift.toFixed(1)}px)`

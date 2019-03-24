@@ -39,7 +39,7 @@ export function YAxis (max, min, height) {
       (total, element) => total + (max / newMax * element.bottom + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height),
       0,
     )
-    const multilplier = calculateLogScaleMultiplier(numberOfVisibleSteps)
+    const multilplier = calculateLogScaleMultiplier(numberOfVisibleSteps) + Number(height <= 250)
     elements.forEach((element, index) => {
       const y = max / newMax * element.bottom
 

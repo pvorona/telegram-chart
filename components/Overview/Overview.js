@@ -16,6 +16,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   const overviewContainer = div()
   overviewContainer.className = ELEMENT_CLASS_NAME
   overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`
+  overviewContainer.style.width = `${chartConfig.OVERVIEW_CANVAS_WIDTH}px`
 
   const graphs = Graphs(chartConfig, {
     width: chartConfig.OVERVIEW_CANVAS_WIDTH,
