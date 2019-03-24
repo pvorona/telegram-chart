@@ -3,7 +3,8 @@ import { ceil, floor } from './math'
 
 // h = H * w / W
 // O(n)
-export function mapDataToCoords (data, max, { width, height }, { startIndex, endIndex }) {
+export function mapDataToCoords (data, max, { width, height: availableHeight }, { startIndex, endIndex }, lineWidth) {
+  const height = availableHeight - lineWidth * 2
   const coords = []
 
   if (!Number.isInteger(startIndex)) {
@@ -20,7 +21,7 @@ export function mapDataToCoords (data, max, { width, height }, { startIndex, end
   for (let i = ceil(startIndex); i <= floor(endIndex); i += step) {
     coords.push({
       x: width / (endIndex - startIndex) * (i - startIndex),
-      y: height - height / max * interpolatePoint(i, data),
+      y: lineWidth + height - height / max * interpolatePoint(i, data),
     })
   }
 

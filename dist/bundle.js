@@ -177,7 +177,8 @@
 
   // h = H * w / W
   // O(n)
-  function mapDataToCoords (data, max, { width, height }, { startIndex, endIndex }) {
+  function mapDataToCoords (data, max, { width, height: availableHeight }, { startIndex, endIndex }, lineWidth) {
+    const height = availableHeight - lineWidth * 2;
     const coords = [];
 
     if (!Number.isInteger(startIndex)) {
@@ -194,7 +195,7 @@
     for (let i = ceil(startIndex); i <= floor(endIndex); i += step) {
       coords.push({
         x: width / (endIndex - startIndex) * (i - startIndex),
-        y: height - height / max * interpolatePoint(i, data),
+        y: lineWidth + height - height / max * interpolatePoint(i, data),
       });
     }
 
@@ -663,7 +664,13 @@
         const graphName = config.graphNames[i];
         canvases[graphName].clear();
         canvases[graphName].renderPath(
-          mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
+          mapDataToCoords(
+            config.data[graphName],
+            max,
+            { width: width * devicePixelRatio, height: height * devicePixelRatio },
+            viewBox,
+            lineWidth,
+          )
         );
       }
     }
@@ -684,6 +691,7 @@
         max,
         { width: width * devicePixelRatio, height: height * devicePixelRatio },
         viewBox,
+        lineWidth,
       );
       const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().left) * devicePixelRatio;
 
@@ -696,7 +704,13 @@
       for (let i = 0; i < visibleGraphNames.length; i++) {
         const graphName = visibleGraphNames[i];
 
-        const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox);
+        const thisCoords = mapDataToCoords(
+          config.data[graphName],
+          max,
+          { width: width * devicePixelRatio, height: height * devicePixelRatio },
+          viewBox,
+          lineWidth,
+        );
         tooltipDots[graphName].show();
         // xShift can be calculated once for all points
         const x = thisCoords[closestPointIndex].x / devicePixelRatio;
