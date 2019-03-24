@@ -129,7 +129,13 @@ export function Graphs (config, {
       const graphName = config.graphNames[i]
       canvases[graphName].clear()
       canvases[graphName].renderPath(
-        mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
+        mapDataToCoords(
+          config.data[graphName],
+          max,
+          { width: width * devicePixelRatio, height: height * devicePixelRatio },
+          viewBox,
+          lineWidth,
+        )
       )
     }
   }
@@ -150,6 +156,7 @@ export function Graphs (config, {
       max,
       { width: width * devicePixelRatio, height: height * devicePixelRatio },
       viewBox,
+      lineWidth,
     )
     const newLeft = (e.clientX - canvasesContainer.getBoundingClientRect().left) * devicePixelRatio
 
@@ -162,7 +169,13 @@ export function Graphs (config, {
     for (let i = 0; i < visibleGraphNames.length; i++) {
       const graphName = visibleGraphNames[i]
 
-      const thisCoords = mapDataToCoords(config.data[graphName], max, { width: width * devicePixelRatio, height: height * devicePixelRatio }, viewBox)
+      const thisCoords = mapDataToCoords(
+        config.data[graphName],
+        max,
+        { width: width * devicePixelRatio, height: height * devicePixelRatio },
+        viewBox,
+        lineWidth,
+      )
       tooltipDots[graphName].show()
       // xShift can be calculated once for all points
       const x = thisCoords[closestPointIndex].x / devicePixelRatio

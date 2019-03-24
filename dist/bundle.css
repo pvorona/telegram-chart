@@ -179,35 +179,6 @@
 .theme-dark .button-text {
   color: #E8ECEE;
 }
-.shifting-container {
-  display: flex;
-  white-space: nowrap;
-  height: 14px;
-  transition: color .3s ease-in-out;
-}
-
-.theme-light .shifting-container {
-  color: #536779;
-}
-
-.theme-dark .shifting-container {
-  color: #96A2AA;
-}
-
-.legend-item-value {
-  position: absolute;
-  transition: opacity .25s;
-  will-change: opacity; /* Safari zoom performance */
-}
-
-.legend-item-value--hidden {
-  opacity: 0;
-}
-
-.x-axis {
-  overflow: hidden;
-  padding: 5px 0 15px;
-}
 .y-axis-line {
   position: absolute;
   width: 100%;
@@ -239,6 +210,35 @@
 
 .theme-dark .y-axis-number {
   color: #536779;
+}
+.shifting-container {
+  display: flex;
+  white-space: nowrap;
+  height: 14px;
+  transition: color .3s ease-in-out;
+}
+
+.theme-light .shifting-container {
+  color: #536779;
+}
+
+.theme-dark .shifting-container {
+  color: #96A2AA;
+}
+
+.legend-item-value {
+  position: absolute;
+  transition: opacity .25s;
+  will-change: opacity; /* Safari zoom performance */
+}
+
+.legend-item-value--hidden {
+  opacity: 0;
+}
+
+.x-axis {
+  overflow: hidden;
+  padding: 5px 0 15px;
 }
 .tooltip-line {
     position: absolute;
