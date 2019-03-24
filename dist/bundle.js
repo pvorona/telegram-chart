@@ -160,7 +160,7 @@
     return shortNumber
   }
 
-  const { max, ceil, floor, pow } = Math;
+  const { max, min, ceil, floor, pow } = Math;
 
   function interpolatePoint (point, values) {
     return interpolate(
@@ -208,6 +208,11 @@
     return coords
   }
 
+  function calculateOrderOfMagnitude (n) {
+    const order = Math.floor(Math.log(n) / Math.LN10 + 0.000000001);
+    return Math.pow(10, order)
+  }
+
   function findMaxElement (values, { startIndex, endIndex }) {
     let maxValue = values[0][ceil(startIndex)];
     for (let j = 0; j < values.length; j++) {
@@ -220,10 +225,31 @@
   }
 
   function getMaxValue (viewBox, values) {
-    const max = findMaxElement(values, viewBox);
-    if (max % 50 === 0) return max
-    // if (max % 5 === 0) return max
-    return max + (50 - max % 50)
+    return beautifyNumber(findMaxElement(values, viewBox))
+  }
+
+  function beautifyNumber (number) {
+    const magnitude = calculateOrderOfMagnitude(number);
+    if (number % magnitude === 0) return number
+    if (number % (magnitude / 2) === 0) return number
+    return number + ((magnitude / 2) - number % (magnitude / 2))
+  }
+
+  function getMinValue ({ startIndex, endIndex }, values) {
+    let minValue = values[0][ceil(startIndex)];
+    for (let j = 0; j < values.length; j++) {
+      minValue = min(minValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]));
+      for (let i = ceil(startIndex); i <= endIndex; i++) {
+        minValue = min(values[j][i], minValue);
+      }
+    }
+    return beautifyNumber(minValue)
+  }
+
+  function calculateLogScaleMultiplier (n) {
+    for (let i = 3; i < 50; i++) {
+      if (n < Math.pow(2,i)) return i - 3
+    }
   }
 
   function createElement (type, attributes = {}, children = []) {
@@ -271,7 +297,7 @@
     }
 
     function setViewBox (viewBox) {
-      const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex);
+      const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex);
       const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1);
       const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1);
       shiftingContainer.style.transform = `translateX(${shift.toFixed(1)}px)`;
@@ -314,32 +340,25 @@
     }
   }
 
-  function calculateMultiplier (n) {
-    for (let i = 3; i < 50; i++) {
-      if (n < pow(2,i)) return i - 3
-    }
-  }
-
   const CLASS = 'y-axis-line';
   const NUMBER_CLASS = 'y-axis-number';
-  const STEP_COUNT = 5;
+  const STEP_COUNT = 4;
   const NUMBER_VERTICAL_PADDING = 5;
   const NUMBER_VERTICAL_SPACE = 18;
 
-  function YAxis (max, height) {
+  function YAxis (max, min, height) {
     const element = document.createDocumentFragment();
     const elements = [];
 
-    const step = height / STEP_COUNT;
-    for (let i = 0; i < STEP_COUNT; i++) {
+    const totalStepCount = max / min * STEP_COUNT;
+    const step = height / totalStepCount;
+    for (let i = 0; i < totalStepCount; i++) {
       const line = document.createElement('div');
       line.className = CLASS;
-      line.style.transform = `translateY(${-step * i}px)`;
 
       const number = document.createElement('div');
       number.className = NUMBER_CLASS;
-      number.innerText = getShortNumber(max / STEP_COUNT * i);
-      number.style.transform = `translateY(${-step * i - NUMBER_VERTICAL_PADDING}px)`;
+      number.innerText = getShortNumber(Math.round(max / totalStepCount * i));
       elements.push({
         line: line,
         number: number,
@@ -350,22 +369,29 @@
       element.appendChild(line);
     }
 
+    setMax(max);
+
     return { element, setMax }
 
+    // This function need to be optimized for data with big range of values
     function setMax (newMax) {
-      // if less that CONST elements are visible
-      // add more labels
-      elements.forEach(element => {
+      const numberOfVisibleSteps = elements.reduce(
+        (total, element) => total + (max / newMax * element.bottom + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height),
+        0,
+      );
+      const multilplier = calculateLogScaleMultiplier(numberOfVisibleSteps);
+      elements.forEach((element, index) => {
         const y = max / newMax * element.bottom;
 
         element.line.style.transform = `translateY(${-1 * y}px)`;
         element.number.style.transform = `translateY(${-1 * (y + NUMBER_VERTICAL_PADDING)}px)`;
-        if (y + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE >= height) {
-          element.line.style.opacity = 0;
-          element.number.style.opacity = 0;
-        } else {
+        const isVisible = y + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height && !(index % Math.pow(2, multilplier));
+        if (isVisible) {
           element.line.style.opacity = 1;
           element.number.style.opacity = 1;
+        } else {
+          element.line.style.opacity = 0;
+          element.number.style.opacity = 0;
         }
       });
     }
@@ -569,9 +595,10 @@
       endIndex,
     };
     let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames));
+    let min = getMinValue({ startIndex: 0, endIndex: config.data.total - 1 }, getArrayOfDataArrays(config.graphNames));
     let yAxis;
     if (showYAxis) {
-      yAxis = YAxis(max, height);
+      yAxis = YAxis(max, min, height);
       canvasesContainer.appendChild(yAxis.element);
     }
 

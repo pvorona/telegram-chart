@@ -1,4 +1,4 @@
-import { pow } from '../../util'
+import { pow, calculateLogScaleMultiplier } from '../../util'
 import { div } from '../html'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
@@ -37,7 +37,7 @@ export function XAxis ({ points, viewBox, width }) {
   }
 
   function setViewBox (viewBox) {
-    const stepMiltiplier = calculateMultiplier(viewBox.endIndex - viewBox.startIndex)
+    const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex)
     const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1)
     const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1)
     shiftingContainer.style.transform = `translateX(${shift.toFixed(1)}px)`
@@ -77,11 +77,5 @@ export function XAxis ({ points, viewBox, width }) {
         xValueElement.style.transform = `translateX(${offset.toFixed(1)}px)`
       }
     }
-  }
-}
-
-function calculateMultiplier (n) {
-  for (let i = 3; i < 50; i++) {
-    if (n < pow(2,i)) return i - 3
   }
 }

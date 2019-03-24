@@ -179,38 +179,6 @@
 .theme-dark .button-text {
   color: #E8ECEE;
 }
-.y-axis-line {
-  position: absolute;
-  width: 100%;
-  height: 1px;
-  bottom: 0;
-  transition: background-color .3s ease-in-out;
-}
-
-.theme-dark .y-axis-line {
-  background-color: #293545;
-}
-
-.theme-light .y-axis-line {
-  background-color: hsl(210, 20%, 94%);
-  /*background-color: #F2F4F5;*/
-}
-
-
-.y-axis-number {
-  position: absolute;
-  transition: color .3s ease-in-out;
-  bottom: 0;
-  z-index: 1;
-}
-
-.theme-light .y-axis-number {
-  color: #96A2AA;
-}
-
-.theme-dark .y-axis-number {
-  color: #536779;
-}
 .shifting-container {
   display: flex;
   white-space: nowrap;
@@ -241,6 +209,39 @@
 .x-axis {
   overflow: hidden;
   padding: 5px 0 15px;
+}
+.y-axis-line {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  bottom: 0;
+  transition: background-color .3s ease-in-out;
+  will-change: transform, opacity;
+}
+
+.theme-dark .y-axis-line {
+  background-color: #293545;
+}
+
+.theme-light .y-axis-line {
+  background-color: hsl(210, 20%, 94%);
+}
+
+
+.y-axis-number {
+  position: absolute;
+  transition: color .3s ease-in-out;
+  bottom: 0;
+  z-index: 1;
+  will-change: transform, opacity;
+}
+
+.theme-light .y-axis-number {
+  color: #96A2AA;
+}
+
+.theme-dark .y-axis-number {
+  color: #536779;
 }
 .tooltip-line {
   position: absolute;

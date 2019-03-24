@@ -4,6 +4,7 @@
   height: 1px;
   bottom: 0;
   transition: background-color .3s ease-in-out;
+  will-change: transform, opacity;
 }
 
 .theme-dark .y-axis-line {
@@ -12,7 +13,6 @@
 
 .theme-light .y-axis-line {
   background-color: hsl(210, 20%, 94%);
-  /*background-color: #F2F4F5;*/
 }
 
 
@@ -21,6 +21,7 @@
   transition: color .3s ease-in-out;
   bottom: 0;
   z-index: 1;
+  will-change: transform, opacity;
 }
 
 .theme-light .y-axis-number {

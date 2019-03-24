@@ -1,7 +1,7 @@
 import { XAxis } from '../XAxis'
 import { YAxis } from '../YAxis'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { getMaxValue, mapDataToCoords, animate } from '../../util'
+import { getMaxValue, getMinValue, mapDataToCoords, animate } from '../../util'
 import { div } from '../html'
 import { MONTHS, DAYS } from '../constants'
 import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'
@@ -32,9 +32,10 @@ export function Graphs (config, {
     endIndex,
   }
   let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames))
+  let min = getMinValue({ startIndex: 0, endIndex: config.data.total - 1 }, getArrayOfDataArrays(config.graphNames))
   let yAxis
   if (showYAxis) {
-    yAxis = YAxis(max, height)
+    yAxis = YAxis(max, min, height)
     canvasesContainer.appendChild(yAxis.element)
   }
 
