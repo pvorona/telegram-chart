@@ -30,13 +30,9 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     },
   })
   overviewContainer.appendChild(graphs.element)
-  const backgroundLeft = createElement('div', { className: 'overview__overflow overview__overflow--left' })
-  const backgroundRight = createElement('div', { className: 'overview__overflow overview__overflow--right' })
   const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' })
   const resizerRight = createElement('div', { className: 'overview__resizer overview__resizer--right' })
   const viewBoxElement = createElement('div', { className: 'overview__viewbox' }, [resizerLeft, resizerRight])
-  overviewContainer.appendChild(backgroundLeft)
-  overviewContainer.appendChild(backgroundRight)
   overviewContainer.appendChild(viewBoxElement)
 
   const overviewState = {
@@ -46,7 +42,6 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     cursorViewBoxElementDelta: 0,
   }
 
-  backgroundLeft.style.width = `${overviewState.left}px`
   viewBoxElement.style.left = `${overviewState.left}px`
 
   handleDrag(resizerLeft, {
@@ -86,7 +81,6 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   function onLeftResizerMouseMove (e) {
     const left = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
     overviewState.left = left > overviewState.right - minimalPixelsBetweenResizers ? (overviewState.right - minimalPixelsBetweenResizers) : left
-    backgroundLeft.style.width = `${overviewState.left}px`
     viewBoxElement.style.left = `${overviewState.left}px`
     const startIndex = overviewState.left / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1)
     onViewBoxChange({ startIndex })
@@ -108,7 +102,6 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   function onRightResizerMouseMove (e) {
     const right = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
     overviewState.right = right < overviewState.left + minimalPixelsBetweenResizers ? (overviewState.left + minimalPixelsBetweenResizers) : right
-    backgroundRight.style.left = `${overviewState.right}px`
     viewBoxElement.style.right = `${chartConfig.OVERVIEW_CANVAS_WIDTH - (overviewState.right)}px`
     const endIndex = (overviewState.right) / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1)
     onViewBoxChange({ endIndex })
@@ -155,8 +148,6 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     overviewState.right = overviewState.left + width
     viewBoxElement.style.left = `${overviewState.left}px`
     viewBoxElement.style.right = `${chartConfig.OVERVIEW_CANVAS_WIDTH - (overviewState.right)}px`
-    backgroundLeft.style.width = `${overviewState.left}px`
-    backgroundRight.style.left = `${overviewState.right}px`
     const startIndex = overviewState.left / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1)
     const endIndex = (overviewState.right) / (chartConfig.OVERVIEW_CANVAS_WIDTH) * (chartConfig.data.total - 1)
     onViewBoxChange({ startIndex, endIndex })

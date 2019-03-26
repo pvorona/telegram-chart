@@ -17,3 +17,31 @@
 .theme-dark .overview__viewbox {
   border-color: hsla(215, 25%, 30%, 0.5);
 }
+
+.overview__viewbox::before, .overview__viewbox::after {
+  content: ' ';
+  transition: background-color .3s ease-in-out;
+  background-color: hsla(214,30%,14%,.7);
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 100vw;
+}
+
+.overview__viewbox::before {
+  right: 100%;
+}
+
+.overview__viewbox::after {
+  left: 100%;
+}
+
+.theme-light .overview__viewbox::before,
+.theme-light .overview__viewbox::after {
+  background-color: hsla(197, 47%, 97%, 0.8);
+}
+
+.theme-light .overview__viewbox::before,
+.theme-light .overview__viewbox::after {
+  background-color: hsla(214, 30%, 14%, 0.7);
+}
