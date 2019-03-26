@@ -1,31 +1,31 @@
-const CLASS_NAME = 'graph'
+import { mapDataToCoords } from '../../util'
+
 const HIDDEN_LAYER_CLASS = 'graph--hidden'
 
 export function Graph ({
-  width,
-  height,
+  context,
   strokeStyle,
   lineWidth,
+  data,
 }) {
-  const element = document.createElement('canvas')
-  element.style.width = `${width}px`
-  element.style.height = `${height}px`
-  element.width = width * devicePixelRatio
-  element.height = height * devicePixelRatio
-  element.className = CLASS_NAME
+  return { render }
 
-  const context = element.getContext('2d')
-  context.strokeStyle = strokeStyle
-  context.lineWidth = lineWidth * devicePixelRatio
-
-  return { element, toggleVisibility, clear, renderPath }
-
-  function toggleVisibility () {
-    element.classList.toggle(HIDDEN_LAYER_CLASS)
+  function render ({ viewBox, max, opacity }) {
+    setupContext()
+    renderPath(
+      mapDataToCoords(
+        data,
+        max,
+        { width: context.canvas.width, height: context.canvas.height },
+        viewBox,
+        lineWidth,
+      )
+    )
   }
 
-  function clear () {
-    context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
+  function setupContext () {
+    context.strokeStyle = strokeStyle
+    context.lineWidth = lineWidth * devicePixelRatio
   }
 
   function renderPath (points) {
@@ -39,3 +39,18 @@ export function Graph ({
     context.stroke()
   }
 }
+
+// function setup ({ width, height, lineWidth, strokeStyle }) {
+//   const element = document.createElement('canvas')
+//   element.style.width = `${width}px`
+//   element.style.height = `${height}px`
+//   element.width = width * devicePixelRatio
+//   element.height = height * devicePixelRatio
+//   element.className = CLASS_NAME
+
+//   const context = element.getContext('2d')
+//   context.strokeStyle = strokeStyle
+//   context.lineWidth = lineWidth * devicePixelRatio
+
+//   return { element, context }
+// }

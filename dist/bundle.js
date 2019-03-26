@@ -516,34 +516,30 @@
     }
   }
 
-  const CLASS_NAME = 'graph';
-  const HIDDEN_LAYER_CLASS = 'graph--hidden';
-
   function Graph ({
-    width,
-    height,
+    context,
     strokeStyle,
     lineWidth,
+    data,
   }) {
-    const element = document.createElement('canvas');
-    element.style.width = `${width}px`;
-    element.style.height = `${height}px`;
-    element.width = width * devicePixelRatio;
-    element.height = height * devicePixelRatio;
-    element.className = CLASS_NAME;
+    return { render }
 
-    const context = element.getContext('2d');
-    context.strokeStyle = strokeStyle;
-    context.lineWidth = lineWidth * devicePixelRatio;
-
-    return { element, toggleVisibility, clear, renderPath }
-
-    function toggleVisibility () {
-      element.classList.toggle(HIDDEN_LAYER_CLASS);
+    function render ({ viewBox, max, opacity }) {
+      setupContext();
+      renderPath(
+        mapDataToCoords(
+          data,
+          max,
+          { width: context.canvas.width, height: context.canvas.height },
+          viewBox,
+          lineWidth,
+        )
+      );
     }
 
-    function clear () {
-      context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio);
+    function setupContext () {
+      context.strokeStyle = strokeStyle;
+      context.lineWidth = lineWidth * devicePixelRatio;
     }
 
     function renderPath (points) {
@@ -557,6 +553,21 @@
       context.stroke();
     }
   }
+
+  // function setup ({ width, height, lineWidth, strokeStyle }) {
+  //   const element = document.createElement('canvas')
+  //   element.style.width = `${width}px`
+  //   element.style.height = `${height}px`
+  //   element.width = width * devicePixelRatio
+  //   element.height = height * devicePixelRatio
+  //   element.className = CLASS_NAME
+
+  //   const context = element.getContext('2d')
+  //   context.strokeStyle = strokeStyle
+  //   context.lineWidth = lineWidth * devicePixelRatio
+
+  //   return { element, context }
+  // }
 
   function EmptyState () {
     const element = document.createElement('div');
@@ -575,6 +586,7 @@
     [VIEW_BOX_CHANGE]: 200,
     [TOGGLE_VISIBILITY_STATE]: 250,
   };
+  const CLASS_NAME = 'graph';
 
   // graphNames, colors, visibilityStte, data
   function Graphs (config, {
@@ -589,13 +601,13 @@
     top,
   }) {
     const element = document.createDocumentFragment();
-    const canvasesContainer = div();
+    const canvasesContainer = document.createElement('div');
     const viewBox = {
       startIndex,
       endIndex,
     };
-    let max = getMaxValue(viewBox, getArrayOfDataArrays(config.graphNames));
-    let min = getMinValue({ startIndex: 0, endIndex: config.data.total - 1 }, getArrayOfDataArrays(config.graphNames));
+    let max = getMaxValue(viewBox, getDataArrays(config.graphNames));
+    let min = getMinValue({ startIndex: 0, endIndex: config.data.total - 1 }, getDataArrays(config.graphNames));
     let yAxis;
     if (showYAxis) {
       yAxis = YAxis(max, min, height);
@@ -607,12 +619,21 @@
     canvasesContainer.className = 'graphs';
     if (top) canvasesContainer.style.top = `${top}px`;
 
-    const canvases = {};
-    for (let i = 0; i < config.graphNames.length; i++) {
-      const graph = Graph({ width, height, lineWidth, strokeStyle: strokeStyles[config.graphNames[i]] });
-      canvases[config.graphNames[i]] = graph;
-      canvasesContainer.appendChild(graph.element);
-    }
+    const context = setupCanvas({
+      width,
+      height,
+    });
+    canvasesContainer.appendChild(context.canvas);
+    const graphsByName = {};
+    const thisGraphs = config.graphNames.map(graphName =>
+      graphsByName[graphName] = Graph({
+        context,
+        lineWidth,
+        data: config.data[graphName],
+        strokeStyle: strokeStyles[graphName],
+      })
+    );
+
     let tooltipLine;
     let tooltip;
     let tooltipDots;
@@ -640,7 +661,6 @@
     let dragging = false;
     let cancelAnimation;
     let currentAnimationTarget;
-    let transitionDuration;
     let xAxis;
 
     if (showXAxis) {
@@ -662,16 +682,15 @@
       stopDrag,
     }
 
-    function update () {
-      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
+    function update ({ duration }) {
+      const { visibleGraphNames } = config;
       if (!visibleGraphNames.length) return
-      const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
-      const newMax = getMaxValue(viewBox, arrayOfDataArrays);
-      // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
+      const dataArrays = getDataArrays(visibleGraphNames);
+      const newMax = getMaxValue(viewBox, dataArrays);
       if (max !== newMax && newMax !== currentAnimationTarget) {
         if (cancelAnimation) cancelAnimation();
         currentAnimationTarget = newMax;
-        cancelAnimation = animate(max, newMax, transitionDuration, updateStateAndRender);
+        cancelAnimation = animate(max, newMax, duration, updateStateAndRender);
       } else {
         render();
       }
@@ -683,25 +702,55 @@
       render();
     }
 
-    // function setYScale (yScale) {}
-
-    // function setViewBox (viewBox) {}
-
-    // yScale
     function render () {
+      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+      thisGraphs.forEach(graph =>
+        graph.render({ viewBox, max })
+      );
+    }
+
+    function toggleVisibility (graphName) {
+      graphsByName[graphName].toggleVisibility();
+      const { visibleGraphNames } = config;
+      emprtState.setVisibile(visibleGraphNames.length);
+      update({ duration: TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE] });
+    }
+
+    // function getDiffViewBox (a, b) {}
+
+    function changeViewBox (newViewBox) {
+      // const max = Math.max(max, getMaxValue(
+      //   getDiffViewBox(viewBox, newViewBox),
+      //   getDataArrays(config.visibleGraphNames))
+      // )
+      Object.assign(viewBox, newViewBox);
+      if (xAxis) { xAxis.setViewBox(viewBox); }
+      update({ duration: TRANSITION_DURATIONS[VIEW_BOX_CHANGE] });
+    }
+
+    function getXAxisPoints () {
+      return config.domain.map((timestamp, index) => ({
+        x: width / (config.domain.length - 1) * index,
+        label: getLabelText(timestamp)
+      }))
+    }
+
+    // collect(graphNames, )
+    function getDataArrays (graphNames) {
+      return graphNames.map(graphName => config.data[graphName])
+    }
+
+    function startDrag () {
+      tooltip.hide();
+      tooltipLine.hide();
       for (let i = 0; i < config.graphNames.length; i++) {
-        const graphName = config.graphNames[i];
-        canvases[graphName].clear();
-        canvases[graphName].renderPath(
-          mapDataToCoords(
-            config.data[graphName],
-            max,
-            { width: width * devicePixelRatio, height: height * devicePixelRatio },
-            viewBox,
-            lineWidth,
-          )
-        );
+        tooltipDots[config.graphNames[i]].hide();
       }
+      dragging = true;
+    }
+
+    function stopDrag () {
+      dragging = false;
     }
 
     // all data has already been precolulated
@@ -714,7 +763,7 @@
       if (!visibleGraphNames.length) return
       tooltipLine.show();
 
-      const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
+      const dataArrays = getDataArrays(visibleGraphNames);
       const coords = mapDataToCoords(
         config.data[visibleGraphNames[0]],
         max,
@@ -761,54 +810,26 @@
       tooltip.hide();
       Object.values(tooltipDots).forEach(dot => dot.hide());
     }
-
-    function toggleVisibility (graphName) {
-      canvases[graphName].toggleVisibility();
-      const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName]);
-      emprtState.setVisibile(visibleGraphNames.length);
-      transitionDuration = TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE];
-      update();
-    }
-
-    function changeViewBox (newViewBox) {
-      Object.assign(viewBox, newViewBox);
-      if (xAxis) { xAxis.setViewBox(viewBox); }
-      transitionDuration = TRANSITION_DURATIONS[VIEW_BOX_CHANGE];
-      update();
-    }
-
-    function getXAxisPoints () {
-      return config.domain.map((timestamp, index) => ({
-        x: width / (config.domain.length - 1) * index,
-        label: getLabelText(timestamp)
-      }))
-    }
-
-    function getArrayOfDataArrays (graphNames) {
-      const arrayOfDataArrays = [];
-      for (let i = 0; i < graphNames.length; i++) {
-        arrayOfDataArrays.push(config.data[graphNames[i]]);
-      }
-      return arrayOfDataArrays
-    }
-
-    function startDrag () {
-      tooltip.hide();
-      tooltipLine.hide();
-      for (let i = 0; i < config.graphNames.length; i++) {
-        tooltipDots[config.graphNames[i]].hide();
-      }
-      dragging = true;
-    }
-
-    function stopDrag () {
-      dragging = false;
-    }
   }
 
   function getLabelText (timestamp) {
     const date = new Date(timestamp);
     return `${MONTHS[date.getMonth()]} ${date.getDate()}`
+  }
+
+  function setupCanvas ({ width, height, lineWidth, strokeStyle }) {
+    const element = document.createElement('canvas');
+    element.style.width = `${width}px`;
+    element.style.height = `${height}px`;
+    element.width = width * devicePixelRatio;
+    element.height = height * devicePixelRatio;
+    element.className = CLASS_NAME;
+
+    const context = element.getContext('2d');
+    // context.strokeStyle = strokeStyle
+    // context.lineWidth = lineWidth * devicePixelRatio
+
+    return context
   }
 
   const minimalPixelsBetweenResizers = 40;
@@ -1127,6 +1148,9 @@
       OVERVIEW_CANVAS_WIDTH,
       OVERVIEW_CANVAS_HEIGHT,
       OVERVIEW_LINE_WIDTH,
+      get visibleGraphNames () {
+        return this.graphNames.filter(graphName => this.visibilityState[graphName])
+      }
     }
   }
 
