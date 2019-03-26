@@ -682,6 +682,10 @@
       stopDrag,
     }
 
+    // animate(from, to, duration, callback)
+    // animate({
+    //   opacity:
+    // })
     function update ({ duration }) {
       const { visibleGraphNames } = config;
       if (!visibleGraphNames.length) return
@@ -705,12 +709,14 @@
     function render () {
       context.clearRect(0, 0, context.canvas.width, context.canvas.height);
       thisGraphs.forEach(graph =>
-        graph.render({ viewBox, max })
+        graph.render({ viewBox, max,
+          // , opacity
+        })
       );
     }
 
     function toggleVisibility (graphName) {
-      graphsByName[graphName].toggleVisibility();
+      // graphsByName[graphName].toggleVisibility()
       const { visibleGraphNames } = config;
       emprtState.setVisibile(visibleGraphNames.length);
       update({ duration: TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE] });
@@ -735,7 +741,6 @@
       }))
     }
 
-    // collect(graphNames, )
     function getDataArrays (graphNames) {
       return graphNames.map(graphName => config.data[graphName])
     }
