@@ -1,7 +1,7 @@
 import { XAxis } from '../XAxis'
 import { YAxis } from '../YAxis'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { getMaxValue, getMinValue, mapDataToCoords, animate } from '../../util'
+import { easing, getMaxValue, getMinValue, mapDataToCoords, animateValues } from '../../util'
 import { div } from '../html'
 import { MONTHS, DAYS } from '../constants'
 import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'
@@ -9,8 +9,8 @@ import { Graph } from '../Graph'
 import { EmptyState } from '../EmptyState'
 
 const TRANSITION_DURATIONS = {
-  [VIEW_BOX_CHANGE]: 200,
-  [TOGGLE_VISIBILITY_STATE]: 250,
+  [VIEW_BOX_CHANGE]: 80,
+  [TOGGLE_VISIBILITY_STATE]: 200,
 }
 
 // graphNames, colors, visibilityStte, data
@@ -79,6 +79,11 @@ export function Graphs (config, {
   let currentAnimationTarget
   let transitionDuration
   let xAxis
+  let currentState = {
+    startIndex,
+    endIndex,
+    max,
+  }
 
   if (showXAxis) {
     xAxis = XAxis({
@@ -89,7 +94,7 @@ export function Graphs (config, {
     element.appendChild(xAxis.element)
   }
 
-  render()
+  render(currentState)
 
   return {
     element,
@@ -104,20 +109,15 @@ export function Graphs (config, {
     if (!visibleGraphNames.length) return
     const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames)
     const newMax = getMaxValue(viewBox, arrayOfDataArrays)
-    // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
-    if (max !== newMax && newMax !== currentAnimationTarget) {
-      if (cancelAnimation) cancelAnimation()
-      currentAnimationTarget = newMax
-      cancelAnimation = animate(max, newMax, transitionDuration, updateStateAndRender)
-    } else {
-      render()
-    }
+    if (cancelAnimation) cancelAnimation()
+    cancelAnimation = animateValues(currentState, { ...viewBox, max: newMax }, updateStateAndRender,
+      { startIndex: t => t, endIndex: t => t, max: t => t },
+      { startIndex: 64, endIndex: 64, max: transitionDuration },
+    )
   }
 
-  function updateStateAndRender (newMax) {
-    max = newMax
-    if (yAxis) yAxis.setMax(newMax)
-    render()
+  function updateStateAndRender (state) {
+    render(currentState = state)
   }
 
   // function setYScale (yScale) {}
@@ -125,7 +125,9 @@ export function Graphs (config, {
   // function setViewBox (viewBox) {}
 
   // yScale
-  function render () {
+  function render ({ max, startIndex, endIndex }) {
+    if (xAxis) xAxis.setViewBox({ startIndex, endIndex })
+    if (yAxis) yAxis.setMax(max)
     for (let i = 0; i < config.graphNames.length; i++) {
       const graphName = config.graphNames[i]
       canvases[graphName].clear()
@@ -134,7 +136,7 @@ export function Graphs (config, {
           config.data[graphName],
           max,
           { width: width * devicePixelRatio, height: height * devicePixelRatio },
-          viewBox,
+          { startIndex, endIndex },
           lineWidth,
         )
       )
@@ -209,7 +211,6 @@ export function Graphs (config, {
 
   function changeViewBox (newViewBox) {
     Object.assign(viewBox, newViewBox)
-    if (xAxis) { xAxis.setViewBox(viewBox) }
     transitionDuration = TRANSITION_DURATIONS[VIEW_BOX_CHANGE]
     update()
   }

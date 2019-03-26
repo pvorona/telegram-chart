@@ -94,36 +94,49 @@
     }
   }
 
-  function easing (t) {
-    return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+  function animateValues (from, to, callback, easings, durations) {
+    const startTime = Date.now();
+
+    return animateProgress(Math.max(...Object.values(durations)), progress => {
+      const currentTime = Date.now();
+      const intermediateValue = {};
+      for (const key in from) {
+        if (durations[key] > currentTime - startTime) {
+          intermediateValue[key] = easings[key]((currentTime - startTime) / durations[key]) * (to[key] - from[key]) + from[key];
+        } else {
+          intermediateValue[key] = to[key];
+        }
+      }
+      callback(intermediateValue);
+    })
   }
 
-  function animate (from, to, duration, callback) {
-    const startAnimationTime = Date.now();
-    let lastDispatchedValue = from;
-    let animating = true;
-    let animationId;
+  function animateProgress (duration, callback) {
+    var startTime = Date.now();
+    var animating = true;
+    var lastDispatchedValue;
+    var animationId = requestAnimationFrame(frame);
 
     function frame () {
-      const currentTime = Date.now();
-      if (currentTime - startAnimationTime >= duration) {
-        if (lastDispatchedValue !== to) {
-          callback(to);
+      var currentTime = Date.now();
+      if (currentTime - startTime >= duration) {
+        if (lastDispatchedValue !== 1) {
+          callback(1);
         }
         animating = false;
       } else {
-        const currentValue = easing(
-          (currentTime - startAnimationTime) / duration
-        ) * (to - from) + from;
-        callback(currentValue);
-        lastDispatchedValue = currentValue;
+        callback(lastDispatchedValue = (currentTime - startTime) / duration);
         animationId = requestAnimationFrame(frame);
       }
     }
-    animationId = requestAnimationFrame(frame);
 
     return function cancelAnimation () {
       if (animating) {
+        animating = false;
+        var currentTime = Date.now();
+        if (lastDispatchedValue !== 1) {
+          callback((currentTime - startTime) / duration);
+        }
         cancelAnimationFrame(animationId);
       }
     }
@@ -572,8 +585,8 @@
   }
 
   const TRANSITION_DURATIONS = {
-    [VIEW_BOX_CHANGE]: 200,
-    [TOGGLE_VISIBILITY_STATE]: 250,
+    [VIEW_BOX_CHANGE]: 80,
+    [TOGGLE_VISIBILITY_STATE]: 200,
   };
 
   // graphNames, colors, visibilityStte, data
@@ -639,9 +652,13 @@
 
     let dragging = false;
     let cancelAnimation;
-    let currentAnimationTarget;
     let transitionDuration;
     let xAxis;
+    let currentState = {
+      startIndex,
+      endIndex,
+      max,
+    };
 
     if (showXAxis) {
       xAxis = XAxis({
@@ -652,7 +669,7 @@
       element.appendChild(xAxis.element);
     }
 
-    render();
+    render(currentState);
 
     return {
       element,
@@ -667,20 +684,15 @@
       if (!visibleGraphNames.length) return
       const arrayOfDataArrays = getArrayOfDataArrays(visibleGraphNames);
       const newMax = getMaxValue(viewBox, arrayOfDataArrays);
-      // Maybe add onComplete callback to cleanup cancelAnimation and currentAnimationTarget
-      if (max !== newMax && newMax !== currentAnimationTarget) {
-        if (cancelAnimation) cancelAnimation();
-        currentAnimationTarget = newMax;
-        cancelAnimation = animate(max, newMax, transitionDuration, updateStateAndRender);
-      } else {
-        render();
-      }
+      if (cancelAnimation) cancelAnimation();
+      cancelAnimation = animateValues(currentState, { ...viewBox, max: newMax }, updateStateAndRender,
+        { startIndex: t => t, endIndex: t => t, max: t => t },
+        { startIndex: 64, endIndex: 64, max: transitionDuration },
+      );
     }
 
-    function updateStateAndRender (newMax) {
-      max = newMax;
-      if (yAxis) yAxis.setMax(newMax);
-      render();
+    function updateStateAndRender (state) {
+      render(currentState = state);
     }
 
     // function setYScale (yScale) {}
@@ -688,7 +700,9 @@
     // function setViewBox (viewBox) {}
 
     // yScale
-    function render () {
+    function render ({ max, startIndex, endIndex }) {
+      if (xAxis) xAxis.setViewBox({ startIndex, endIndex });
+      if (yAxis) yAxis.setMax(max);
       for (let i = 0; i < config.graphNames.length; i++) {
         const graphName = config.graphNames[i];
         canvases[graphName].clear();
@@ -697,7 +711,7 @@
             config.data[graphName],
             max,
             { width: width * devicePixelRatio, height: height * devicePixelRatio },
-            viewBox,
+            { startIndex, endIndex },
             lineWidth,
           )
         );
@@ -772,7 +786,6 @@
 
     function changeViewBox (newViewBox) {
       Object.assign(viewBox, newViewBox);
-      if (xAxis) { xAxis.setViewBox(viewBox); }
       transitionDuration = TRANSITION_DURATIONS[VIEW_BOX_CHANGE];
       update();
     }
