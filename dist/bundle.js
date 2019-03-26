@@ -94,36 +94,49 @@
     }
   }
 
-  function easing (t) {
-    return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+  function animateValues (from, to, callback, easings, durations) {
+    const startTime = Date.now();
+
+    return animateProgress(Math.max(...Object.values(durations)), progress => {
+      const currentTime = Date.now();
+      const intermediateValue = {};
+      for (const key in from) {
+        if (durations[key] > currentTime - startTime) {
+          intermediateValue[key] = easings[key]((currentTime - startTime) / durations[key]) * (to[key] - from[key]) + from[key];
+        } else {
+          intermediateValue[key] = to[key];
+        }
+      }
+      callback(intermediateValue);
+    })
   }
 
-  function animate (from, to, duration, callback) {
-    const startAnimationTime = Date.now();
-    let lastDispatchedValue = from;
-    let animating = true;
-    let animationId;
+  function animateProgress (duration, callback) {
+    var startTime = Date.now();
+    var animating = true;
+    var lastDispatchedValue;
+    var animationId = requestAnimationFrame(frame);
 
     function frame () {
-      const currentTime = Date.now();
-      if (currentTime - startAnimationTime >= duration) {
-        if (lastDispatchedValue !== to) {
-          callback(to);
+      var currentTime = Date.now();
+      if (currentTime - startTime >= duration) {
+        if (lastDispatchedValue !== 1) {
+          callback(1);
         }
         animating = false;
       } else {
-        const currentValue = easing(
-          (currentTime - startAnimationTime) / duration
-        ) * (to - from) + from;
-        callback(currentValue);
-        lastDispatchedValue = currentValue;
+        callback(lastDispatchedValue = (currentTime - startTime) / duration);
         animationId = requestAnimationFrame(frame);
       }
     }
-    animationId = requestAnimationFrame(frame);
 
     return function cancelAnimation () {
       if (animating) {
+        animating = false;
+        var currentTime = Date.now();
+        if (lastDispatchedValue !== 1) {
+          callback((currentTime - startTime) / duration);
+        }
         cancelAnimationFrame(animationId);
       }
     }
@@ -397,9 +410,6 @@
     }
   }
 
-  const TOGGLE_VISIBILITY_STATE = 0;
-  const VIEW_BOX_CHANGE = 1;
-
   function Tooltip ({
     graphNames,
     colors,
@@ -522,7 +532,7 @@
     lineWidth,
     data,
   }) {
-    return { render }
+    return { render, toggleVisibility }
 
     function render ({ viewBox, max, opacity }) {
       setupContext();
@@ -535,6 +545,10 @@
           lineWidth,
         )
       );
+    }
+
+    function toggleVisibility () {
+
     }
 
     function setupContext () {
@@ -554,21 +568,6 @@
     }
   }
 
-  // function setup ({ width, height, lineWidth, strokeStyle }) {
-  //   const element = document.createElement('canvas')
-  //   element.style.width = `${width}px`
-  //   element.style.height = `${height}px`
-  //   element.width = width * devicePixelRatio
-  //   element.height = height * devicePixelRatio
-  //   element.className = CLASS_NAME
-
-  //   const context = element.getContext('2d')
-  //   context.strokeStyle = strokeStyle
-  //   context.lineWidth = lineWidth * devicePixelRatio
-
-  //   return { element, context }
-  // }
-
   function EmptyState () {
     const element = document.createElement('div');
     element.className = 'empty-state';
@@ -582,10 +581,6 @@
     }
   }
 
-  const TRANSITION_DURATIONS = {
-    [VIEW_BOX_CHANGE]: 200,
-    [TOGGLE_VISIBILITY_STATE]: 250,
-  };
   const CLASS_NAME = 'graph';
 
   // graphNames, colors, visibilityStte, data
@@ -660,8 +655,12 @@
 
     let dragging = false;
     let cancelAnimation;
-    let currentAnimationTarget;
     let xAxis;
+    let currentState = {
+      startIndex,
+      endIndex,
+      max,
+    };
 
     if (showXAxis) {
       xAxis = XAxis({
@@ -672,7 +671,7 @@
       element.appendChild(xAxis.element);
     }
 
-    render();
+    render(currentState);
 
     return {
       element,
@@ -682,44 +681,46 @@
       stopDrag,
     }
 
-    // animate(from, to, duration, callback)
-    // animate({
-    //   opacity:
-    // })
-    function update ({ duration }) {
-      const { visibleGraphNames } = config;
-      if (!visibleGraphNames.length) return
-      const dataArrays = getDataArrays(visibleGraphNames);
-      const newMax = getMaxValue(viewBox, dataArrays);
-      if (max !== newMax && newMax !== currentAnimationTarget) {
-        if (cancelAnimation) cancelAnimation();
-        currentAnimationTarget = newMax;
-        cancelAnimation = animate(max, newMax, duration, updateStateAndRender);
-      } else {
-        render();
-      }
+    function update (viewBox) {
+      if (cancelAnimation) cancelAnimation();
+      const data = getDataArrays(config.visibleGraphNames);
+      const max = getMaxValue(viewBox, data);
+      cancelAnimation = animateValues(currentState, { ...viewBox, max }, updateStateAndRender,
+        { startIndex: t => t, endIndex: t => t, max: t => t },
+        { startIndex: 64, endIndex: 64, max: 64 },
+      );
     }
 
-    function updateStateAndRender (newMax) {
-      max = newMax;
-      if (yAxis) yAxis.setMax(newMax);
-      render();
+    function updateStateAndRender (state) {
+      render(currentState = state);
     }
 
-    function render () {
+    // function updateStateAndRender (newMax) {
+    //   max = newMax
+    //   if (yAxis) yAxis.setMax(newMax)
+    //   render()
+    // }
+
+    function render ({ startIndex, endIndex, max }) {
+      // const { visibleGraphNames } = config
+      // if (!visibleGraphNames.length) return
+      // const data = getDataArrays(config.visibleGraphNames)
+      // const max = getMaxValue(viewBox, data)
+
+      if (yAxis) yAxis.setMax(max);
+      if (xAxis) xAxis.setViewBox({ startIndex, endIndex });
+
       context.clearRect(0, 0, context.canvas.width, context.canvas.height);
       thisGraphs.forEach(graph =>
-        graph.render({ viewBox, max,
-          // , opacity
-        })
+        graph.render({ viewBox: { startIndex, endIndex }, max })
       );
     }
 
     function toggleVisibility (graphName) {
-      // graphsByName[graphName].toggleVisibility()
+      graphsByName[graphName].toggleVisibility();
       const { visibleGraphNames } = config;
       emprtState.setVisibile(visibleGraphNames.length);
-      update({ duration: TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE] });
+      update(viewBox);
     }
 
     // function getDiffViewBox (a, b) {}
@@ -730,8 +731,7 @@
       //   getDataArrays(config.visibleGraphNames))
       // )
       Object.assign(viewBox, newViewBox);
-      if (xAxis) { xAxis.setViewBox(viewBox); }
-      update({ duration: TRANSITION_DURATIONS[VIEW_BOX_CHANGE] });
+      update(viewBox);
     }
 
     function getXAxisPoints () {
@@ -746,10 +746,12 @@
     }
 
     function startDrag () {
-      tooltip.hide();
-      tooltipLine.hide();
-      for (let i = 0; i < config.graphNames.length; i++) {
-        tooltipDots[config.graphNames[i]].hide();
+      if (showTooltip) {
+        tooltip.hide();
+        tooltipLine.hide();
+        for (let i = 0; i < config.graphNames.length; i++) {
+          tooltipDots[config.graphNames[i]].hide();
+        }
       }
       dragging = true;
     }

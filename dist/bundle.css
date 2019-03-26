@@ -336,6 +336,7 @@
   transform: translateZ(0);
   will-change: opacity;
   transition: opacity .25s;
+  contain: strict;
 }
 
 .graph--hidden {

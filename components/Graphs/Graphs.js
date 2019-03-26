@@ -1,7 +1,7 @@
 import { XAxis } from '../XAxis'
 import { YAxis } from '../YAxis'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { getMaxValue, getMinValue, mapDataToCoords, animate } from '../../util'
+import { easing, getMaxValue, getMinValue, mapDataToCoords, animateValues } from '../../util'
 import { div } from '../html'
 import { MONTHS, DAYS } from '../constants'
 import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'
@@ -89,6 +89,11 @@ export function Graphs (config, {
   let currentAnimationTarget
   let transitionDuration
   let xAxis
+  let currentState = {
+    startIndex,
+    endIndex,
+    max,
+  }
 
   if (showXAxis) {
     xAxis = XAxis({
@@ -99,7 +104,7 @@ export function Graphs (config, {
     element.appendChild(xAxis.element)
   }
 
-  render()
+  render(currentState)
 
   return {
     element,
@@ -109,44 +114,46 @@ export function Graphs (config, {
     stopDrag,
   }
 
-  // animate(from, to, duration, callback)
-  // animate({
-  //   opacity:
-  // })
-  function update ({ duration }) {
-    const { visibleGraphNames } = config
-    if (!visibleGraphNames.length) return
-    const dataArrays = getDataArrays(visibleGraphNames)
-    const newMax = getMaxValue(viewBox, dataArrays)
-    if (max !== newMax && newMax !== currentAnimationTarget) {
-      if (cancelAnimation) cancelAnimation()
-      currentAnimationTarget = newMax
-      cancelAnimation = animate(max, newMax, duration, updateStateAndRender)
-    } else {
-      render()
-    }
+  function update (viewBox) {
+    if (cancelAnimation) cancelAnimation()
+    const data = getDataArrays(config.visibleGraphNames)
+    const max = getMaxValue(viewBox, data)
+    cancelAnimation = animateValues(currentState, { ...viewBox, max }, updateStateAndRender,
+      { startIndex: t => t, endIndex: t => t, max: t => t },
+      { startIndex: 64, endIndex: 64, max: 64 },
+    )
   }
 
-  function updateStateAndRender (newMax) {
-    max = newMax
-    if (yAxis) yAxis.setMax(newMax)
-    render()
+  function updateStateAndRender (state) {
+    render(currentState = state)
   }
 
-  function render () {
+  // function updateStateAndRender (newMax) {
+  //   max = newMax
+  //   if (yAxis) yAxis.setMax(newMax)
+  //   render()
+  // }
+
+  function render ({ startIndex, endIndex, max }) {
+    // const { visibleGraphNames } = config
+    // if (!visibleGraphNames.length) return
+    // const data = getDataArrays(config.visibleGraphNames)
+    // const max = getMaxValue(viewBox, data)
+
+    if (yAxis) yAxis.setMax(max)
+    if (xAxis) xAxis.setViewBox({ startIndex, endIndex })
+
     context.clearRect(0, 0, context.canvas.width, context.canvas.height)
     thisGraphs.forEach(graph =>
-      graph.render({ viewBox, max,
-        // , opacity
-      })
+      graph.render({ viewBox: { startIndex, endIndex }, max })
     )
   }
 
   function toggleVisibility (graphName) {
-    // graphsByName[graphName].toggleVisibility()
+    graphsByName[graphName].toggleVisibility()
     const { visibleGraphNames } = config
     emprtState.setVisibile(visibleGraphNames.length)
-    update({ duration: TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE] })
+    update(viewBox)
   }
 
   // function getDiffViewBox (a, b) {}
@@ -157,8 +164,7 @@ export function Graphs (config, {
     //   getDataArrays(config.visibleGraphNames))
     // )
     Object.assign(viewBox, newViewBox)
-    if (xAxis) { xAxis.setViewBox(viewBox) }
-    update({ duration: TRANSITION_DURATIONS[VIEW_BOX_CHANGE] })
+    update(viewBox)
   }
 
   function getXAxisPoints () {
@@ -173,10 +179,12 @@ export function Graphs (config, {
   }
 
   function startDrag () {
-    tooltip.hide()
-    tooltipLine.hide()
-    for (let i = 0; i < config.graphNames.length; i++) {
-      tooltipDots[config.graphNames[i]].hide()
+    if (showTooltip) {
+      tooltip.hide()
+      tooltipLine.hide()
+      for (let i = 0; i < config.graphNames.length; i++) {
+        tooltipDots[config.graphNames[i]].hide()
+      }
     }
     dragging = true
   }

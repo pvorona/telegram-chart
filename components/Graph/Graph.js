@@ -8,7 +8,7 @@ export function Graph ({
   lineWidth,
   data,
 }) {
-  return { render }
+  return { render, toggleVisibility }
 
   function render ({ viewBox, max, opacity }) {
     setupContext()
@@ -21,6 +21,10 @@ export function Graph ({
         lineWidth,
       )
     )
+  }
+
+  function toggleVisibility () {
+
   }
 
   function setupContext () {
@@ -39,18 +43,3 @@ export function Graph ({
     context.stroke()
   }
 }
-
-// function setup ({ width, height, lineWidth, strokeStyle }) {
-//   const element = document.createElement('canvas')
-//   element.style.width = `${width}px`
-//   element.style.height = `${height}px`
-//   element.width = width * devicePixelRatio
-//   element.height = height * devicePixelRatio
-//   element.className = CLASS_NAME
-
-//   const context = element.getContext('2d')
-//   context.strokeStyle = strokeStyle
-//   context.lineWidth = lineWidth * devicePixelRatio
-
-//   return { element, context }
-// }
