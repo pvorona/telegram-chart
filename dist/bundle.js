@@ -548,6 +548,7 @@
     const context = element.getContext('2d');
     context.strokeStyle = strokeStyle;
     context.lineWidth = lineWidth * devicePixelRatio;
+    context.lineJoin = 'round';
 
     return { element, toggleVisibility, clear, renderPath }
 
