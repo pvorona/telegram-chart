@@ -47,30 +47,6 @@
   position: relative;
   overflow: hidden;
 }
-.overview__overflow {
-  display: none;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  transition: background-color .3s ease-in-out;
-}
-
-.overview__overflow--left {
-  left: 0;
-}
-
-.overview__overflow--right {
-  right: 0;
-}
-
-.theme-light .overview__overflow {
-  background-color: hsla(197, 47%, 97%, 0.8);
-}
-
-.theme-dark .overview__overflow {
-  background-color: hsla(214, 30%, 14%, 0.7);
-}
-
 .overview__resizer {
   position: absolute;
   top: 0;
