@@ -21,7 +21,6 @@
 .overview__viewbox::before, .overview__viewbox::after {
   content: ' ';
   transition: background-color .3s ease-in-out;
-  background-color: hsla(214,30%,14%,.7);
   position: absolute;
   top: -4px;
   bottom: -4px;
@@ -41,7 +40,7 @@
   background-color: hsla(197, 47%, 97%, 0.8);
 }
 
-.theme-light .overview__viewbox::before,
-.theme-light .overview__viewbox::after {
+.theme-dark .overview__viewbox::before,
+.theme-dark .overview__viewbox::after {
   background-color: hsla(214, 30%, 14%, 0.7);
 }

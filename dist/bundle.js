@@ -22,14 +22,6 @@
     return !(n % 1)
   };
 
-  Object.values = Object.values || function (source) {
-    var values = [];
-    for (var key in source) {
-      values.push(source[key]);
-    }
-    return values
-  };
-
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const LIGHT = 0;
@@ -94,10 +86,18 @@
     }
   }
 
+  function values (source) {
+    var values = [];
+    for (var key in source) {
+      values.push(source[key]);
+    }
+    return values
+  }
+
   function animateValues (from, to, callback, easings, durations) {
     const startTime = Date.now();
 
-    return animateProgress(Math.max(...Object.values(durations)), progress => {
+    return animateProgress(Math.max(...values(durations)), progress => {
       const currentTime = Date.now();
       const intermediateValue = {};
       for (const key in from) {
@@ -408,6 +408,9 @@
     }
   }
 
+  const TOGGLE_VISIBILITY_STATE = 0;
+  const VIEW_BOX_CHANGE = 1;
+
   function Tooltip ({
     graphNames,
     colors,
@@ -579,6 +582,10 @@
     }
   }
 
+  const TRANSITION_DURATIONS = {
+    [VIEW_BOX_CHANGE]: 200,
+    [TOGGLE_VISIBILITY_STATE]: 200,
+  };
   const CLASS_NAME = 'graph';
 
   // graphNames, colors, visibilityStte, data
@@ -685,7 +692,7 @@
       const max = getMaxValue(viewBox, data);
       cancelAnimation = animateValues(currentState, { ...viewBox, max }, updateStateAndRender,
         { startIndex: t => t, endIndex: t => t, max: t => t },
-        { startIndex: 64, endIndex: 64, max: 64 },
+        { startIndex: TRANSITION_DURATIONS[VIEW_BOX_CHANGE], endIndex: TRANSITION_DURATIONS[VIEW_BOX_CHANGE], max: TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE] },
       );
     }
 
@@ -813,7 +820,7 @@
     function onContainerMouseOut () {
       tooltipLine.hide();
       tooltip.hide();
-      Object.values(tooltipDots).forEach(dot => dot.hide());
+      values(tooltipDots).forEach(dot => dot.hide());
     }
   }
 

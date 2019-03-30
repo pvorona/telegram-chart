@@ -18,11 +18,3 @@ Object.assign = Object.assign || function (target) {
 Number.isInteger = Number.isInteger || function (n) {
   return !(n % 1)
 }
-
-Object.values = Object.values || function (source) {
-  var values = []
-  for (var key in source) {
-    values.push(source[key])
-  }
-  return values
-}

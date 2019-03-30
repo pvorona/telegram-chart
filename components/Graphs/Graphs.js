@@ -1,7 +1,7 @@
 import { XAxis } from '../XAxis'
 import { YAxis } from '../YAxis'
 import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { easing, getMaxValue, getMinValue, mapDataToCoords, animateValues } from '../../util'
+import { values, easing, getMaxValue, getMinValue, mapDataToCoords, animateValues } from '../../util'
 import { div } from '../html'
 import { MONTHS, DAYS } from '../constants'
 import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'
@@ -10,7 +10,7 @@ import { EmptyState } from '../EmptyState'
 
 const TRANSITION_DURATIONS = {
   [VIEW_BOX_CHANGE]: 200,
-  [TOGGLE_VISIBILITY_STATE]: 250,
+  [TOGGLE_VISIBILITY_STATE]: 200,
 }
 const CLASS_NAME = 'graph'
 
@@ -120,7 +120,7 @@ export function Graphs (config, {
     const max = getMaxValue(viewBox, data)
     cancelAnimation = animateValues(currentState, { ...viewBox, max }, updateStateAndRender,
       { startIndex: t => t, endIndex: t => t, max: t => t },
-      { startIndex: 64, endIndex: 64, max: 64 },
+      { startIndex: TRANSITION_DURATIONS[VIEW_BOX_CHANGE], endIndex: TRANSITION_DURATIONS[VIEW_BOX_CHANGE], max: TRANSITION_DURATIONS[TOGGLE_VISIBILITY_STATE] },
     )
   }
 
@@ -248,7 +248,7 @@ export function Graphs (config, {
   function onContainerMouseOut () {
     tooltipLine.hide()
     tooltip.hide()
-    Object.values(tooltipDots).forEach(dot => dot.hide())
+    values(tooltipDots).forEach(dot => dot.hide())
   }
 }
 

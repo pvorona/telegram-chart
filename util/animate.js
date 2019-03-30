@@ -1,3 +1,5 @@
+import { values } from './values'
+
 export function easing (t) {
   return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
 }
@@ -36,7 +38,7 @@ export function animate (from, to, duration, callback) {
 export function animateValues (from, to, callback, easings, durations) {
   const startTime = Date.now()
 
-  return animateProgress(Math.max(...Object.values(durations)), progress => {
+  return animateProgress(Math.max(...values(durations)), progress => {
     const currentTime = Date.now()
     const intermediateValue = {}
     for (const key in from) {
