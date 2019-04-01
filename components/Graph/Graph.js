@@ -6,17 +6,19 @@ export function Graph ({
   context,
   strokeStyle,
   lineWidth,
-  data,
+  values,
+  width,
+  height,
 }) {
   return { render }
 
-  function render ({ startIndex, endIndex, max, opacity }) {
+  function render ({ startIndex, endIndex, max }) {
     setupContext()
     renderPath(
       mapDataToCoords(
-        data,
+        values,
         max,
-        { width: context.canvas.width, height: context.canvas.height },
+        { width, height },
         { startIndex, endIndex },
         lineWidth,
       )

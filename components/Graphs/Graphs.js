@@ -25,42 +25,38 @@ export function Graphs ({
   endIndex,
   top,
 }) {
-  const { element, graphs, context } = createDOM()
+  const { element, context } = createDOM()
+  const graphs = createGraphs(context)
   const state = getInitialState()
   const transitions = createTransitionGroup(state, durationsConfig, easingConfig, render)
 
   render(state)
 
-  return {
-    element,
-    setState,
-  }
+  return { element, setState }
 
   function setState (newState) {
     Object.assign(state, newState)
     transitions.setTargets({
-      max: getMaxGraphValueInRange(state.startIndex, state.endIndex),
+      max: getMaxValueInRange(state.startIndex, state.endIndex),
       startIndex: state.startIndex,
       endIndex: state.endIndex,
     })
   }
 
-  function getMaxGraphValueInRange (startIndex, endIndex) {
+  function getMaxValueInRange (startIndex, endIndex) {
     return getMaxValue(
       { startIndex, endIndex },
       getValues(graphNames),
     )
   }
 
-  function render ({ startIndex, endIndex, max, width, height }) {
-    context.clearRect(0, 0, width, height)
-    graphs.forEach(graph =>
-      graph.render({ startIndex, endIndex, max })
-    )
-  }
-
   function getValues (graphNames) {
     return graphNames.map(graphName => values[graphName])
+  }
+
+  function render ({ startIndex, endIndex, max, width, height }) {
+    context.clearRect(0, 0, width, height)
+    graphs.forEach(graph => graph.render({ startIndex, endIndex, max }))
   }
 
   function getInitialState () {
@@ -69,44 +65,44 @@ export function Graphs ({
       endIndex,
       width: width * devicePixelRatio,
       height: height * devicePixelRatio,
-      max: getMaxGraphValueInRange(startIndex, endIndex),
+      max: getMaxValueInRange(startIndex, endIndex),
     }
   }
 
   function createDOM () {
-    const element = document.createDocumentFragment()
-    const canvasesContainer = document.createElement('div')
-    canvasesContainer.style.width = `${width}px`
-    canvasesContainer.style.height = `${height}px`
-    canvasesContainer.className = 'graphs'
-    if (top) canvasesContainer.style.top = `${top}px`
+    const element = document.createElement('div')
+    element.style.width = `${width}px`
+    element.style.height = `${height}px`
+    element.className = 'graphs'
+    if (top) element.style.top = `${top}px`
+    const { canvas, context } = createCanvas({ width, height })
+    element.appendChild(canvas)
 
-    const context = setupCanvas({
-      width,
-      height,
-    })
-    canvasesContainer.appendChild(context.canvas)
-    const graphs = graphNames.map(graphName =>
+    return { element, context }
+  }
+
+  function createGraphs (context) {
+    return graphNames.map(graphName =>
       Graph({
         context,
         lineWidth,
-        data: values[graphName],
+        width: width * devicePixelRatio,
+        height: height * devicePixelRatio,
+        values: values[graphName],
         strokeStyle: strokeStyles[graphName],
       })
     )
-    element.appendChild(canvasesContainer)
-
-    return { element, graphs, context }
   }
 }
 
-function setupCanvas ({ width, height }) {
-  const element = document.createElement('canvas')
-  element.style.width = `${width}px`
-  element.style.height = `${height}px`
-  element.width = width * devicePixelRatio
-  element.height = height * devicePixelRatio
-  element.className = CLASS_NAME
+function createCanvas ({ width, height }) {
+  const canvas = document.createElement('canvas')
+  canvas.style.width = `${width}px`
+  canvas.style.height = `${height}px`
+  canvas.width = width * devicePixelRatio
+  canvas.height = height * devicePixelRatio
+  canvas.className = CLASS_NAME
 
-  return element.getContext('2d')
+  const context = canvas.getContext('2d')
+  return { context, canvas }
 }
