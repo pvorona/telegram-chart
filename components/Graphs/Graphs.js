@@ -1,6 +1,5 @@
-import { createTransitionGroup, getMaxValue } from '../../util'
+import { createTransitionGroup, getMaxValue, mapDataToCoords } from '../../util'
 import { easeInOutQuad, linear } from '../../easings'
-import { Graph } from '../Graph'
 
 const FRAME = 1000 / 60
 const containerClassName = 'graphs'
@@ -27,7 +26,6 @@ export function Graphs ({
   top,
 }) {
   const { element, context } = createDOM()
-  const graphs = createGraphs(context)
   const state = getInitialState()
   const transitions = createTransitionGroup(state, durationsConfig, easingConfig, render)
 
@@ -57,7 +55,23 @@ export function Graphs ({
 
   function render ({ startIndex, endIndex, max, width, height }) {
     context.clearRect(0, 0, width, height)
-    graphs.forEach(graph => graph.render({ startIndex, endIndex, max }))
+    for (let i = 0; i < graphNames.length; i++) {
+      context.strokeStyle = strokeStyles[graphNames[i]]
+      context.lineWidth = lineWidth * devicePixelRatio
+      const points = mapDataToCoords(
+        values[graphNames[i]],
+        max,
+        { width, height },
+        { startIndex, endIndex },
+        lineWidth * devicePixelRatio,
+      )
+      context.beginPath()
+      for (let j = 0; j < points.length; j++) {
+        const { x, y } = points[j]
+        context.lineTo(x, y)
+      }
+      context.stroke()
+    }
   }
 
   function getInitialState () {
@@ -80,19 +94,6 @@ export function Graphs ({
     element.appendChild(canvas)
 
     return { element, context }
-  }
-
-  function createGraphs (context) {
-    return graphNames.map(graphName =>
-      Graph({
-        context,
-        lineWidth,
-        width: width * devicePixelRatio,
-        height: height * devicePixelRatio,
-        values: values[graphName],
-        strokeStyle: strokeStyles[graphName],
-      })
-    )
   }
 }
 
