@@ -149,6 +149,9 @@ export function Graphs (config, {
   function onContainerMouseMove (e) {
     if (dragging) return
 
+    const { max, startIndex, endIndex } = currentState
+    const viewBox = { startIndex, endIndex }
+
     const visibleGraphNames = config.graphNames.filter(graphName => config.visibilityState[graphName])
     if (!visibleGraphNames.length) return
     tooltipLine.show()
