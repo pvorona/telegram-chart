@@ -21,7 +21,8 @@ export function Graphs ({
   height,
   lineWidth,
   strokeStyles,
-  viewBox: { startIndex, endIndex },
+  startIndex,
+  endIndex,
   top,
 }) {
   const { element, graphs, context } = createDOM()

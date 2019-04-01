@@ -26,10 +26,8 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
     strokeStyles: chartConfig.colors,
     lineWidth: chartConfig.OVERVIEW_LINE_WIDTH,
-    viewBox: {
-      startIndex: 0,
-      endIndex: chartConfig.data.total - 1,
-    },
+    startIndex: 0,
+    endIndex: chartConfig.data.total - 1,
   })
   overviewContainer.appendChild(graphs.element)
   const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' })
