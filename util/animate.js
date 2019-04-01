@@ -1,10 +1,5 @@
 import { values } from './values'
 
-export const linear = t => t
-export function easing (t) {
-  return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-}
-
 export function animate (from, to, duration, easing, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from

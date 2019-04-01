@@ -1,8 +1,8 @@
-import { createTransitionGroup, easing, linear, getMaxValue, getMinValue } from '../../util'
+import { createTransitionGroup, easeInOutQuad, linear, getMaxValue } from '../../util'
 import { Graph } from '../Graph'
 
 const FRAME = 1000 / 60
-const CLASS_NAME = 'graph'
+const containerClassName = 'graphs'
 const durationsConfig = {
   startIndex: FRAME * 4,
   endIndex: FRAME * 4,
@@ -11,7 +11,7 @@ const durationsConfig = {
 const easingConfig = {
   startIndex: linear,
   endIndex: linear,
-  max: easing,
+  max: easeInOutQuad,
 }
 
 export function Graphs ({
@@ -73,7 +73,7 @@ export function Graphs ({
     const element = document.createElement('div')
     element.style.width = `${width}px`
     element.style.height = `${height}px`
-    element.className = 'graphs'
+    element.className = containerClassName
     if (top) element.style.top = `${top}px`
     const { canvas, context } = createCanvas({ width, height })
     element.appendChild(canvas)
@@ -101,7 +101,6 @@ function createCanvas ({ width, height }) {
   canvas.style.height = `${height}px`
   canvas.width = width * devicePixelRatio
   canvas.height = height * devicePixelRatio
-  canvas.className = CLASS_NAME
 
   const context = canvas.getContext('2d')
   return { context, canvas }
