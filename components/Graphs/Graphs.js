@@ -1,4 +1,5 @@
-import { createTransitionGroup, easeInOutQuad, linear, getMaxValue } from '../../util'
+import { createTransitionGroup, getMaxValue } from '../../util'
+import { easeInOutQuad, linear } from '../../easings'
 import { Graph } from '../Graph'
 
 const FRAME = 1000 / 60
