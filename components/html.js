@@ -1,10 +1,3 @@
-const tempBlock = document.createElement('div')
-
-export function htmlToElement (html) {
-  tempBlock.innerHTML = html
-  return tempBlock.firstElementChild
-}
-
 export function createElement (type, attributes = {}, children = []) {
   const element = document.createElement(type)
   Object.assign(element, attributes)
