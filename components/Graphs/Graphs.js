@@ -1,4 +1,4 @@
-import { createTransitionGroup, getMaxValue, mapDataToCoords } from '../../util'
+import { createTransitionGroup, getMaxValue, mapDataToCoords, beautifyNumber } from '../../util'
 import { easeInOutQuad, linear } from '../../easings'
 
 const FRAME = 1000 / 60
@@ -23,7 +23,7 @@ export function Graphs ({
   strokeStyles,
   startIndex,
   endIndex,
-  top,
+  beautifyCelling,
 }) {
   const { element, context } = createDOM()
   const state = getInitialState()
@@ -43,10 +43,12 @@ export function Graphs ({
   }
 
   function getMaxValueInRange (startIndex, endIndex) {
-    return getMaxValue(
+    const maxValue = getMaxValue(
       { startIndex, endIndex },
       getValues(graphNames),
     )
+
+    return beautifyCelling ? beautifyNumber(maxValue) : maxValue
   }
 
   function getValues (graphNames) {

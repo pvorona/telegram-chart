@@ -19,6 +19,7 @@ export function Chart (chartConfig) {
     showXAxis: true,
     showYAxis: true,
     showTooltip: true,
+    beautifyCelling: true,
   })
 
   const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd)
