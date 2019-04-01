@@ -1,8 +1,10 @@
 import { createTransitionGroup, easing, linear, getMaxValue, getMinValue } from '../../util'
+import { htmlToElement } from '../html'
 import { Graph } from '../Graph'
 
 const FRAME = 1000 / 60
-const CLASS_NAME = 'graph'
+const containerClassName = 'graphs'
+const canvasClassName = 'graph'
 const durationsConfig = {
   startIndex: FRAME * 4,
   endIndex: FRAME * 4,
@@ -70,14 +72,18 @@ export function Graphs ({
   }
 
   function createDOM () {
-    const element = document.createElement('div')
-    element.style.width = `${width}px`
-    element.style.height = `${height}px`
-    element.className = 'graphs'
-    if (top) element.style.top = `${top}px`
-    const { canvas, context } = createCanvas({ width, height })
-    element.appendChild(canvas)
-
+    const element = htmlToElement(`
+      <div class="${containerClassName}" style="width: ${width}px; height: ${height}px;">
+        <canvas
+          class="${canvasClassName}"
+          width="${width * devicePixelRatio}"
+          height="${height * devicePixelRatio}"
+          style="width: ${width}px; height: ${height}px"
+        ></canvas>
+      </div>
+    `)
+    const canvas = element.querySelector(`.${canvasClassName}`)
+    const context = canvas.getContext('2d')
     return { element, context }
   }
 
@@ -93,16 +99,4 @@ export function Graphs ({
       })
     )
   }
-}
-
-function createCanvas ({ width, height }) {
-  const canvas = document.createElement('canvas')
-  canvas.style.width = `${width}px`
-  canvas.style.height = `${height}px`
-  canvas.width = width * devicePixelRatio
-  canvas.height = height * devicePixelRatio
-  canvas.className = CLASS_NAME
-
-  const context = canvas.getContext('2d')
-  return { context, canvas }
 }
