@@ -91,20 +91,14 @@ export function Graphs ({
     element.style.width = `${width}px`
     element.style.height = `${height}px`
     element.className = containerClassName
-    const { canvas, context } = createCanvas({ width, height })
+    const canvas = document.createElement('canvas')
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+    canvas.width = width * devicePixelRatio
+    canvas.height = height * devicePixelRatio
+    const context = canvas.getContext('2d')
     element.appendChild(canvas)
 
     return { element, context }
   }
-}
-
-function createCanvas ({ width, height }) {
-  const canvas = document.createElement('canvas')
-  canvas.style.width = `${width}px`
-  canvas.style.height = `${height}px`
-  canvas.width = width * devicePixelRatio
-  canvas.height = height * devicePixelRatio
-
-  const context = canvas.getContext('2d')
-  return { context, canvas }
 }
