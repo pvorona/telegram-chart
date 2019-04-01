@@ -27,6 +27,19 @@
   color: #2DA7F4;
 }
 
+.title {
+  font-size: 28px;
+  margin-bottom: 50px;
+  transition: color .3s ease-in-out;
+}
+
+.theme-dark .title {
+  color: #FFF;
+}
+
+.theme-light .title {
+  color: #222222;
+}
 .graphs {
   position: relative;
 }
@@ -106,19 +119,6 @@
   background-color: hsla(214, 30%, 14%, 0.7);
 }
 
-.title {
-  font-size: 28px;
-  margin-bottom: 50px;
-  transition: color .3s ease-in-out;
-}
-
-.theme-dark .title {
-  color: #FFF;
-}
-
-.theme-light .title {
-  color: #222222;
-}
 .button {
   display: none;
 }

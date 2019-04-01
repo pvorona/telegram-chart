@@ -34,19 +34,18 @@ export function Chart (chartConfig) {
 
   function onButtonClick (graphName) {
     chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
-    graphs.toggleVisibility(graphName)
     overview.toggleVisibility(graphName)
   }
 
   function onViewBoxChange (viewBox) {
-    graphs.changeViewBox(viewBox)
+    graphs.setState(viewBox)
   }
 
   function onDragStart () {
-    graphs.startDrag()
+    // graphs.startDrag()
   }
 
   function onDragEnd () {
-    graphs.stopDrag()
+    // graphs.stopDrag()
   }
 }

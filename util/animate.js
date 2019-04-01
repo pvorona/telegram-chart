@@ -1,10 +1,11 @@
 import { values } from './values'
 
+export const linear = t => t
 export function easing (t) {
   return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
 }
 
-export function animate (from, to, duration, callback) {
+export function animate (from, to, duration, easing, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from
   let animating = true
@@ -30,6 +31,10 @@ export function animate (from, to, duration, callback) {
 
   return function cancelAnimation () {
     if (animating) {
+      const currentTime = Date.now()
+      callback(easing(
+        (currentTime - startAnimationTime) / duration
+      ) * (to - from) + from)
       cancelAnimationFrame(animationId)
     }
   }
@@ -81,4 +86,32 @@ export function animateProgress (duration, callback) {
       cancelAnimationFrame(animationId)
     }
   }
+}
+
+export function createTransitionGroup (initialValues, durations, easings, onTick) {
+  const currentState = { ...initialValues }
+  const currentTargets = { ...initialValues }
+  const animations = {}
+
+  const setTargets = (targets) => {
+    for (let key in targets) {
+      const value = targets[key]
+
+      if (currentTargets[key] === value || currentState[key] === value) {
+        continue
+      }
+
+      currentTargets[key] = value
+
+      if (animations[key]) {
+        animations[key]()
+      }
+      animations[key] = animate(currentState[key], value, durations[key], easings[key], (newValue) => {
+        currentState[key] = newValue
+        onTick(currentState)
+      })
+    }
+  }
+
+  return { setTargets }
 }

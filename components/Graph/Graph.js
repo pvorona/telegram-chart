@@ -10,14 +10,14 @@ export function Graph ({
 }) {
   return { render, toggleVisibility }
 
-  function render ({ viewBox, max, opacity }) {
+  function render ({ startIndex, endIndex, max, opacity }) {
     setupContext()
     renderPath(
       mapDataToCoords(
         data,
         max,
         { width: context.canvas.width, height: context.canvas.height },
-        viewBox,
+        { startIndex, endIndex },
         lineWidth,
       )
     )
@@ -33,13 +33,11 @@ export function Graph ({
   }
 
   function renderPath (points) {
-    context.beginPath();
-
+    context.beginPath()
     for (let i = 0; i < points.length; i++) {
       const { x, y } = points[i]
       context.lineTo(x, y)
     }
-
     context.stroke()
   }
 }
