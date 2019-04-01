@@ -89,7 +89,6 @@ export function Graphs ({
     element.style.width = `${width}px`
     element.style.height = `${height}px`
     element.className = containerClassName
-    if (top) element.style.top = `${top}px`
     const { canvas, context } = createCanvas({ width, height })
     element.appendChild(canvas)
 
