@@ -7,7 +7,9 @@ export function Chart (chartConfig) {
   const element = document.createElement('div')
   element.style.marginTop = '110px'
   element.appendChild(Title(chartConfig.title))
-  const graphs = Graphs(chartConfig, {
+  const graphs = Graphs({
+    graphNames: chartConfig.graphNames,
+    values: chartConfig.data,
     width: chartConfig.width,
     height: chartConfig.height,
     lineWidth: chartConfig.lineWidth,
@@ -16,13 +18,6 @@ export function Chart (chartConfig) {
     showXAxis: true,
     showYAxis: true,
     showTooltip: true,
-
-    // colors: chartConfig.colors,
-    // graphNames: chartConfig.graphNames,
-    // data: chartConfig.data,
-    // domain: chartConfig.domain,
-    // visibleGraphNames: get ()
-    // maxVisibleValue: get ()
   })
 
   const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd)

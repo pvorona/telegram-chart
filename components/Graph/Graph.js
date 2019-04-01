@@ -8,7 +8,7 @@ export function Graph ({
   lineWidth,
   data,
 }) {
-  return { render, toggleVisibility }
+  return { render }
 
   function render ({ startIndex, endIndex, max, opacity }) {
     setupContext()
@@ -21,10 +21,6 @@ export function Graph ({
         lineWidth,
       )
     )
-  }
-
-  function toggleVisibility () {
-
   }
 
   function setupContext () {

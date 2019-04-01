@@ -43,8 +43,8 @@ export function createChartConfig (chartData) {
     OVERVIEW_CANVAS_WIDTH,
     OVERVIEW_CANVAS_HEIGHT,
     OVERVIEW_LINE_WIDTH,
-    get visibleGraphNames () {
-      return this.graphNames.filter(graphName => this.visibilityState[graphName])
-    }
+    // get visibleGraphNames () {
+    //   return this.graphNames.filter(graphName => this.visibilityState[graphName])
+    // }
   }
 }

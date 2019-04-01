@@ -18,7 +18,9 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`
   overviewContainer.style.width = `${chartConfig.OVERVIEW_CANVAS_WIDTH}px`
 
-  const graphs = Graphs(chartConfig, {
+  const graphs = Graphs({
+    graphNames: chartConfig.graphNames,
+    values: chartConfig.data,
     width: chartConfig.OVERVIEW_CANVAS_WIDTH,
     height: chartConfig.OVERVIEW_CANVAS_HEIGHT - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
     top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,

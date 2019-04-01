@@ -1,12 +1,5 @@
-import { XAxis } from '../XAxis'
-import { YAxis } from '../YAxis'
-import { TOGGLE_VISIBILITY_STATE, VIEW_BOX_CHANGE } from '../events'
-import { createTransitionGroup, values, easing, linear, getMaxValue, getMinValue, mapDataToCoords, animateValues, animate } from '../../util'
-import { div } from '../html'
-import { MONTHS, DAYS } from '../constants'
-import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'
+import { createTransitionGroup, easing, linear, getMaxValue, getMinValue } from '../../util'
 import { Graph } from '../Graph'
-import { EmptyState } from '../EmptyState'
 
 const FRAME = 1000 / 60
 const CLASS_NAME = 'graph'
@@ -21,12 +14,15 @@ const easingConfig = {
   max: easing,
 }
 
-export function Graphs (config, {
+export function Graphs ({
+  graphNames,
+  values,
   width,
   height,
   lineWidth,
   strokeStyles,
   viewBox: { startIndex, endIndex },
+  top,
 }) {
   const { element, graphs, context } = createDOM()
   const state = getInitialState()
@@ -51,7 +47,7 @@ export function Graphs (config, {
   function getMaxGraphValueInRange (startIndex, endIndex) {
     return getMaxValue(
       { startIndex, endIndex },
-      getDataArrays(config.graphNames),
+      getValues(graphNames),
     )
   }
 
@@ -62,8 +58,8 @@ export function Graphs (config, {
     )
   }
 
-  function getDataArrays (graphNames) {
-    return graphNames.map(graphName => config.data[graphName])
+  function getValues (graphNames) {
+    return graphNames.map(graphName => values[graphName])
   }
 
   function getInitialState () {
@@ -89,12 +85,11 @@ export function Graphs (config, {
       height,
     })
     canvasesContainer.appendChild(context.canvas)
-    const graphsByName = {}
-    const graphs = config.graphNames.map(graphName =>
-      graphsByName[graphName] = Graph({
+    const graphs = graphNames.map(graphName =>
+      Graph({
         context,
         lineWidth,
-        data: config.data[graphName],
+        data: values[graphName],
         strokeStyle: strokeStyles[graphName],
       })
     )
@@ -104,7 +99,7 @@ export function Graphs (config, {
   }
 }
 
-function setupCanvas ({ width, height, lineWidth, strokeStyle }) {
+function setupCanvas ({ width, height }) {
   const element = document.createElement('canvas')
   element.style.width = `${width}px`
   element.style.height = `${height}px`
