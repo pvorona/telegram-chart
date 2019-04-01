@@ -11,6 +11,6 @@ module.exports = {
   plugins: [
     css({ minified: true }),
     resolve(),
-    filesize(),
+    filesize({ showBrotliSize: true }),
   ],
 }
