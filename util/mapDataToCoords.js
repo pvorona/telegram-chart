@@ -14,11 +14,7 @@ export function mapDataToCoords (data, max, { width, height: availableHeight }, 
     })
   }
 
-  // In case there is more data than pixels
-  // we will aggregate data so that there is only
-  // one point per pixel
-  const step = (endIndex - startIndex) / width > 1.5 ? (endIndex - startIndex) / width : 1
-  for (let i = ceil(startIndex); i <= floor(endIndex); i += step) {
+  for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     coords.push({
       x: width / (endIndex - startIndex) * (i - startIndex),
       y: lineWidth + height - height / max * interpolatePoint(i, data),
