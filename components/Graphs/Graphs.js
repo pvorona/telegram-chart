@@ -8,12 +8,18 @@ import { TooltipCircle, TooltipLine, Tooltip } from '../Tooltip'
 import { Graph } from '../Graph'
 import { EmptyState } from '../EmptyState'
 
-const TRANSITION_DURATIONS = {
-  [VIEW_BOX_CHANGE]: 200,
-  [TOGGLE_VISIBILITY_STATE]: 200,
-}
 const FRAME = 1000 / 60
 const CLASS_NAME = 'graph'
+const durationsConfig = {
+  startIndex: FRAME * 4,
+  endIndex: FRAME * 4,
+  max: FRAME * 12,
+}
+const easingConfig = {
+  startIndex: linear,
+  endIndex: linear,
+  max: easing,
+}
 
 export function Graphs (config, {
   width,
@@ -23,33 +29,26 @@ export function Graphs (config, {
   viewBox: { startIndex, endIndex },
 }) {
   const { element, graphs, context } = createDOM()
-  const currentState = getInitialState()
-  const transitions = createTransitionGroup(currentState, {
-    startIndex: FRAME * 4,
-    endIndex: FRAME * 4,
-    max: FRAME * 10,
-  }, {
-    startIndex: linear,
-    endIndex: linear,
-    max: easing,
-  }, render)
-  render(currentState)
+  const state = getInitialState()
+  const transitions = createTransitionGroup(state, durationsConfig, easingConfig, render)
+
+  render(state)
 
   return {
     element,
     setState,
   }
 
-  function setState (state) {
-    Object.assign(currentState, state)
+  function setState (newState) {
+    Object.assign(state, newState)
     transitions.setTargets({
-      max: getMaxGraphValue(currentState.startIndex, currentState.endIndex),
-      startIndex: currentState.startIndex,
-      endIndex: currentState.endIndex,
+      max: getMaxGraphValueInRange(state.startIndex, state.endIndex),
+      startIndex: state.startIndex,
+      endIndex: state.endIndex,
     })
   }
 
-  function getMaxGraphValue (startIndex, endIndex) {
+  function getMaxGraphValueInRange (startIndex, endIndex) {
     return getMaxValue(
       { startIndex, endIndex },
       getDataArrays(config.graphNames),
@@ -73,7 +72,7 @@ export function Graphs (config, {
       endIndex,
       width: width * devicePixelRatio,
       height: height * devicePixelRatio,
-      max: getMaxGraphValue(startIndex, endIndex),
+      max: getMaxGraphValueInRange(startIndex, endIndex),
     }
   }
 
