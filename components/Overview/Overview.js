@@ -42,10 +42,27 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     )
   }
 
+  function setState (newState) {
+    Object.assign(state, newState)
+    if (newState.left) {
+      viewBoxElement.style.left = `${state.left}px`
+    }
+    if (newState.right) {
+      viewBoxElement.style.right = `${chartConfig.width - state.right}px`
+    }
+    if (newState.left || newState.right) {
+      const startIndex = state.left / chartConfig.width * (chartConfig.data.total - 1)
+      const endIndex = state.right / chartConfig.width * (chartConfig.data.total - 1)
+      onViewBoxChange({ startIndex, endIndex })
+    }
+  }
+
   function onLeftResizerMouseDown (e) {
     onDragStart()
     applyCursor(classes.left)
-    state.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left)
+    setState({
+      cursorResizerDelta: getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left)
+    })
   }
 
   function removeLeftResizerListener () {
@@ -55,16 +72,17 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
 
   function onLeftResizerMouseMove (e) {
     const left = ensureInOverviewBounds(getX(e) - state.cursorResizerDelta)
-    state.left = left > state.right - minimalPixelsBetweenResizers ? (state.right - minimalPixelsBetweenResizers) : left
-    viewBoxElement.style.left = `${state.left}px`
-    const startIndex = state.left / chartConfig.width * (chartConfig.data.total - 1)
-    onViewBoxChange({ startIndex })
+    setState({
+      left: keepInBounds(left, 0, state.right - minimalPixelsBetweenResizers)
+    })
   }
 
   function onRightResizerMouseDown (e) {
     onDragStart()
     applyCursor(classes.right)
-    state.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left)
+    setState({
+      cursorResizerDelta: getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left)
+    })
   }
 
   function removeRightResizerListener () {
@@ -72,12 +90,17 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     applyCursor(classes.right)
   }
 
+  function keepInBounds (value, min, max) {
+    if (value < min) return min
+    if (value > max) return max
+    return value
+  }
+
   function onRightResizerMouseMove (e) {
     const right = ensureInOverviewBounds(getX(e) - state.cursorResizerDelta)
-    state.right = right < state.left + minimalPixelsBetweenResizers ? (state.left + minimalPixelsBetweenResizers) : right
-    viewBoxElement.style.right = `${chartConfig.width - (state.right)}px`
-    const endIndex = (state.right) / chartConfig.width * (chartConfig.data.total - 1)
-    onViewBoxChange({ endIndex })
+    setState({
+      right: keepInBounds(right, state.left + minimalPixelsBetweenResizers, right)
+    })
   }
 
   function getX (event) {
@@ -93,8 +116,10 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
 
   function onViewBoxElementMouseDown (e) {
     onDragStart()
-    state.cursorResizerDelta = getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
     applyCursor(classes.grabbing)
+    setState({
+      cursorResizerDelta: getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
+    })
   }
 
   function onViewBoxElementMouseUp () {
@@ -105,19 +130,11 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   function onViewBoxElementMouseMove (e) {
     const width = state.right - state.left
     const nextLeft = getX(e) - state.cursorResizerDelta
-    if (nextLeft < 0) {
-      state.left = 0
-    } else if (nextLeft > chartConfig.width - width) {
-      state.left = chartConfig.width - width
-    } else {
-      state.left = nextLeft
-    }
-    state.right = state.left + width
-    viewBoxElement.style.left = `${state.left}px`
-    viewBoxElement.style.right = `${chartConfig.width - (state.right)}px`
-    const startIndex = state.left / chartConfig.width * (chartConfig.data.total - 1)
-    const endIndex = (state.right) / (chartConfig.width) * (chartConfig.data.total - 1)
-    onViewBoxChange({ startIndex, endIndex })
+    const stateLeft = keepInBounds(nextLeft, 0, chartConfig.width - width)
+    setState({
+      left: stateLeft,
+      right: stateLeft + width,
+    })
   }
 
   function getInitialState () {
