@@ -5,6 +5,7 @@
   outline: none;
   cursor: pointer;
   transition: color .3s ease-in-out;
+  will-change: contents;
 }
 
 .theme-light .theme-switcher {

@@ -2,7 +2,7 @@ import { max, min, ceil } from './math'
 import { interpolatePoint } from './interpolatePoint'
 import { calculateOrderOfMagnitude } from './calculateOrderOfMagnitude'
 
-function findMaxElement (values, { startIndex, endIndex }) {
+export function getMaxValue ({ startIndex, endIndex }, values) {
   let maxValue = values[0][ceil(startIndex)]
   for (let j = 0; j < values.length; j++) {
     maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
@@ -13,11 +13,7 @@ function findMaxElement (values, { startIndex, endIndex }) {
   return maxValue
 }
 
-export function getMaxValue (viewBox, values) {
-  return beautifyNumber(findMaxElement(values, viewBox))
-}
-
-function beautifyNumber (number) {
+export function beautifyNumber (number) {
   const magnitude = calculateOrderOfMagnitude(number)
   if (number % magnitude === 0) return number
   if (number % (magnitude / 2) === 0) return number

@@ -1,10 +1,6 @@
 import { values } from './values'
 
-export function easing (t) {
-  return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-}
-
-export function animate (from, to, duration, callback) {
+export function animate (from, to, duration, easing, callback) {
   const startAnimationTime = Date.now()
   let lastDispatchedValue = from
   let animating = true
@@ -30,55 +26,39 @@ export function animate (from, to, duration, callback) {
 
   return function cancelAnimation () {
     if (animating) {
+      const currentTime = Date.now()
+      callback(easing(
+        (currentTime - startAnimationTime) / duration
+      ) * (to - from) + from)
       cancelAnimationFrame(animationId)
     }
   }
 }
 
-export function animateValues (from, to, callback, easings, durations) {
-  const startTime = Date.now()
+export function createTransitionGroup (initialValues, durations, easings, onTick) {
+  const currentState = { ...initialValues }
+  const currentTargets = { ...initialValues }
+  const animations = {}
 
-  return animateProgress(Math.max(...values(durations)), progress => {
-    const currentTime = Date.now()
-    const intermediateValue = {}
-    for (const key in from) {
-      if (durations[key] > currentTime - startTime) {
-        intermediateValue[key] = easings[key]((currentTime - startTime) / durations[key]) * (to[key] - from[key]) + from[key]
-      } else {
-        intermediateValue[key] = to[key]
+  const setTargets = (targets) => {
+    for (let key in targets) {
+      const value = targets[key]
+
+      if (currentTargets[key] === value || currentState[key] === value) {
+        continue
       }
-    }
-    callback(intermediateValue)
-  })
-}
 
-export function animateProgress (duration, callback) {
-  var startTime = Date.now()
-  var animating = true
-  var lastDispatchedValue
-  var animationId = requestAnimationFrame(frame)
+      currentTargets[key] = value
 
-  function frame () {
-    var currentTime = Date.now()
-    if (currentTime - startTime >= duration) {
-      if (lastDispatchedValue !== 1) {
-        callback(1)
+      if (animations[key]) {
+        animations[key]()
       }
-      animating = false
-    } else {
-      callback(lastDispatchedValue = (currentTime - startTime) / duration)
-      animationId = requestAnimationFrame(frame)
+      animations[key] = animate(currentState[key], value, durations[key], easings[key], (newValue) => {
+        currentState[key] = newValue
+        onTick(currentState)
+      })
     }
   }
 
-  return function cancelAnimation () {
-    if (animating) {
-      animating = false
-      var currentTime = Date.now()
-      if (lastDispatchedValue !== 1) {
-        callback((currentTime - startTime) / duration)
-      }
-      cancelAnimationFrame(animationId)
-    }
-  }
+  return { setTargets }
 }

@@ -1,4 +1,6 @@
 .overview {
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+  padding: 4px 0;
 }

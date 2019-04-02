@@ -20,6 +20,7 @@
 
 .overview__viewbox::before, .overview__viewbox::after {
   content: ' ';
+  pointer-events: none;
   transition: background-color .3s ease-in-out;
   position: absolute;
   top: -4px;

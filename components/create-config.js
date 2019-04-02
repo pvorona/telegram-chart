@@ -2,7 +2,7 @@ import { ceil, max } from '../util'
 const LINE_WIDTH = 2
 const OVERVIEW_LINE_WIDTH = 1
 // Change here to test mobile screens
-const CANVAS_WIDTH = 768
+const CANVAS_WIDTH = 768 * 1
 const CANVAS_HEIGHT = 300
 const OVERVIEW_CANVAS_HEIGHT = 50
 const OVERVIEW_CANVAS_WIDTH = CANVAS_WIDTH
@@ -43,8 +43,8 @@ export function createChartConfig (chartData) {
     OVERVIEW_CANVAS_WIDTH,
     OVERVIEW_CANVAS_HEIGHT,
     OVERVIEW_LINE_WIDTH,
-    get visibleGraphNames () {
-      return this.graphNames.filter(graphName => this.visibilityState[graphName])
-    }
+    // get visibleGraphNames () {
+    //   return this.graphNames.filter(graphName => this.visibilityState[graphName])
+    // }
   }
 }
