@@ -1,5 +1,4 @@
 import { Graphs } from '../Graphs'
-import { createElement, div } from '../html'
 import { handleDrag } from '../../util'
 
 const resizerWidthPixels = 8
@@ -12,9 +11,9 @@ const classes = {
 const containerClassName = 'overview'
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 
-export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
+export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   const state = getInitialState()
-  const { overviewContainer, resizerLeft, resizerRight, viewBoxElement } = createDOM()
+  const { element, resizerLeft, resizerRight, viewBoxElement } = createDOM()
 
   handleDrag(resizerLeft, {
     onDragStart: onLeftResizerMouseDown,
@@ -32,13 +31,11 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     onDragEnd: onViewBoxElementMouseUp,
   })
 
-  return {
-    element: overviewContainer,
-  }
+  return { element }
 
   function applyCursor (className) {
-    [document.body, viewBoxElement, resizerLeft, resizerRight].forEach(element =>
-      element.classList.toggle(className)
+    [document.body, viewBoxElement, resizerLeft, resizerRight].forEach(
+      element => element.classList.toggle(className)
     )
   }
 
@@ -48,12 +45,12 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
       viewBoxElement.style.left = `${state.left}px`
     }
     if (newState.right) {
-      viewBoxElement.style.right = `${chartConfig.width - state.right}px`
+      viewBoxElement.style.right = `${config.width - state.right}px`
     }
     if (newState.left || newState.right) {
-      const startIndex = state.left / chartConfig.width * (chartConfig.data.total - 1)
-      const endIndex = state.right / chartConfig.width * (chartConfig.data.total - 1)
-      onViewBoxChange({ startIndex, endIndex })
+      const startIndex = state.left / config.width * (config.data.total - 1)
+      const endIndex = state.right / config.width * (config.data.total - 1)
+      setViewBox({ startIndex, endIndex })
     }
   }
 
@@ -61,7 +58,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     onDragStart()
     applyCursor(classes.left)
     setState({
-      cursorResizerDelta: getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left)
+      cursorResizerDelta: getX(e) - (resizerLeft.getBoundingClientRect().left - element.getBoundingClientRect().left)
     })
   }
 
@@ -81,19 +78,13 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     onDragStart()
     applyCursor(classes.right)
     setState({
-      cursorResizerDelta: getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left)
+      cursorResizerDelta: getX(e) - (resizerRight.getBoundingClientRect().right - element.getBoundingClientRect().left)
     })
   }
 
   function removeRightResizerListener () {
     onDragEnd()
     applyCursor(classes.right)
-  }
-
-  function keepInBounds (value, min, max) {
-    if (value < min) return min
-    if (value > max) return max
-    return value
   }
 
   function onRightResizerMouseMove (e) {
@@ -104,12 +95,12 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   }
 
   function getX (event) {
-    const { left } = overviewContainer.getBoundingClientRect()
+    const { left } = element.getBoundingClientRect()
     return event.clientX - left
   }
 
   function ensureInOverviewBounds (x) {
-    if (x > chartConfig.width) return chartConfig.width
+    if (x > config.width) return config.width
     if (x < 0) return 0
     return x
   }
@@ -118,7 +109,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     onDragStart()
     applyCursor(classes.grabbing)
     setState({
-      cursorResizerDelta: getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
+      cursorResizerDelta: getX(e) - (viewBoxElement.getBoundingClientRect().left - element.getBoundingClientRect().left),
     })
   }
 
@@ -130,7 +121,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   function onViewBoxElementMouseMove (e) {
     const width = state.right - state.left
     const nextLeft = getX(e) - state.cursorResizerDelta
-    const stateLeft = keepInBounds(nextLeft, 0, chartConfig.width - width)
+    const stateLeft = keepInBounds(nextLeft, 0, config.width - width)
     setState({
       left: stateLeft,
       right: stateLeft + width,
@@ -139,17 +130,17 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
 
   function getInitialState () {
     return {
-       left: chartConfig.viewBox.startIndex / (chartConfig.data.total - 1) * chartConfig.width,
-       right: chartConfig.width,
+       left: config.viewBox.startIndex / (config.data.total - 1) * config.width,
+       right: config.width,
        cursorResizerDelta: 0,
      }
   }
 
   function createDOM () {
-    const overviewContainer = document.createElement('div')
-    overviewContainer.className = containerClassName
-    overviewContainer.style.height = `${chartConfig.height}px`
-    overviewContainer.style.width = `${chartConfig.width}px`
+    const element = document.createElement('div')
+    element.className = containerClassName
+    element.style.height = `${config.height}px`
+    element.style.width = `${config.width}px`
     const resizerLeft = document.createElement('div')
     resizerLeft.className = 'overview__resizer overview__resizer--left'
     const resizerRight = document.createElement('div')
@@ -160,21 +151,27 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     viewBoxElement.appendChild(resizerLeft)
     viewBoxElement.appendChild(resizerRight)
     const graphs = createGraphs()
-    overviewContainer.appendChild(graphs.element)
-    overviewContainer.appendChild(viewBoxElement)
-    return { overviewContainer, resizerLeft, resizerRight, viewBoxElement }
+    element.appendChild(graphs.element)
+    element.appendChild(viewBoxElement)
+    return { element, resizerLeft, resizerRight, viewBoxElement }
   }
 
   function createGraphs () {
     return Graphs({
-      graphNames: chartConfig.graphNames,
-      values: chartConfig.data,
-      width: chartConfig.width,
-      height: chartConfig.height - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
-      strokeStyles: chartConfig.colors,
-      lineWidth: chartConfig.lineWidth,
+      graphNames: config.graphNames,
+      values: config.data,
+      width: config.width,
+      height: config.height - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
+      strokeStyles: config.colors,
+      lineWidth: config.lineWidth,
       startIndex: 0,
-      endIndex: chartConfig.data.total - 1,
+      endIndex: config.data.total - 1,
     })
   }
+}
+
+function keepInBounds (value, min, max) {
+  if (value < min) return min
+  if (value > max) return max
+  return value
 }
