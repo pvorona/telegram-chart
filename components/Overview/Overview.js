@@ -36,17 +36,21 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     element: overviewContainer,
   }
 
+  function applyCursor (className) {
+    [document.body, viewBoxElement, resizerLeft, resizerRight].forEach(element =>
+      element.classList.toggle(className)
+    )
+  }
+
   function onLeftResizerMouseDown (e) {
     onDragStart()
-    document.body.classList.add(classes.left)
-    viewBoxElement.classList.add(classes.left)
+    applyCursor(classes.left)
     state.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left)
   }
 
   function removeLeftResizerListener () {
     onDragEnd()
-    document.body.classList.remove(classes.left)
-    viewBoxElement.classList.remove(classes.left)
+    applyCursor(classes.left)
   }
 
   function onLeftResizerMouseMove (e) {
@@ -59,15 +63,13 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
 
   function onRightResizerMouseDown (e) {
     onDragStart()
-    document.body.classList.add(classes.right)
-    viewBoxElement.classList.add(classes.right)
+    applyCursor(classes.right)
     state.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left)
   }
 
   function removeRightResizerListener () {
     onDragEnd()
-    document.body.classList.remove(classes.right)
-    viewBoxElement.classList.remove(classes.right)
+    applyCursor(classes.right)
   }
 
   function onRightResizerMouseMove (e) {
@@ -92,18 +94,12 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   function onViewBoxElementMouseDown (e) {
     onDragStart()
     state.cursorResizerDelta = getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
-    viewBoxElement.classList.add(classes.grabbing)
-    document.body.classList.add(classes.grabbing)
-    resizerLeft.classList.add(classes.grabbing)
-    resizerRight.classList.add(classes.grabbing)
+    applyCursor(classes.grabbing)
   }
 
   function onViewBoxElementMouseUp () {
     onDragEnd()
-    document.body.classList.remove(classes.grabbing)
-    viewBoxElement.classList.remove(classes.grabbing)
-    resizerLeft.classList.remove(classes.grabbing)
-    resizerRight.classList.remove(classes.grabbing)
+    applyCursor(classes.grabbing)
   }
 
   function onViewBoxElementMouseMove (e) {
@@ -158,7 +154,6 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
       values: chartConfig.data,
       width: chartConfig.width,
       height: chartConfig.height - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
-      top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
       strokeStyles: chartConfig.colors,
       lineWidth: chartConfig.lineWidth,
       startIndex: 0,
