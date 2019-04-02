@@ -14,6 +14,7 @@ const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   const state = getInitialState()
   const { element, resizerLeft, resizerRight, viewBoxElement } = createDOM()
+  const boundingRect = element.getBoundingClientRect()
 
   handleDrag(resizerLeft, {
     onDragStart: onLeftResizerMouseDown,
@@ -41,7 +42,7 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
 
   function setState (newState) {
     Object.assign(state, newState)
-    if (newState.left) {
+    if (newState.left !== undefined) {
       viewBoxElement.style.left = `${state.left}px`
     }
     if (newState.right) {
@@ -58,7 +59,7 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
     onDragStart()
     applyCursor(classes.left)
     setState({
-      cursorResizerDelta: getX(e) - (resizerLeft.getBoundingClientRect().left - element.getBoundingClientRect().left)
+      cursorResizerDelta: getX(e) - (state.left - boundingRect.left)
     })
   }
 
@@ -78,7 +79,7 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
     onDragStart()
     applyCursor(classes.right)
     setState({
-      cursorResizerDelta: getX(e) - (resizerRight.getBoundingClientRect().right - element.getBoundingClientRect().left)
+      cursorResizerDelta: getX(e) - (state.right - boundingRect.left)
     })
   }
 
@@ -95,8 +96,7 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function getX (event) {
-    const { left } = element.getBoundingClientRect()
-    return event.clientX - left
+    return event.clientX - boundingRect.left
   }
 
   function ensureInOverviewBounds (x) {
@@ -109,7 +109,7 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
     onDragStart()
     applyCursor(classes.grabbing)
     setState({
-      cursorResizerDelta: getX(e) - (viewBoxElement.getBoundingClientRect().left - element.getBoundingClientRect().left),
+      cursorResizerDelta: getX(e) - (state.left - boundingRect.left),
     })
   }
 
