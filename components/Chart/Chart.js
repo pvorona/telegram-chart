@@ -66,7 +66,7 @@ export function Chart (chartConfig) {
   function setState (newState) {
     Object.assign(state, newState)
     transitions.setTargets({
-      max: getMaxValueInRange(state.startIndex, state.endIndex),
+      max: beautifyNumber(getMaxValueInRange(state.startIndex, state.endIndex)),
       startIndex: state.startIndex,
       endIndex: state.endIndex,
     })
