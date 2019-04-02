@@ -2,8 +2,28 @@ import { Title } from '../Title'
 import { Graphs } from '../Graphs'
 import { Overview } from '../Overview'
 import { Controls } from '../Controls'
+import { XAxis } from '../xAxis'
+
+import { easeInOutQuad, linear } from '../../easings'
+import { getMaxValue, beautifyNumber, createTransitionGroup } from '../../util'
+import { MONTHS } from '../constants'
+
+const FRAME = 1000 / 60
+const durationsConfig = {
+  startIndex: FRAME * 4,
+  endIndex: FRAME * 4,
+  max: FRAME * 12,
+}
+const easingConfig = {
+  startIndex: linear,
+  endIndex: linear,
+  max: easeInOutQuad,
+}
 
 export function Chart (chartConfig) {
+  const state = getInitialState()
+  const transitions = createTransitionGroup(state, durationsConfig, easingConfig, render)
+
   const element = document.createElement('div')
   element.style.marginTop = '110px'
   element.appendChild(Title(chartConfig.title))
@@ -16,31 +36,45 @@ export function Chart (chartConfig) {
     strokeStyles: chartConfig.colors,
     startIndex: chartConfig.viewBox.startIndex,
     endIndex: chartConfig.viewBox.endIndex,
-    showXAxis: true,
-    showYAxis: true,
-    showTooltip: true,
-    beautifyCelling: true,
+    max: state.max,
   })
-
+  const xAxis = XAxis({
+    points: getXAxisPoints(),
+    viewBox: chartConfig.viewBox,
+    width: chartConfig.width,
+  })
   const overview = Overview({
     ...chartConfig,
     height: chartConfig.OVERVIEW_CANVAS_HEIGHT,
     width: chartConfig.OVERVIEW_CANVAS_WIDTH,
     lineWidth: chartConfig.OVERVIEW_LINE_WIDTH,
-  }, onViewBoxChange, onDragStart, onDragEnd)
+    max: state.totalMax,
+  }, setState, onDragStart, onDragEnd)
+
   element.appendChild(graphs.element)
+  element.appendChild(xAxis.element)
   element.appendChild(overview.element)
   element.appendChild(Controls(chartConfig, onButtonClick))
 
   return { element }
 
+  function render (state) {
+    graphs.render(state)
+    xAxis.render(state)
+  }
+
+  function setState (newState) {
+    Object.assign(state, newState)
+    transitions.setTargets({
+      max: getMaxValueInRange(state.startIndex, state.endIndex),
+      startIndex: state.startIndex,
+      endIndex: state.endIndex,
+    })
+  }
+
   function onButtonClick (graphName) {
     chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
     overview.toggleVisibility(graphName)
-  }
-
-  function onViewBoxChange (viewBox) {
-    graphs.setState(viewBox)
   }
 
   function onDragStart () {
@@ -50,4 +84,38 @@ export function Chart (chartConfig) {
   function onDragEnd () {
     // graphs.stopDrag()
   }
+
+  function getXAxisPoints () {
+    return chartConfig.domain.map((timestamp, index) => ({
+      x: chartConfig.width / (chartConfig.domain.length - 1) * index,
+      label: getLabelText(timestamp)
+    }))
+  }
+
+  function getInitialState () {
+    return {
+      startIndex: chartConfig.viewBox.startIndex,
+      endIndex: chartConfig.viewBox.endIndex,
+      width: chartConfig.width,
+      height: chartConfig.height,
+      totalMax: getMaxValueInRange(0, chartConfig.data.total - 1),
+      max: beautifyNumber(getMaxValueInRange(chartConfig.viewBox.startIndex, chartConfig.viewBox.endIndex)),
+    }
+  }
+
+  function getMaxValueInRange (startIndex, endIndex) {
+    return getMaxValue(
+      { startIndex, endIndex },
+      getValues(chartConfig.graphNames),
+    )
+  }
+
+  function getValues (graphNames) {
+    return graphNames.map(graphName => chartConfig.data[graphName])
+  }
+}
+
+function getLabelText (timestamp) {
+  const date = new Date(timestamp)
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}`
 }

@@ -1,15 +1,14 @@
 import { pow, calculateLogScaleMultiplier } from '../../util'
-import { div } from '../html'
 
 const LEGEND_ITEM_CLASS = 'legend-item-value'
 const LEGEND_ITEM_HIDDEN_CLASS = 'legend-item-value--hidden'
 const APPROX_LABEL_WIDTH = 40
 
 export function XAxis ({ points, viewBox, width }) {
-  const element = div()
+  const element = document.createElement('div')
   element.className = 'x-axis'
   element.style.width = `${width}px`
-  const shiftingContainer = div()
+  const shiftingContainer = document.createElement('div')
   shiftingContainer.className = 'shifting-container'
   element.appendChild(shiftingContainer)
   const legendValues = []
@@ -20,23 +19,23 @@ export function XAxis ({ points, viewBox, width }) {
   shiftingContainer.addEventListener('transitionend', onTransitionEnd)
 
   for (let i = 0; i < points.length; i++) {
-    const xValueElement = div()
+    const xValueElement = document.createElement('div')
     xValueElement.innerText = points[i].label
     xValueElement.className = LEGEND_ITEM_CLASS
     legendValues.push(xValueElement)
     shiftingContainer.appendChild(xValueElement)
   }
 
-  setViewBox(viewBox)
+  render(viewBox)
 
-  return { element, setViewBox }
+  return { element, render }
 
   function onTransitionEnd (e) {
     const elementIndex = legendValues.indexOf(e.target)
     scheduledToHide[elementIndex] = false
   }
 
-  function setViewBox (viewBox) {
+  function render (viewBox) {
     const stepMiltiplier = calculateLogScaleMultiplier(viewBox.endIndex - viewBox.startIndex) + Number(width <= 400)
     const xScale = (viewBox.endIndex - viewBox.startIndex) / (points.length - 1)
     const shift = -1 / xScale * width * viewBox.startIndex / (points.length - 1)

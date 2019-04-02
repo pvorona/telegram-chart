@@ -7,6 +7,6 @@ document.body.appendChild(ThemeSwitcher(LIGHT))
 
 // 1/3, 1/2, 1/3, 1/3, 1/2
 // Chart(createChartConfig(chartData[0]))
-chartData
+chartData.slice(0, 1)
   .map(data => Chart(createChartConfig(data)))
   .forEach(chart => document.body.appendChild(chart.element))

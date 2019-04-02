@@ -166,6 +166,7 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
       lineWidth: config.lineWidth,
       startIndex: 0,
       endIndex: config.data.total - 1,
+      max: config.max,
     })
   }
 }
