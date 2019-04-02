@@ -2,7 +2,7 @@ import { Title } from '../Title'
 import { Graphs } from '../Graphs'
 import { Overview } from '../Overview'
 import { Controls } from '../Controls'
-import { XAxis } from '../xAxis'
+// import { XAxis } from '../xAxis'
 
 import { easeInOutQuad, linear } from '../../easings'
 import { getMaxValue, beautifyNumber, createTransitionGroup } from '../../util'
@@ -38,11 +38,11 @@ export function Chart (chartConfig) {
     endIndex: chartConfig.viewBox.endIndex,
     max: state.max,
   })
-  const xAxis = XAxis({
-    points: getXAxisPoints(),
-    viewBox: chartConfig.viewBox,
-    width: chartConfig.width,
-  })
+  // const xAxis = XAxis({
+  //   points: getXAxisPoints(),
+  //   viewBox: chartConfig.viewBox,
+  //   width: chartConfig.width,
+  // })
   const overview = Overview({
     ...chartConfig,
     height: chartConfig.OVERVIEW_CANVAS_HEIGHT,
@@ -52,7 +52,7 @@ export function Chart (chartConfig) {
   }, setState, onDragStart, onDragEnd)
 
   element.appendChild(graphs.element)
-  element.appendChild(xAxis.element)
+  // element.appendChild(xAxis.element)
   element.appendChild(overview.element)
   element.appendChild(Controls(chartConfig, onButtonClick))
 
@@ -60,7 +60,7 @@ export function Chart (chartConfig) {
 
   function render (state) {
     graphs.render(state)
-    xAxis.render(state)
+    // xAxis.render(state)
   }
 
   function setState (newState) {

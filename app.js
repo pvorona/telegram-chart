@@ -1,12 +1,12 @@
 import './polyfills'
-import { LIGHT } from './components/constants'
+import { DARK } from './components/constants'
 import { ThemeSwitcher, createChartConfig, Chart } from './components'
 import './css/cursors.css'
 
-document.body.appendChild(ThemeSwitcher(LIGHT))
+document.body.appendChild(ThemeSwitcher(DARK))
 
 // 1/3, 1/2, 1/3, 1/3, 1/2
 // Chart(createChartConfig(chartData[0]))
-chartData.slice(0, 1)
+chartData
   .map(data => Chart(createChartConfig(data)))
   .forEach(chart => document.body.appendChild(chart.element))

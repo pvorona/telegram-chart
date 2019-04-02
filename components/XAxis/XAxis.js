@@ -52,8 +52,8 @@ export function XAxis ({ points, viewBox, width }) {
       // instead of geometry
       const visible = !(
         i % pow(2, stepMiltiplier)
-        || (offset < -1 * shift)
-        || ((valuesWidths[i] || APPROX_LABEL_WIDTH) + offset + shift > width)
+        // || (offset < -1 * shift)
+        // || ((valuesWidths[i] || APPROX_LABEL_WIDTH) + offset + shift > width)
       )
 
       if (visibilityState[i] !== visible) {
