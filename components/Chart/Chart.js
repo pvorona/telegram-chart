@@ -73,8 +73,11 @@ export function Chart (chartConfig) {
   }
 
   function onButtonClick (graphName) {
-    chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
-    overview.toggleVisibility(graphName)
+    // chartConfig.visibilityState[graphName] = !chartConfig.visibilityState[graphName]
+    setState({
+      [`${graphName}_opacity`]: state[`${graphName}_opacity`] === 0 ? 1 : 0,
+    })
+    // overview.toggleVisibility(graphName)
   }
 
   function onDragStart () {
@@ -100,6 +103,10 @@ export function Chart (chartConfig) {
       height: chartConfig.height,
       totalMax: getMaxValueInRange(0, chartConfig.data.total - 1),
       max: beautifyNumber(getMaxValueInRange(chartConfig.viewBox.startIndex, chartConfig.viewBox.endIndex)),
+      ...chartConfig.graphNames.reduce((opacityState, graphName) => ({
+        ...opacityState,
+        [`${graphName}_opacity`]: 1,
+      })),
     }
   }
 

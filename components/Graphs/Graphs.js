@@ -20,6 +20,7 @@ export function Graphs ({
   return { element, render }
 
   function render ({ startIndex, endIndex, max, width, height }) {
+    console.time('render')
     context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
     for (let i = 0; i < graphNames.length; i++) {
       context.strokeStyle = strokeStyles[graphNames[i]]
@@ -38,6 +39,8 @@ export function Graphs ({
       }
       context.stroke()
     }
+    console.timeEnd('render')
+
   }
 
   function createDOM () {
