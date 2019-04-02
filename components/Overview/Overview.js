@@ -11,7 +11,7 @@ const classes = {
 const containerClassName = 'overview'
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 
-export function Overview (config, setViewBox, onDragStart, onDragEnd) {
+export function Overview (config, setViewBox) {
   const state = getInitialState()
   const { element, resizerLeft, resizerRight, viewBoxElement } = createDOM()
   const boundingRect = element.getBoundingClientRect()
@@ -56,7 +56,6 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function onLeftResizerMouseDown (e) {
-    onDragStart()
     applyCursor(classes.left)
     setState({
       cursorResizerDelta: getX(e) - (state.left - boundingRect.left)
@@ -64,7 +63,6 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function removeLeftResizerListener () {
-    onDragEnd()
     applyCursor(classes.left)
   }
 
@@ -76,7 +74,6 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function onRightResizerMouseDown (e) {
-    onDragStart()
     applyCursor(classes.right)
     setState({
       cursorResizerDelta: getX(e) - (state.right - boundingRect.left)
@@ -84,7 +81,6 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function removeRightResizerListener () {
-    onDragEnd()
     applyCursor(classes.right)
   }
 
@@ -106,7 +102,6 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function onViewBoxElementMouseDown (e) {
-    onDragStart()
     applyCursor(classes.grabbing)
     setState({
       cursorResizerDelta: getX(e) - (state.left - boundingRect.left),
@@ -114,7 +109,6 @@ export function Overview (config, setViewBox, onDragStart, onDragEnd) {
   }
 
   function onViewBoxElementMouseUp () {
-    onDragEnd()
     applyCursor(classes.grabbing)
   }
 
