@@ -22,7 +22,12 @@ export function Chart (chartConfig) {
     beautifyCelling: true,
   })
 
-  const overview = Overview(chartConfig, onViewBoxChange, onDragStart, onDragEnd)
+  const overview = Overview({
+    ...chartConfig,
+    height: chartConfig.OVERVIEW_CANVAS_HEIGHT,
+    width: chartConfig.OVERVIEW_CANVAS_WIDTH,
+    lineWidth: chartConfig.OVERVIEW_LINE_WIDTH,
+  }, onViewBoxChange, onDragStart, onDragEnd)
   element.appendChild(graphs.element)
   element.appendChild(overview.element)
   element.appendChild(Controls(chartConfig, onButtonClick))

@@ -9,40 +9,12 @@ const classes = {
   right: 'cursor-e-resize',
   grabbing: 'cursor-grabbing',
 }
-const ELEMENT_CLASS_NAME = 'overview'
+const containerClassName = 'overview'
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 
 export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) {
-  const overviewContainer = div()
-  overviewContainer.className = ELEMENT_CLASS_NAME
-  overviewContainer.style.height = `${chartConfig.OVERVIEW_CANVAS_HEIGHT}px`
-  overviewContainer.style.width = `${chartConfig.OVERVIEW_CANVAS_WIDTH}px`
-
-  const graphs = Graphs({
-    graphNames: chartConfig.graphNames,
-    values: chartConfig.data,
-    width: chartConfig.OVERVIEW_CANVAS_WIDTH,
-    height: chartConfig.OVERVIEW_CANVAS_HEIGHT - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
-    top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
-    strokeStyles: chartConfig.colors,
-    lineWidth: chartConfig.OVERVIEW_LINE_WIDTH,
-    startIndex: 0,
-    endIndex: chartConfig.data.total - 1,
-  })
-  overviewContainer.appendChild(graphs.element)
-  const resizerLeft = createElement('div', { className: 'overview__resizer overview__resizer--left' })
-  const resizerRight = createElement('div', { className: 'overview__resizer overview__resizer--right' })
-  const viewBoxElement = createElement('div', { className: 'overview__viewbox' }, [resizerLeft, resizerRight])
-  overviewContainer.appendChild(viewBoxElement)
-
-  const overviewState = {
-    left: chartConfig.viewBox.startIndex / (chartConfig.data.total - 1) * chartConfig.OVERVIEW_CANVAS_WIDTH,
-    right: chartConfig.OVERVIEW_CANVAS_WIDTH,
-    cursorResizerDelta: 0,
-    cursorViewBoxElementDelta: 0,
-  }
-
-  viewBoxElement.style.left = `${overviewState.left}px`
+  const state = getInitialState()
+  const { overviewContainer, resizerLeft, resizerRight, viewBoxElement } = createDOM()
 
   handleDrag(resizerLeft, {
     onDragStart: onLeftResizerMouseDown,
@@ -62,14 +34,13 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
 
   return {
     element: overviewContainer,
-    toggleVisibility: graphs.toggleVisibility,
   }
 
   function onLeftResizerMouseDown (e) {
     onDragStart()
     document.body.classList.add(classes.left)
     viewBoxElement.classList.add(classes.left)
-    overviewState.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left)
+    state.cursorResizerDelta = getX(e) - (resizerLeft.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left)
   }
 
   function removeLeftResizerListener () {
@@ -79,10 +50,10 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   }
 
   function onLeftResizerMouseMove (e) {
-    const left = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
-    overviewState.left = left > overviewState.right - minimalPixelsBetweenResizers ? (overviewState.right - minimalPixelsBetweenResizers) : left
-    viewBoxElement.style.left = `${overviewState.left}px`
-    const startIndex = overviewState.left / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    const left = ensureInOverviewBounds(getX(e) - state.cursorResizerDelta)
+    state.left = left > state.right - minimalPixelsBetweenResizers ? (state.right - minimalPixelsBetweenResizers) : left
+    viewBoxElement.style.left = `${state.left}px`
+    const startIndex = state.left / chartConfig.width * (chartConfig.data.total - 1)
     onViewBoxChange({ startIndex })
   }
 
@@ -90,7 +61,7 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
     onDragStart()
     document.body.classList.add(classes.right)
     viewBoxElement.classList.add(classes.right)
-    overviewState.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left)
+    state.cursorResizerDelta = getX(e) - (resizerRight.getBoundingClientRect().right - overviewContainer.getBoundingClientRect().left)
   }
 
   function removeRightResizerListener () {
@@ -100,10 +71,10 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   }
 
   function onRightResizerMouseMove (e) {
-    const right = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
-    overviewState.right = right < overviewState.left + minimalPixelsBetweenResizers ? (overviewState.left + minimalPixelsBetweenResizers) : right
-    viewBoxElement.style.right = `${chartConfig.OVERVIEW_CANVAS_WIDTH - (overviewState.right)}px`
-    const endIndex = (overviewState.right) / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1)
+    const right = ensureInOverviewBounds(getX(e) - state.cursorResizerDelta)
+    state.right = right < state.left + minimalPixelsBetweenResizers ? (state.left + minimalPixelsBetweenResizers) : right
+    viewBoxElement.style.right = `${chartConfig.width - (state.right)}px`
+    const endIndex = (state.right) / chartConfig.width * (chartConfig.data.total - 1)
     onViewBoxChange({ endIndex })
   }
 
@@ -113,14 +84,14 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   }
 
   function ensureInOverviewBounds (x) {
-    if (x > chartConfig.OVERVIEW_CANVAS_WIDTH) return chartConfig.OVERVIEW_CANVAS_WIDTH
+    if (x > chartConfig.width) return chartConfig.width
     if (x < 0) return 0
     return x
   }
 
   function onViewBoxElementMouseDown (e) {
     onDragStart()
-    overviewState.cursorViewBoxElementDelta = getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
+    state.cursorResizerDelta = getX(e) - (viewBoxElement.getBoundingClientRect().left - overviewContainer.getBoundingClientRect().left),
     viewBoxElement.classList.add(classes.grabbing)
     document.body.classList.add(classes.grabbing)
     resizerLeft.classList.add(classes.grabbing)
@@ -136,20 +107,62 @@ export function Overview (chartConfig, onViewBoxChange, onDragStart, onDragEnd) 
   }
 
   function onViewBoxElementMouseMove (e) {
-    const width = overviewState.right - overviewState.left
-    const nextLeft = getX(e) - overviewState.cursorViewBoxElementDelta
+    const width = state.right - state.left
+    const nextLeft = getX(e) - state.cursorResizerDelta
     if (nextLeft < 0) {
-      overviewState.left = 0
-    } else if (nextLeft > chartConfig.OVERVIEW_CANVAS_WIDTH - width) {
-      overviewState.left = chartConfig.OVERVIEW_CANVAS_WIDTH - width
+      state.left = 0
+    } else if (nextLeft > chartConfig.width - width) {
+      state.left = chartConfig.width - width
     } else {
-      overviewState.left = nextLeft
+      state.left = nextLeft
     }
-    overviewState.right = overviewState.left + width
-    viewBoxElement.style.left = `${overviewState.left}px`
-    viewBoxElement.style.right = `${chartConfig.OVERVIEW_CANVAS_WIDTH - (overviewState.right)}px`
-    const startIndex = overviewState.left / chartConfig.OVERVIEW_CANVAS_WIDTH * (chartConfig.data.total - 1)
-    const endIndex = (overviewState.right) / (chartConfig.OVERVIEW_CANVAS_WIDTH) * (chartConfig.data.total - 1)
+    state.right = state.left + width
+    viewBoxElement.style.left = `${state.left}px`
+    viewBoxElement.style.right = `${chartConfig.width - (state.right)}px`
+    const startIndex = state.left / chartConfig.width * (chartConfig.data.total - 1)
+    const endIndex = (state.right) / (chartConfig.width) * (chartConfig.data.total - 1)
     onViewBoxChange({ startIndex, endIndex })
+  }
+
+  function getInitialState () {
+    return {
+       left: chartConfig.viewBox.startIndex / (chartConfig.data.total - 1) * chartConfig.width,
+       right: chartConfig.width,
+       cursorResizerDelta: 0,
+     }
+  }
+
+  function createDOM () {
+    const overviewContainer = document.createElement('div')
+    overviewContainer.className = containerClassName
+    overviewContainer.style.height = `${chartConfig.height}px`
+    overviewContainer.style.width = `${chartConfig.width}px`
+    const resizerLeft = document.createElement('div')
+    resizerLeft.className = 'overview__resizer overview__resizer--left'
+    const resizerRight = document.createElement('div')
+    resizerRight.className = 'overview__resizer overview__resizer--right'
+    const viewBoxElement = document.createElement('div')
+    viewBoxElement.className ='overview__viewbox'
+    viewBoxElement.style.left = `${state.left}px`
+    viewBoxElement.appendChild(resizerLeft)
+    viewBoxElement.appendChild(resizerRight)
+    const graphs = createGraphs()
+    overviewContainer.appendChild(graphs.element)
+    overviewContainer.appendChild(viewBoxElement)
+    return { overviewContainer, resizerLeft, resizerRight, viewBoxElement }
+  }
+
+  function createGraphs () {
+    return Graphs({
+      graphNames: chartConfig.graphNames,
+      values: chartConfig.data,
+      width: chartConfig.width,
+      height: chartConfig.height - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
+      top: VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
+      strokeStyles: chartConfig.colors,
+      lineWidth: chartConfig.lineWidth,
+      startIndex: 0,
+      endIndex: chartConfig.data.total - 1,
+    })
   }
 }
