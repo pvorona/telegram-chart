@@ -152,6 +152,7 @@ export function Overview (config, setViewBox) {
 
   function createGraphs () {
     return Graphs({
+      ...config,
       graphNames: config.graphNames,
       values: config.data,
       width: config.width,

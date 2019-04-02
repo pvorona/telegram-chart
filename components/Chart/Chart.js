@@ -44,6 +44,7 @@ export function Chart (chartConfig) {
 
   const overview = Overview({
     ...chartConfig,
+    ...state,
     height: chartConfig.OVERVIEW_CANVAS_HEIGHT,
     width: chartConfig.OVERVIEW_CANVAS_WIDTH,
     lineWidth: chartConfig.OVERVIEW_LINE_WIDTH,
