@@ -2,7 +2,7 @@ import { Title } from '../Title'
 import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
-import { easeInOutQuad, linear } from '../../easings'
+import { easeInOutQuart, linear } from '../../easings'
 import { memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
 import { MONTHS } from '../constants'
 
@@ -25,6 +25,7 @@ const FRAME = 1000 / 60
 // - Multiple renders per frame
 // - Overview
 // Can remove left right overview state, just use start/end index
+// Use divs for buttons
 export function Chart (options) {
   const state = getInitialState()
   const overviewState = getInitialOverviewState()
@@ -118,11 +119,11 @@ export function Chart (options) {
     return {
       startIndex: transition(state.startIndex, FRAME * 4, linear),
       endIndex: transition(state.endIndex, FRAME * 4, linear),
-      max: transition(state.max, FRAME * 20, easeInOutQuad),
-      totalMax: transition(state.totalMax, FRAME * 20, easeInOutQuad),
+      max: transition(state.max, FRAME * 36, easeInOutQuart),
+      totalMax: transition(state.totalMax, FRAME * 36, easeInOutQuart),
       ...options.graphNames.reduce((transitions, graphName) => ({
         ...transitions,
-        [getVisibilityKey(graphName)]: transition(1, FRAME * 20, easeInOutQuad),
+        [getVisibilityKey(graphName)]: transition(1, FRAME * 36, easeInOutQuart),
       }), {})
     }
   }
