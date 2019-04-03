@@ -4,8 +4,8 @@ const OVERVIEW_LINE_WIDTH = 1
 // Change here to test mobile screens
 const CANVAS_WIDTH = 768 * 1
 const CANVAS_HEIGHT = 300
-const OVERVIEW_CANVAS_HEIGHT = 50
-const OVERVIEW_CANVAS_WIDTH = CANVAS_WIDTH
+const overviewHeight = 50
+const overviewWidth = CANVAS_WIDTH
 
 export function createChartConfig (chartData) {
   const graphNames = chartData['columns']
@@ -40,8 +40,8 @@ export function createChartConfig (chartData) {
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     lineWidth: LINE_WIDTH,
-    OVERVIEW_CANVAS_WIDTH,
-    OVERVIEW_CANVAS_HEIGHT,
+    overviewWidth,
+    overviewHeight,
     OVERVIEW_LINE_WIDTH,
     // get visibleGraphNames () {
     //   return this.graphNames.filter(graphName => this.visibilityState[graphName])

@@ -4,16 +4,15 @@
   bottom: 0;
   width: 8px;
   transition: background-color .3s ease-in-out;
+  cursor: ew-resize;
 }
 
 .overview__resizer--left {
   left: 0;
-  cursor: w-resize;
 }
 
 .overview__resizer--right {
   right: 0;
-  cursor: e-resize;
 }
 
 .theme-light .overview__resizer {

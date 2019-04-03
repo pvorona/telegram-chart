@@ -1,4 +1,3 @@
-import { Title } from '../Title'
 import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
@@ -6,15 +5,14 @@ import { easeInOutQuart, linear } from '../../easings'
 import { memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
 import { MONTHS } from '../constants'
 
-import { handleDrag } from '../../util'
+import { handleDrag, memoizeOne } from '../../util'
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40
 const classes = {
-  left: 'cursor-w-resize',
-  right: 'cursor-e-resize',
   grabbing: 'cursor-grabbing',
+  resize: 'cursor-ew-resize'
 }
 
 
@@ -26,18 +24,32 @@ const FRAME = 1000 / 60
 // - Overview
 // Can remove left right overview state, just use start/end index
 // Use divs for buttons
+// move mapDataToCoords up
+// - change easings when dragging viewbox
 export function Chart (options) {
   const state = getInitialState()
   const overviewState = getInitialOverviewState()
+  const instantState = getInitialInstantState()
   const transitions = createTransitionGroup(createTransitions(), render)
-  const { element, overview, graphs } = createDOM()
-  const boundingRect = overview.element.getBoundingClientRect()
+  const { element, overview, graphs, tooltipLine } = createDOM()
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
+  const boundingRect = overview.element.getBoundingClientRect()
 
   initDragListeners()
   render(state)
 
+  const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect () {
+    return graphs.element.getBoundingClientRect()
+  })
+
+  const setTooltipVisibe = memoizeOne(function setTooltipVisibe (visible) {
+    tooltipLine.style.visibility = visible ? 'visible' : ''
+  })
+
+  const setTooltipPosition = memoizeOne(function setTooltipPosition (left) {
+    tooltipLine.style.transform = `translateX(${left - 1 / 2}px)`
+  })
 
   return { element }
 
@@ -58,8 +70,8 @@ export function Chart (options) {
       startIndex: 0,
       endIndex: options.data.total - 1,
       context: overview.graphs.context,
-      width: options.OVERVIEW_CANVAS_WIDTH,
-      height: options.OVERVIEW_CANVAS_HEIGHT - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
+      width: options.overviewWidth,
+      height: options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
       values: options.data,
       graphNames: options.graphNames,
       lineWidth: options.OVERVIEW_LINE_WIDTH,
@@ -91,6 +103,12 @@ export function Chart (options) {
     }
   }
 
+  function setInstantState (newState) {
+    Object.assign(instantState, newState)
+    setTooltipVisibe(!instantState.dragging && instantState.hovering)
+    setTooltipPosition(instantState.left)
+  }
+
   function onButtonClick (graphName) {
     setState({
       [getVisibilityKey(graphName)]: state[getVisibilityKey(graphName)] === 0 ? 1 : 0
@@ -115,6 +133,14 @@ export function Chart (options) {
      }
   }
 
+  function getInitialInstantState () {
+    return {
+      dragging: false,
+      hovering: false,
+      left: 0,
+    }
+  }
+
   function createTransitions () {
     return {
       startIndex: transition(state.startIndex, FRAME * 4, linear),
@@ -129,6 +155,15 @@ export function Chart (options) {
   }
 
   function initDragListeners () {
+    graphs.element.addEventListener('mouseenter', function (e) {
+      setInstantState({ hovering: true })
+    })
+    graphs.element.addEventListener('mouseleave', function (e) {
+      setInstantState({ hovering: false })
+    })
+    graphs.element.addEventListener('mousemove', function (e) {
+      setInstantState({ left: e.clientX - getGraphsBoundingRect().left })
+    })
     handleDrag(overview.resizerLeft, {
       onDragStart: onLeftResizerMouseDown,
       onDragMove: onLeftResizerMouseMove,
@@ -175,14 +210,16 @@ export function Chart (options) {
   }
 
   function onLeftResizerMouseDown (e) {
-    applyCursor(classes.left)
+    applyCursor(classes.resize)
+    setInstantState({ dragging: true })
     setOverviewState({
       cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left)
     })
   }
 
   function removeLeftResizerListener () {
-    applyCursor(classes.left)
+    applyCursor(classes.resize)
+    setInstantState({ dragging: false })
   }
 
   function onLeftResizerMouseMove (e) {
@@ -193,14 +230,16 @@ export function Chart (options) {
   }
 
   function onRightResizerMouseDown (e) {
-    applyCursor(classes.right)
+    applyCursor(classes.resize)
+    setInstantState({ dragging: true })
     setOverviewState({
       cursorResizerDelta: getX(e) - (overviewState.right - boundingRect.left)
     })
   }
 
   function removeRightResizerListener () {
-    applyCursor(classes.right)
+    applyCursor(classes.resize)
+    setInstantState({ dragging: false })
   }
 
   function onRightResizerMouseMove (e) {
@@ -220,6 +259,7 @@ export function Chart (options) {
 
   function onViewBoxElementMouseDown (e) {
     applyCursor(classes.grabbing)
+    setInstantState({ dragging: true })
     setOverviewState({
       cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left),
     })
@@ -227,6 +267,7 @@ export function Chart (options) {
 
   function onViewBoxElementMouseUp () {
     applyCursor(classes.grabbing)
+    setInstantState({ dragging: false })
   }
 
   function onViewBoxElementMouseMove (e) {
@@ -242,19 +283,25 @@ export function Chart (options) {
   function createDOM () {
     const element = document.createElement('div')
     element.style.marginTop = '110px'
-    const title = Title(options.title)
+    const title = document.createElement('div')
+    title.className = 'title'
+    title.innerText = options.title
     const graphs = createGraphs({
       width: options.width,
       height: options.height,
     })
     const overview = createOverview()
     const controls = Controls(options, onButtonClick)
+    const tooltipLine = document.createElement('div')
+    tooltipLine.className = 'tooltip-line'
+    graphs.element.appendChild(tooltipLine)
+
     element.appendChild(title)
     element.appendChild(graphs.element)
     element.appendChild(overview.element)
     element.appendChild(controls)
 
-    return { graphs, element, overview }
+    return { graphs, element, overview, tooltipLine }
   }
 
   function createGraphs ({ width, height }) {
@@ -278,8 +325,8 @@ export function Chart (options) {
     const containerClassName = 'overview'
     const element = document.createElement('div')
     element.className = containerClassName
-    element.style.height = `${options.OVERVIEW_CANVAS_HEIGHT}px`
-    element.style.width = `${options.OVERVIEW_CANVAS_WIDTH}px`
+    element.style.height = `${options.overviewHeight}px`
+    element.style.width = `${options.overviewWidth}px`
     const resizerLeft = document.createElement('div')
     resizerLeft.className = 'overview__resizer overview__resizer--left'
     const resizerRight = document.createElement('div')
@@ -290,8 +337,8 @@ export function Chart (options) {
     viewBoxElement.appendChild(resizerLeft)
     viewBoxElement.appendChild(resizerRight)
     const graphs = createGraphs({
-      width: options.OVERVIEW_CANVAS_WIDTH,
-      height: options.OVERVIEW_CANVAS_HEIGHT,
+      width: options.overviewWidth,
+      height: options.overviewHeight,
     })
     element.appendChild(graphs.element)
     element.appendChild(viewBoxElement)

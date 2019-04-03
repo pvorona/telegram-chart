@@ -1,21 +1,3 @@
-.tooltip-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background-color: black;
-  will-change: transform;
-  visibility: hidden;
-}
-
-.theme-light .tooltip-line {
-  background-color: #DFE6EB;
-}
-
-.theme-dark .tooltip-line {
-  background-color: #3A4A5B;
-}
-
 .tooltip__dot {
   visibility: hidden;
   position: absolute;
