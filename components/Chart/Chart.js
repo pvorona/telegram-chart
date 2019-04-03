@@ -2,7 +2,7 @@ import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
 import { easeInOutQuart, linear } from '../../easings'
-import { memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
+import { mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
 import { MONTHS } from '../constants'
 
 import { handleDrag, memoizeOne } from '../../util'
@@ -26,6 +26,7 @@ const FRAME = 1000 / 60
 // Use divs for buttons
 // move mapDataToCoords up
 // - change easings when dragging viewbox
+// - bug: tooltip appears on 0 index
 export function Chart (options) {
   const state = getInitialState()
   const overviewState = getInitialOverviewState()
@@ -35,6 +36,7 @@ export function Chart (options) {
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
   const boundingRect = overview.element.getBoundingClientRect()
+  const points = {}
 
   initDragListeners()
   render(state)
@@ -47,15 +49,27 @@ export function Chart (options) {
     tooltipLine.style.visibility = visible ? 'visible' : ''
   })
 
-  const setTooltipPosition = memoizeOne(function setTooltipPosition (left) {
-    tooltipLine.style.transform = `translateX(${left - 1 / 2}px)`
+  const setTooltipPosition = memoizeOne(function setTooltipPosition (index) {
+    const { x } = points[options.graphNames[0]][index]
+    tooltipLine.style.transform = `translateX(${x / devicePixelRatio - 1 / 2}px)`
   })
 
   return { element }
 
   function render (state) {
+    for (let i = 0; i < options.graphNames.length; i++) {
+      points[options.graphNames[i]] = mapDataToCoords(
+        options.data[options.graphNames[i]],
+        state.max,
+        { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
+        { startIndex: state.startIndex, endIndex: state.endIndex },
+        options.lineWidth * devicePixelRatio,
+      )
+    }
+
     renderMainGraph({
       ...state,
+      points,
       context: graphs.context,
       width: options.width,
       height: options.height,
@@ -64,19 +78,19 @@ export function Chart (options) {
       lineWidth: options.lineWidth,
       strokeStyles: options.colors,
     })
-    renderOverviewGraph({
-      ...state,
-      max: state.totalMax,
-      startIndex: 0,
-      endIndex: options.data.total - 1,
-      context: overview.graphs.context,
-      width: options.overviewWidth,
-      height: options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
-      values: options.data,
-      graphNames: options.graphNames,
-      lineWidth: options.OVERVIEW_LINE_WIDTH,
-      strokeStyles: options.colors,
-    })
+    // renderOverviewGraph({
+    //   ...state,
+    //   max: state.totalMax,
+    //   startIndex: 0,
+    //   endIndex: options.data.total - 1,
+    //   context: overview.graphs.context,
+    //   width: options.overviewWidth,
+    //   height: options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
+    //   values: options.data,
+    //   graphNames: options.graphNames,
+    //   lineWidth: options.OVERVIEW_LINE_WIDTH,
+    //   strokeStyles: options.colors,
+    // })
   }
 
   function setState (newState) {
@@ -106,7 +120,7 @@ export function Chart (options) {
   function setInstantState (newState) {
     Object.assign(instantState, newState)
     setTooltipVisibe(!instantState.dragging && instantState.hovering)
-    setTooltipPosition(instantState.left)
+    setTooltipPosition(instantState.tooltipIndex)
   }
 
   function onButtonClick (graphName) {
@@ -137,7 +151,7 @@ export function Chart (options) {
     return {
       dragging: false,
       hovering: false,
-      left: 0,
+      tooltipIndex: 0,
     }
   }
 
@@ -162,7 +176,9 @@ export function Chart (options) {
       setInstantState({ hovering: false })
     })
     graphs.element.addEventListener('mousemove', function (e) {
-      setInstantState({ left: e.clientX - getGraphsBoundingRect().left })
+      const x = e.clientX - getGraphsBoundingRect().left
+      const index = findClosestPointsIndex(x)
+      setInstantState({ tooltipIndex: index })
     })
     handleDrag(overview.resizerLeft, {
       onDragStart: onLeftResizerMouseDown,
@@ -179,6 +195,16 @@ export function Chart (options) {
       onDragMove: onViewBoxElementMouseMove,
       onDragEnd: onViewBoxElementMouseUp,
     })
+  }
+
+  function findClosestPointsIndex (x) {
+    let closestPointIndex = 0
+    for (let i = 1; i < points[options.graphNames[0]].length; i++) {
+      const distance = Math.abs(points[options.graphNames[0]][i].x / devicePixelRatio - x)
+      const closesDistance = Math.abs(points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
+      if (distance < closesDistance) closestPointIndex = i
+    }
+    return closestPointIndex
   }
 
   function getVisibilityState () {

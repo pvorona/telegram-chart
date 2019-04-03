@@ -1,6 +1,4 @@
-import { mapDataToCoords } from '../../util'
-
-export function renderGraphs ({ context, graphNames, values, lineWidth, strokeStyles, startIndex, endIndex, max, width, height, ...visibilityState }) {
+export function renderGraphs ({ context, points, graphNames, lineWidth, strokeStyles, width, height, ...visibilityState }) {
   context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
   for (let i = 0; i < graphNames.length; i++) {
     const opacity = visibilityState[getVisibilityKey(graphNames[i])]
@@ -8,16 +6,9 @@ export function renderGraphs ({ context, graphNames, values, lineWidth, strokeSt
     const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
     context.strokeStyle = color
     context.lineWidth = lineWidth * devicePixelRatio
-    const points = mapDataToCoords(
-      values[graphNames[i]],
-      max,
-      { width: width * devicePixelRatio, height: height * devicePixelRatio },
-      { startIndex, endIndex },
-      lineWidth * devicePixelRatio,
-    )
     context.beginPath()
-    for (let j = 0; j < points.length; j++) {
-      const { x, y } = points[j]
+    for (let j = 0; j < points[graphNames[i]].length; j++) {
+      const { x, y } = points[graphNames[i]][j]
       context.lineTo(x, y)
     }
     context.stroke()
