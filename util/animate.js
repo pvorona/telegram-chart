@@ -109,7 +109,10 @@ export function createTransitionGroup (transitions, onFrame) {
   }
 
   const setTargets = targets => {
-    if (animationId) cancelAnimationFrame(animationId)
+    if (animationId) {
+      animationId = undefined
+      cancelAnimationFrame(animationId)
+    }
     let shouldAnimate = false
 
     for (let key in targets) {
