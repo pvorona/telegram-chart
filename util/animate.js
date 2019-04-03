@@ -124,7 +124,7 @@ export function createTransitionGroup (transitions, onFrame) {
     }
 
     if (shouldAnimate) {
-      handleAnimationFrame()
+      scheduleUpdate()
     }
   }
 
