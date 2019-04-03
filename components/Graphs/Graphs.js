@@ -23,7 +23,9 @@ export function Graphs ({
   function render ({ startIndex, endIndex, max, width, height, ...visibilityState }) {
     context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
     for (let i = 0; i < graphNames.length; i++) {
-      const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${visibilityState[getVisibilityKey(graphNames[i])]})`
+      const opacity = visibilityState[getVisibilityKey(graphNames[i])]
+      if (opacity === 0) continue
+      const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
       context.strokeStyle = color
       context.lineWidth = lineWidth * devicePixelRatio
       const points = mapDataToCoords(

@@ -4,7 +4,7 @@ import { Overview } from '../Overview'
 import { Controls } from '../Controls'
 
 import { easeInOutQuad, linear } from '../../easings'
-import { getMaxValue, beautifyNumber, createTransitionGroup } from '../../util'
+import { getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
 import { MONTHS } from '../constants'
 
 const FRAME = 1000 / 60
@@ -25,7 +25,19 @@ const easingConfig = {
 // - Overview
 export function Chart (chartConfig) {
   const state = getInitialState()
-  const transitions = createTransitionGroup(state, getDurations(), getEasings(), render)
+  const transitions = createTransitionGroup(createTransitions(), render)
+
+  function createTransitions () {
+    return {
+      startIndex: transition(state.startIndex, FRAME * 4, linear),
+      endIndex: transition(state.endIndex, FRAME * 4, linear),
+      max: transition(state.max, FRAME * 16, easeInOutQuad),
+      ...chartConfig.graphNames.reduce((transitions, graphName) => ({
+        ...transitions,
+        [getVisibilityKey(graphName)]: transition(1, FRAME * 16, easeInOutQuad),
+      }), {})
+    }
+  }
 
   const element = document.createElement('div')
   element.style.marginTop = '110px'
@@ -58,7 +70,7 @@ export function Chart (chartConfig) {
   return { element }
 
   function render (state) {
-    graphs.render(state)
+    graphs.render({ ...state, width: chartConfig.width, height: chartConfig.height })
   }
 
   function setState (newState) {
@@ -79,8 +91,6 @@ export function Chart (chartConfig) {
     return {
       startIndex: chartConfig.viewBox.startIndex,
       endIndex: chartConfig.viewBox.endIndex,
-      width: chartConfig.width,
-      height: chartConfig.height,
       max: beautifyNumber(getMaxValueInRange(chartConfig.viewBox.startIndex, chartConfig.viewBox.endIndex, chartConfig.graphNames)),
       ...getVisibilityState(),
     }
@@ -91,20 +101,6 @@ export function Chart (chartConfig) {
       ...visibilityState,
       [getVisibilityKey(graphName)]: 1,
     }), {})
-  }
-
-  function getDurations () {
-    return chartConfig.graphNames.reduce((durations, graphName) => ({
-      ...durations,
-      [getVisibilityKey(graphName)]: FRAME * 16,
-    }), durationsConfig)
-  }
-
-  function getEasings () {
-    return chartConfig.graphNames.reduce((easings, graphName) => ({
-      ...easings,
-      [getVisibilityKey(graphName)]: easeInOutQuad,
-    }), easingConfig)
   }
 
   function getMaxValueInRange (startIndex, endIndex, graphNames) {
