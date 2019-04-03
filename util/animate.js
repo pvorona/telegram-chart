@@ -109,15 +109,18 @@ export function createTransitionGroup (transitions, onFrame) {
   }
 
   const setTargets = targets => {
-    for (let key in targets) {
-      // Do i need this condition?
-      if (key in transitions) {
-        transitions[key].setTarget(targets[key])
+    let shouldAnimate = false
 
-        if (!transitions[key].isFinished()) {
-          scheduleUpdate()
-        }
+    for (let key in targets) {
+      transitions[key].setTarget(targets[key])
+
+      if (!transitions[key].isFinished()) {
+        shouldAnimate = true
       }
+    }
+
+    if (shouldAnimate) {
+      handleAnimationFrame()
     }
   }
 
