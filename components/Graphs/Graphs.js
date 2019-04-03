@@ -1,63 +1,26 @@
 import { mapDataToCoords } from '../../util'
 
-const containerClassName = 'graphs'
-
-export function Graphs ({
-  graphNames,
-  values,
-  width,
-  height,
-  lineWidth,
-  strokeStyles,
-  startIndex,
-  endIndex,
-  max,
-  ...visibilityState
-}) {
-  const { element, context } = createDOM()
-
-  render({ startIndex, endIndex, max, width, height, ...visibilityState })
-
-  return { element, render }
-
-  function render ({ startIndex, endIndex, max, width, height, ...visibilityState }) {
-    context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
-    for (let i = 0; i < graphNames.length; i++) {
-      const opacity = visibilityState[getVisibilityKey(graphNames[i])]
-      if (opacity === 0) continue
-      const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
-      context.strokeStyle = color
-      context.lineWidth = lineWidth * devicePixelRatio
-      const points = mapDataToCoords(
-        values[graphNames[i]],
-        max,
-        { width: width * devicePixelRatio, height: height * devicePixelRatio },
-        { startIndex, endIndex },
-        lineWidth * devicePixelRatio,
-      )
-      context.beginPath()
-      for (let j = 0; j < points.length; j++) {
-        const { x, y } = points[j]
-        context.lineTo(x, y)
-      }
-      context.stroke()
+export function renderGraphs ({ context, graphNames, values, lineWidth, strokeStyles, startIndex, endIndex, max, width, height, ...visibilityState }) {
+  context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
+  for (let i = 0; i < graphNames.length; i++) {
+    const opacity = visibilityState[getVisibilityKey(graphNames[i])]
+    if (opacity === 0) continue
+    const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
+    context.strokeStyle = color
+    context.lineWidth = lineWidth * devicePixelRatio
+    const points = mapDataToCoords(
+      values[graphNames[i]],
+      max,
+      { width: width * devicePixelRatio, height: height * devicePixelRatio },
+      { startIndex, endIndex },
+      lineWidth * devicePixelRatio,
+    )
+    context.beginPath()
+    for (let j = 0; j < points.length; j++) {
+      const { x, y } = points[j]
+      context.lineTo(x, y)
     }
-  }
-
-  function createDOM () {
-    const element = document.createElement('div')
-    element.style.width = `${width}px`
-    element.style.height = `${height}px`
-    element.className = containerClassName
-    const canvas = document.createElement('canvas')
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
-    canvas.width = width * devicePixelRatio
-    canvas.height = height * devicePixelRatio
-    const context = canvas.getContext('2d')
-    element.appendChild(canvas)
-
-    return { element, context }
+    context.stroke()
   }
 }
 

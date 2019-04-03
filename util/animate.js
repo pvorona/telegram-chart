@@ -1,4 +1,5 @@
 import { values } from './values'
+import { shallowEqual } from './shallowEqual'
 
 export function animate (from, to, duration, easing, callback) {
   const startAnimationTime = Date.now()
@@ -42,7 +43,6 @@ export function transition (initialValue, duration, easing) {
   let finished = true
 
   const getState = () => {
-    // every transition calls date.now
     const progress = Math.min((Date.now() - startTime) / duration, 1)
 
     if (progress === 1) {
@@ -71,7 +71,7 @@ export function transition (initialValue, duration, easing) {
   }
 }
 
-export function createTransitionGroup (transitions, onTick) {
+export function createTransitionGroup (transitions, onFrame) {
   let animationId = undefined
   let lastDispatchedState = {}
 
@@ -102,9 +102,9 @@ export function createTransitionGroup (transitions, onTick) {
     }
 
     const state = getState()
-    if (!statesEqual(state, lastDispatchedState)) {
+    if (!shallowEqual(state, lastDispatchedState)) {
       lastDispatchedState = state
-      onTick(state)
+      onFrame(state)
     }
   }
 
@@ -115,7 +115,6 @@ export function createTransitionGroup (transitions, onTick) {
         transitions[key].setTarget(targets[key])
 
         if (!transitions[key].isFinished()) {
-          // handleAnimationFrame()
           scheduleUpdate()
         }
       }
@@ -123,11 +122,4 @@ export function createTransitionGroup (transitions, onTick) {
   }
 
   return { setTargets }
-}
-
-function statesEqual (a, b) {
-  for (let key in a) {
-    if (a[key] !== b[key]) return false
-  }
-  return true
 }
