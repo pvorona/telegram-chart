@@ -15,6 +15,9 @@ const classes = {
   resize: 'cursor-ew-resize'
 }
 
+const DOT_BORDER_SIZE = 2
+const DOT_SIZE = 10
+const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
 
 const FRAME = 1000 / 60
 // AnimatableState = { startIndex, endIndex, max, ...visibilityState }
@@ -32,7 +35,7 @@ export function Chart (options) {
   const overviewState = getInitialOverviewState()
   const instantState = getInitialInstantState()
   const transitions = createTransitionGroup(createTransitions(), render)
-  const { element, overview, graphs, tooltipLine } = createDOM()
+  const { element, overview, graphs, tooltipLine, tooltipCircles } = createDOM()
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
   const boundingRect = overview.element.getBoundingClientRect()
@@ -47,11 +50,19 @@ export function Chart (options) {
 
   const setTooltipVisibe = memoizeOne(function setTooltipVisibe (visible) {
     tooltipLine.style.visibility = visible ? 'visible' : ''
+    getVisibleGraphNames().forEach(graphName =>
+      tooltipCircles[graphName].style.visibility = visible ? 'visible' : ''
+    )
   })
 
   const setTooltipPosition = memoizeOne(function setTooltipPosition (index) {
-    const { x } = points[options.graphNames[0]][index]
+    const visibleGraphNames = getVisibleGraphNames()
+    const { x, y } = points[options.graphNames[0]][index]
     tooltipLine.style.transform = `translateX(${x / devicePixelRatio - 1 / 2}px)`
+    for (let i = 0; i < visibleGraphNames.length; i++) {
+      const { x, y } = points[options.graphNames[i]][index]
+      tooltipCircles[visibleGraphNames[i]].style.transform = `translateX(${x / devicePixelRatio + CENTER_OFFSET}px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`
+    }
   })
 
   return { element }
@@ -119,7 +130,7 @@ export function Chart (options) {
 
   function setInstantState (newState) {
     Object.assign(instantState, newState)
-    setTooltipVisibe(!instantState.dragging && instantState.hovering)
+    setTooltipVisibe(!instantState.dragging && instantState.hovering && Boolean(getVisibleGraphNames().length))
     setTooltipPosition(instantState.tooltipIndex)
   }
 
@@ -318,16 +329,30 @@ export function Chart (options) {
     })
     const overview = createOverview()
     const controls = Controls(options, onButtonClick)
+
+    const tooltipContainer = document.createElement('div')
     const tooltipLine = document.createElement('div')
     tooltipLine.className = 'tooltip-line'
-    graphs.element.appendChild(tooltipLine)
+    tooltipContainer.appendChild(tooltipLine)
+
+    const tooltipCircles = {}
+    for (let i = 0; i < options.graphNames.length; i++) {
+      const circle = document.createElement('div')
+      circle.style.width = `${DOT_SIZE}px`
+      circle.style.height = `${DOT_SIZE}px`
+      circle.style.borderColor = options.colors[options.graphNames[i]]
+      circle.className = 'tooltip__dot'
+      tooltipCircles[options.graphNames[i]] = circle
+      tooltipContainer.appendChild(circle)
+    }
+    graphs.element.appendChild(tooltipContainer)
 
     element.appendChild(title)
     element.appendChild(graphs.element)
     element.appendChild(overview.element)
     element.appendChild(controls)
 
-    return { graphs, element, overview, tooltipLine }
+    return { graphs, element, overview, tooltipLine, tooltipCircles }
   }
 
   function createGraphs ({ width, height }) {
@@ -337,6 +362,7 @@ export function Chart (options) {
     element.style.height = `${height}px`
     element.className = containerClassName
     const canvas = document.createElement('canvas')
+    canvas.style.position = 'absolute'
     canvas.style.width = `${width}px`
     canvas.style.height = `${height}px`
     canvas.width = width * devicePixelRatio
