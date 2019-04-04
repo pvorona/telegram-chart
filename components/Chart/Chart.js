@@ -2,8 +2,8 @@ import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
 import { easeInOutQuart, linear } from '../../easings'
-import { mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
-import { MONTHS } from '../constants'
+import { getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
+import { MONTHS, DAYS } from '../constants'
 
 import { handleDrag, memoizeOne } from '../../util'
 
@@ -35,7 +35,7 @@ export function Chart (options) {
   const overviewState = getInitialOverviewState()
   const instantState = getInitialInstantState()
   const transitions = createTransitionGroup(createTransitions(), render)
-  const { element, overview, graphs, tooltipLine, tooltipCircles } = createDOM()
+  const { element, overview, graphs, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate } = createDOM()
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
   const boundingRect = overview.element.getBoundingClientRect()
@@ -53,16 +53,27 @@ export function Chart (options) {
     getVisibleGraphNames().forEach(graphName =>
       tooltipCircles[graphName].style.visibility = visible ? 'visible' : ''
     )
+    tooltip.style.visibility = visible ? 'visible' : ''
+
+    const visibleGraphNames = getVisibleGraphNames()
+    options.graphNames.forEach(graphName =>
+      tooltipGraphInfo[graphName].hidden = visibleGraphNames.indexOf(graphName) > - 1 ? false : true
+    )
   })
 
   const setTooltipPosition = memoizeOne(function setTooltipPosition (index) {
     const visibleGraphNames = getVisibleGraphNames()
     const { x, y } = points[options.graphNames[0]][index]
     tooltipLine.style.transform = `translateX(${x / devicePixelRatio - 1 / 2}px)`
+    const dataIndex = index + Math.floor(state.startIndex)
     for (let i = 0; i < visibleGraphNames.length; i++) {
       const { x, y } = points[options.graphNames[i]][index]
       tooltipCircles[visibleGraphNames[i]].style.transform = `translateX(${x / devicePixelRatio + CENTER_OFFSET}px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`
+      tooltipValues[visibleGraphNames[i]].innerText = getShortNumber(options.data[visibleGraphNames[i]][dataIndex])
     }
+    tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex])
+    // TODO: Force reflow
+    tooltip.style.transform = `translateX(${x / devicePixelRatio - tooltip.offsetWidth / 2}px)`
   })
 
   return { element }
@@ -317,6 +328,40 @@ export function Chart (options) {
     })
   }
 
+  function createTooltip () {
+    const tooltip = document.createElement('div')
+    tooltip.className = 'tooltip'
+
+    const tooltipDate = document.createElement('div')
+    tooltipDate.style.padding = '10px 10px 0'
+    tooltip.appendChild(tooltipDate)
+
+    const tooltipLegendContainer = document.createElement('div')
+    tooltipLegendContainer.className = 'tooltip__legend'
+    tooltip.appendChild(tooltipLegendContainer)
+
+    const tooltipValues = {}
+    const graphInfos = {}
+    options.graphNames.forEach(graphName => {
+      const tooltipGraphInfo = document.createElement('div')
+      tooltipGraphInfo.style.color = options.colors[graphName]
+      tooltipGraphInfo.style.padding = '0 10px 10px'
+      graphInfos[graphName] = tooltipGraphInfo
+
+      const tooltipValue = document.createElement('div')
+      tooltipValue.style.fontWeight = 'bold'
+      tooltipGraphInfo.appendChild(tooltipValue)
+
+      const graphNameElement = document.createElement('div')
+      graphNameElement.innerText = graphName
+      tooltipGraphInfo.appendChild(graphNameElement)
+
+      tooltipValues[graphName] = tooltipValue
+      tooltipLegendContainer.appendChild(tooltipGraphInfo)
+    })
+    return { tooltip, tooltipValues, graphInfos, tooltipDate }
+  }
+
   function createDOM () {
     const element = document.createElement('div')
     element.style.marginTop = '110px'
@@ -345,6 +390,10 @@ export function Chart (options) {
       tooltipCircles[options.graphNames[i]] = circle
       tooltipContainer.appendChild(circle)
     }
+
+    const { tooltip, tooltipValues, graphInfos: tooltipGraphInfo, tooltipDate } = createTooltip()
+    tooltipContainer.appendChild(tooltip)
+
     graphs.element.appendChild(tooltipContainer)
 
     element.appendChild(title)
@@ -352,7 +401,7 @@ export function Chart (options) {
     element.appendChild(overview.element)
     element.appendChild(controls)
 
-    return { graphs, element, overview, tooltipLine, tooltipCircles }
+    return { graphs, element, overview, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate }
   }
 
   function createGraphs ({ width, height }) {
@@ -406,4 +455,9 @@ function keepInBounds (value, min, max) {
   if (value < min) return min
   if (value > max) return max
   return value
+}
+
+function getTooltipDateText (timestamp) {
+  const date = new Date(timestamp)
+  return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
 }
