@@ -1,7 +1,7 @@
-export function renderGraphs ({ context, points, graphNames, lineWidth, strokeStyles, width, height, ...visibilityState }) {
+export function renderGraphs ({ context, points, graphNames, lineWidth, strokeStyles, width, height, opacityState }) {
   context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
   for (let i = 0; i < graphNames.length; i++) {
-    const opacity = visibilityState[getVisibilityKey(graphNames[i])]
+    const opacity = opacityState[graphNames[i]]
     if (opacity === 0) continue
     const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
     context.strokeStyle = color

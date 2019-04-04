@@ -74,6 +74,7 @@ export function transition (initialValue, duration, easing) {
 export function createTransitionGroup (transitions, onFrame) {
   let animationId = undefined
   let lastDispatchedState = {}
+  let state = computeNewState()
 
   for (let key in transitions) {
     lastDispatchedState[key] = transitions[key].value
@@ -86,6 +87,10 @@ export function createTransitionGroup (transitions, onFrame) {
   }
 
   const getState = () => {
+    return state
+  }
+
+  function computeNewState () {
     const state = {}
     for (let key in transitions) {
       state[key] = transitions[key].getState()
@@ -101,9 +106,9 @@ export function createTransitionGroup (transitions, onFrame) {
       scheduleUpdate()
     }
 
-    const state = getState()
-    if (!shallowEqual(state, lastDispatchedState)) {
-      lastDispatchedState = state
+    const newState = Object.assign({}, state, computeNewState())
+    if (!shallowEqual(newState, state)) {
+      state = newState
       onFrame(state)
     }
   }
@@ -128,5 +133,5 @@ export function createTransitionGroup (transitions, onFrame) {
     }
   }
 
-  return { setTargets }
+  return { setTargets, getState }
 }

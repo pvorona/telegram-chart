@@ -2,10 +2,8 @@ import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
 import { easeInOutQuart, linear } from '../../easings'
-import { getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
+import { createComputedValue, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition } from '../../util'
 import { MONTHS, DAYS } from '../constants'
-
-import { handleDrag, memoizeOne } from '../../util'
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 const resizerWidthPixels = 8
@@ -31,14 +29,119 @@ const FRAME = 1000 / 60
 // - change easings when dragging viewbox
 // - bug: tooltip appears on 0 index
 export function Chart (options) {
-  const state = getInitialState()
+  // const state = getInitialState()
   const overviewState = getInitialOverviewState()
+
   const instantState = getInitialInstantState()
-  const transitions = createTransitionGroup(createTransitions(), render)
   const { element, overview, graphs, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate } = createDOM()
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
   const boundingRect = overview.element.getBoundingClientRect()
+
+  const getLeft = () => overviewState.left
+  const getRight = () => overviewState.right
+  const getEnabledGraphNamesState = () => overviewState.enabledGraphNamesState
+
+  const getEnabledGraphNames = createComputedValue(getEnabledGraphNamesState)(
+    enabledGraphNamesState => options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
+  )
+  const getStartIndex = createComputedValue(getLeft)(left => left / options.width * (options.data.total - 1))
+  const getEndIndex = createComputedValue(getRight)(right => right / options.width * (options.data.total - 1))
+  const getMax = createComputedValue(getStartIndex, getEndIndex, getEnabledGraphNames)(
+    (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
+  )
+  const getTotalMax = createComputedValue(getEnabledGraphNames)(
+    (enabledGraphNames) => getMaxValueInRange(0, options.data.total - 1, enabledGraphNames)
+  )
+  const getVisibilityStateSelector = createComputedValue(getEnabledGraphNamesState)(
+    (enabledGraphNamesState) => options.graphNames.reduce((state, graphName) => ({
+      ...state,
+      [graphName]: Number(enabledGraphNamesState[graphName]),
+    }), {})
+  )
+  const getInertStartIndex = () => transitions.getState().startIndex
+  const getInertEndIndex = () => transitions.getState().endIndex
+  const getInertMax = () => transitions.getState().max
+  const getInertTotalMax = () => transitions.getState().totalMax
+
+  const getInertState = () => transitions.getState()
+
+
+  const inertOpacityState = createInertOpacityState()
+
+  const getOpacityState = inertOpacityState.getState
+  // const getOpacityState = createComputedValue(inertOpacityState.getState)((opacityState) => options.graphNames.reduce((state, graphName) => ({
+  //   ...state,
+  //   [graphName]: opacityState[getVisibilityKey(graphName)],
+  // }), {}))
+  const getPoints = createComputedValue(getInertStartIndex, getInertEndIndex, getInertMax)((startIndex, endIndex, max) =>
+    options.graphNames.reduce((points, graphName) => ({
+      ...points,
+      [graphName]: mapDataToCoords(
+        options.data[graphName],
+        max,
+        { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
+        { startIndex, endIndex },
+        options.lineWidth * devicePixelRatio,
+      )
+    }),{})
+  )
+  const getOverviewPoints = createComputedValue(getInertTotalMax)((totalMax) =>
+    options.graphNames.reduce((points, graphName) => ({
+      ...points,
+      [graphName]: mapDataToCoords(
+        options.data[graphName],
+        totalMax,
+        { width: options.overviewWidth * devicePixelRatio, height: (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) * devicePixelRatio },
+        { startIndex: 0, endIndex: options.data.total - 1 },
+        options.lineWidth * devicePixelRatio,
+      )
+    }),{})
+  )
+
+  const updateViewBoxLeft = createComputedValue(getLeft)(left => overview.viewBoxElement.style.left = `${left}px`)
+  const updateViewBoxRight = createComputedValue(getRight)(right => overview.viewBoxElement.style.right = `${options.width - right}px`)
+  const updateMainGraph = createComputedValue(getInertStartIndex, getInertEndIndex, getInertMax, getPoints, getOpacityState)(
+    (startIndex, endIndex, max, points, opacityState) => renderGraphs({
+      startIndex,
+      endIndex,
+      max,
+      points,
+      opacityState,
+      context: graphs.context,
+      width: options.width,
+      height: options.height,
+      values: options.data,
+      graphNames: options.graphNames,
+      lineWidth: options.lineWidth,
+      strokeStyles: options.colors,
+    })
+  )
+  const updateOverviewGraph = createComputedValue(getOpacityState, getTotalMax, getOverviewPoints)(
+    (opacityState, totalMax, points) => renderGraphs({
+      opacityState,
+      points,
+      max: totalMax,
+      startIndex: 0,
+      endIndex: options.data.total - 1,
+      context: overview.graphs.context,
+      width: options.overviewWidth,
+      height: options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
+      graphNames: options.graphNames,
+      lineWidth: options.OVERVIEW_LINE_WIDTH,
+      strokeStyles: options.colors,
+    })
+  )
+
+  const transitions = createTransitionGroup(createTransitions(), render)
+
+  function createInertOpacityState () {
+    const opacityTransitions = options.graphNames.reduce((state, graphName) => ({
+      ...state,
+      [graphName]: transition(1, FRAME * 36, easeInOutQuart),
+    }), {})
+    return createTransitionGroup(opacityTransitions, render)
+  }
 
   initDragListeners()
 
@@ -58,6 +161,7 @@ export function Chart (options) {
     )
   })
 
+  // Bug. points are always new
   const setTooltipPosition = memoizeOne(function setTooltipPosition (index, points) {
     const visibleGraphNames = getVisibleGraphNames()
     const { x, y } = points[options.graphNames[0]][index]
@@ -73,82 +177,57 @@ export function Chart (options) {
     tooltip.style.transform = `translateX(${x / devicePixelRatio - tooltip.offsetWidth / 2}px)`
   })
 
-  render(state)
+  // render(transitions)
 
   return { element }
 
-  function render (state) {
-    const points = {}
-    for (let i = 0; i < options.graphNames.length; i++) {
-      points[options.graphNames[i]] = mapDataToCoords(
-        options.data[options.graphNames[i]],
-        state.max,
-        { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
-        { startIndex: state.startIndex, endIndex: state.endIndex },
-        options.lineWidth * devicePixelRatio,
-      )
-    }
-    setInstantState({ points })
-
-    renderMainGraph({
-      ...state,
-      points,
-      context: graphs.context,
-      width: options.width,
-      height: options.height,
-      values: options.data,
-      graphNames: options.graphNames,
-      lineWidth: options.lineWidth,
-      strokeStyles: options.colors,
-    })
-    // renderOverviewGraph({
-    //   ...state,
-    //   max: state.totalMax,
-    //   startIndex: 0,
-    //   endIndex: options.data.total - 1,
-    //   context: overview.graphs.context,
-    //   width: options.overviewWidth,
-    //   height: options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2,
-    //   values: options.data,
-    //   graphNames: options.graphNames,
-    //   lineWidth: options.OVERVIEW_LINE_WIDTH,
-    //   strokeStyles: options.colors,
-    // })
+  function render () {
+    updateMainGraph()
+    updateOverviewGraph()
   }
 
   function setState (newState) {
-    Object.assign(state, newState)
-    transitions.setTargets({
-      ...state,
-      max: beautifyNumber(getMaxValueInRange(state.startIndex, state.endIndex, getVisibleGraphNames())),
-      totalMax: getMaxValueInRange(0, options.data.total - 1, getVisibleGraphNames()),
-    })
+    // Bug. Setting final state (startIndex for example)
+    // and then animating it from past position
+    // Object.assign(state, newState)
+    // transitions.setTargets({
+    //   ...state,
+    //   max: beautifyNumber(getMaxValueInRange(state.startIndex, state.endIndex, getVisibleGraphNames())),
+    //   totalMax: getMaxValueInRange(0, options.data.total - 1, getVisibleGraphNames()),
+    // })
   }
+
+  function onRawStateChanged () {
+    transitions.setTargets({
+      startIndex: getStartIndex(),
+      endIndex: getEndIndex(),
+      max: getMax(),
+      totalMax: getTotalMax(),
+    })
+    inertOpacityState.setTargets(getVisibilityStateSelector())
+    // inertState.setTarget(instantState)
+  }
+
 
   function setOverviewState (newState) {
     Object.assign(overviewState, newState)
-    if ('left' in newState) {
-      overview.viewBoxElement.style.left = `${overviewState.left}px`
-    }
-    if ('right' in newState) {
-      overview.viewBoxElement.style.right = `${options.width - overviewState.right}px`
-    }
-    if ('left' in newState || 'right' in newState) {
-      const startIndex = overviewState.left / options.width * (options.data.total - 1)
-      const endIndex = overviewState.right / options.width * (options.data.total - 1)
-      setState({ startIndex, endIndex })
-    }
+    updateViewBoxLeft()
+    updateViewBoxRight()
+    onRawStateChanged()
   }
 
   function setInstantState (newState) {
-    Object.assign(instantState, newState)
-    setTooltipVisibe(!instantState.dragging && instantState.hovering && Boolean(getVisibleGraphNames().length))
-    setTooltipPosition(instantState.tooltipIndex, instantState.points)
+    // Object.assign(instantState, newState)
+    // setTooltipVisibe(!instantState.dragging && instantState.hovering && Boolean(getVisibleGraphNames().length))
+    // setTooltipPosition(instantState.tooltipIndex, instantState.points)
   }
 
   function onButtonClick (graphName) {
-    setState({
-      [getVisibilityKey(graphName)]: state[getVisibilityKey(graphName)] === 0 ? 1 : 0
+    setOverviewState({
+      enabledGraphNamesState: {
+        ...overviewState.enabledGraphNamesState,
+        [graphName]: !overviewState.enabledGraphNamesState[graphName],
+      },
     })
   }
 
@@ -158,7 +237,6 @@ export function Chart (options) {
       endIndex: options.viewBox.endIndex,
       max: beautifyNumber(getMaxValueInRange(options.viewBox.startIndex, options.viewBox.endIndex, options.graphNames)),
       totalMax: getMaxValueInRange(0, options.data.total - 1, options.graphNames),
-      ...getVisibilityState(),
     }
   }
 
@@ -167,6 +245,10 @@ export function Chart (options) {
        left: options.viewBox.startIndex / (options.data.total - 1) * options.width,
        right: options.width,
        cursorResizerDelta: 0,
+       enabledGraphNamesState: options.graphNames.reduce((state, graphName) => ({
+         ...state,
+         [graphName]: true,
+       }), {}),
      }
   }
 
@@ -180,29 +262,25 @@ export function Chart (options) {
 
   function createTransitions () {
     return {
-      startIndex: transition(state.startIndex, FRAME * 4, linear),
-      endIndex: transition(state.endIndex, FRAME * 4, linear),
-      max: transition(state.max, FRAME * 36, easeInOutQuart),
-      totalMax: transition(state.totalMax, FRAME * 36, easeInOutQuart),
-      ...options.graphNames.reduce((transitions, graphName) => ({
-        ...transitions,
-        [getVisibilityKey(graphName)]: transition(1, FRAME * 36, easeInOutQuart),
-      }), {})
+      startIndex: transition(getStartIndex(), FRAME * 4, linear),
+      endIndex: transition(getEndIndex(), FRAME * 4, linear),
+      max: transition(getMax(), FRAME * 36, easeInOutQuart),
+      totalMax: transition(getTotalMax(), FRAME * 36, easeInOutQuart),
     }
   }
 
   function initDragListeners () {
-    graphs.element.addEventListener('mouseenter', function (e) {
-      setInstantState({ hovering: true })
-    })
-    graphs.element.addEventListener('mouseleave', function (e) {
-      setInstantState({ hovering: false })
-    })
-    graphs.element.addEventListener('mousemove', function (e) {
-      const x = e.clientX - getGraphsBoundingRect().left
-      const index = findClosestPointsIndex(x)
-      setInstantState({ tooltipIndex: index })
-    })
+    // graphs.element.addEventListener('mouseenter', function (e) {
+    //   setInstantState({ hovering: true })
+    // })
+    // graphs.element.addEventListener('mouseleave', function (e) {
+    //   setInstantState({ hovering: false })
+    // })
+    // graphs.element.addEventListener('mousemove', function (e) {
+    //   const x = e.clientX - getGraphsBoundingRect().left
+    //   const index = findClosestPointsIndex(x)
+    //   setInstantState({ tooltipIndex: index })
+    // })
     handleDrag(overview.resizerLeft, {
       onDragStart: onLeftResizerMouseDown,
       onDragMove: onLeftResizerMouseMove,
