@@ -31,14 +31,33 @@ const FRAME = 1000 / 60
 // - change easings when dragging viewbox
 // - bug: tooltip appears on 0 index
 export function Chart (options) {
+  const getComputedState = memoizeObjectArgument(function getComputedState ({ left, right, visibleGraphNames }) {
+    const startIndex = left / options.width * (options.data.total - 1)
+    const endIndex = right / options.width * (options.data.total - 1)
+
+    return {
+      startIndex,
+      endIndex,
+      max: beautifyNumber(getMaxValueInRange(startIndex, endIndex, visibleGraphNames)),
+      totalMax: getMaxValueInRange(0, options.data.total - 1, visibleGraphNames),
+    }
+  })
+
   const state = getInitialState()
-  const overviewState = getInitialOverviewState()
+  const computedState = getComputedState({
+    left: state.left,
+    right: state.right,
+    // Always recalculated, never memoized
+    // Maybe separate visibility state with all other state?
+    visibleGraphNames: getVisibleGraphNames(),
+  })
   const instantState = getInitialInstantState()
-  const transitions = createTransitionGroup(createTransitions(), render)
+  const transitions = createTransitionGroup(createTransitions(), setState)
   const { element, overview, graphs, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate } = createDOM()
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
   const boundingRect = overview.element.getBoundingClientRect()
+  let cursorResizerDelta = 0
 
   initDragListeners()
 
@@ -73,30 +92,59 @@ export function Chart (options) {
     tooltip.style.transform = `translateX(${x / devicePixelRatio - tooltip.offsetWidth / 2}px)`
   })
 
-  render(state)
+  const setViewBoxLeft = memoizeOne(function setViewBoxLeft (left) {
+    overview.viewBoxElement.style.left = `${left}px`
+  })
+
+  const setViewBoxRight = memoizeOne(function setViewBoxRight (right) {
+    overview.viewBoxElement.style.right = `${options.width - right}px`
+  })
+
+  const computePoints = memoizeOne(function (startIndex, endIndex, max) {
+    return options.graphNames.reduce((points, graphName) => ({
+      ...points,
+      [graphName]: mapDataToCoords(
+        options.data[graphName],
+        max,
+        { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
+        { startIndex, endIndex },
+        options.lineWidth * devicePixelRatio,
+      )
+    }), {})
+  })
+
+  const renderMyGraphs = memoizeObjectArgument(function renderMyGraphs ({
+    startIndex,
+    endIndex,
+    points,
+  }) {
+    renderMainGraph({
+      points,
+      context: graphs.context,
+      width: options.width,
+      height: options.height,
+      graphNames: options.graphNames,
+      lineWidth: options.lineWidth,
+      strokeStyles: options.colors,
+    })
+  })
+
+  renderMyGraphs({
+    startIndex: state.startIndex,
+    endIndex: state.endIndex,
+    points: computePoints(computedState.startIndex, computedState.endIndex, computedState.max),
+  })
+
 
   return { element }
 
   function render (state) {
-    const points = {}
-    for (let i = 0; i < options.graphNames.length; i++) {
-      points[options.graphNames[i]] = mapDataToCoords(
-        options.data[options.graphNames[i]],
-        state.max,
-        { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
-        { startIndex: state.startIndex, endIndex: state.endIndex },
-        options.lineWidth * devicePixelRatio,
-      )
-    }
-    setInstantState({ points })
-
     renderMainGraph({
       ...state,
       points,
       context: graphs.context,
       width: options.width,
       height: options.height,
-      values: options.data,
       graphNames: options.graphNames,
       lineWidth: options.lineWidth,
       strokeStyles: options.colors,
@@ -118,36 +166,38 @@ export function Chart (options) {
 
   function setState (newState) {
     Object.assign(state, newState)
-    transitions.setTargets({
-      ...state,
-      max: beautifyNumber(getMaxValueInRange(state.startIndex, state.endIndex, getVisibleGraphNames())),
-      totalMax: getMaxValueInRange(0, options.data.total - 1, getVisibleGraphNames()),
+    Object.assign(computedState, getComputedState({
+      left: state.left,
+      right: state.right,
+      // Always recalculated, never memoized
+      // Maybe separate visibility state with all other state?
+      visibleGraphNames: getVisibleGraphNames(),
+    }))
+
+    setViewBoxLeft(state.left)
+    setViewBoxRight(state.right)
+    setTransitionTargets(getComputedState())
+    renderMyGraphs({
+      startIndex: state.startIndex,
+      endIndex: state.endIndex,
+      points: computePoints(computedState.startIndex, computedState.endIndex, computedState.max)
     })
   }
 
-  function setOverviewState (newState) {
-    Object.assign(overviewState, newState)
-    if ('left' in newState) {
-      overview.viewBoxElement.style.left = `${overviewState.left}px`
-    }
-    if ('right' in newState) {
-      overview.viewBoxElement.style.right = `${options.width - overviewState.right}px`
-    }
-    if ('left' in newState || 'right' in newState) {
-      const startIndex = overviewState.left / options.width * (options.data.total - 1)
-      const endIndex = overviewState.right / options.width * (options.data.total - 1)
-      setState({ startIndex, endIndex })
-    }
+
+  function setTransitionTargets (targets) {
+    transitions.setTargets(targets)
   }
 
   function setInstantState (newState) {
     Object.assign(instantState, newState)
-    setTooltipVisibe(!instantState.dragging && instantState.hovering && Boolean(getVisibleGraphNames().length))
-    setTooltipPosition(instantState.tooltipIndex, instantState.points)
+    const tooltipVisible = !instantState.dragging && instantState.hovering && Boolean(getVisibleGraphNames().length)
+    setTooltipVisibe(tooltipVisible)
+    tooltipVisible && setTooltipPosition(instantState.tooltipIndex, instantState.points)
   }
 
   function onButtonClick (graphName) {
-    setState({
+    setTransitionTargets({
       [getVisibilityKey(graphName)]: state[getVisibilityKey(graphName)] === 0 ? 1 : 0
     })
   }
@@ -158,16 +208,11 @@ export function Chart (options) {
       endIndex: options.viewBox.endIndex,
       max: beautifyNumber(getMaxValueInRange(options.viewBox.startIndex, options.viewBox.endIndex, options.graphNames)),
       totalMax: getMaxValueInRange(0, options.data.total - 1, options.graphNames),
+      left: options.viewBox.startIndex / (options.data.total - 1) * options.width,
+      right: options.width,
+
       ...getVisibilityState(),
     }
-  }
-
-  function getInitialOverviewState () {
-    return {
-       left: options.viewBox.startIndex / (options.data.total - 1) * options.width,
-       right: options.width,
-       cursorResizerDelta: 0,
-     }
   }
 
   function getInitialInstantState () {
@@ -263,9 +308,7 @@ points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
   function onLeftResizerMouseDown (e) {
     applyCursor(classes.resize)
     setInstantState({ dragging: true })
-    setOverviewState({
-      cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left)
-    })
+    cursorResizerDelta = getX(e) - (state.left - boundingRect.left)
   }
 
   function removeLeftResizerListener () {
@@ -274,18 +317,16 @@ points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
   }
 
   function onLeftResizerMouseMove (e) {
-    const left = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
-    setOverviewState({
-      left: keepInBounds(left, 0, overviewState.right - minimalPixelsBetweenResizers)
+    const left = ensureInOverviewBounds(getX(e) - cursorResizerDelta)
+    setState({
+      left: keepInBounds(left, 0, state.right - minimalPixelsBetweenResizers)
     })
   }
 
   function onRightResizerMouseDown (e) {
     applyCursor(classes.resize)
     setInstantState({ dragging: true })
-    setOverviewState({
-      cursorResizerDelta: getX(e) - (overviewState.right - boundingRect.left)
-    })
+    cursorResizerDelta = getX(e) - (state.right - boundingRect.left)
   }
 
   function removeRightResizerListener () {
@@ -294,9 +335,9 @@ points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
   }
 
   function onRightResizerMouseMove (e) {
-    const right = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
-    setOverviewState({
-      right: keepInBounds(right, overviewState.left + minimalPixelsBetweenResizers, right)
+    const right = ensureInOverviewBounds(getX(e) - cursorResizerDelta)
+    setState({
+      right: keepInBounds(right, state.left + minimalPixelsBetweenResizers, right)
     })
   }
 
@@ -311,9 +352,7 @@ points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
   function onViewBoxElementMouseDown (e) {
     applyCursor(classes.grabbing)
     setInstantState({ dragging: true })
-    setOverviewState({
-      cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left),
-    })
+    cursorResizerDelta = getX(e) - (state.left - boundingRect.left)
   }
 
   function onViewBoxElementMouseUp () {
@@ -322,10 +361,10 @@ points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
   }
 
   function onViewBoxElementMouseMove (e) {
-    const width = overviewState.right - overviewState.left
-    const nextLeft = getX(e) - overviewState.cursorResizerDelta
+    const width = state.right - state.left
+    const nextLeft = getX(e) - cursorResizerDelta
     const stateLeft = keepInBounds(nextLeft, 0, options.width - width)
-    setOverviewState({
+    setState({
       left: stateLeft,
       right: stateLeft + width,
     })
@@ -437,7 +476,7 @@ points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
     resizerRight.className = 'overview__resizer overview__resizer--right'
     const viewBoxElement = document.createElement('div')
     viewBoxElement.className ='overview__viewbox'
-    viewBoxElement.style.left = `${overviewState.left}px`
+    viewBoxElement.style.left = `${state.left}px`
     viewBoxElement.appendChild(resizerLeft)
     viewBoxElement.appendChild(resizerRight)
     const graphs = createGraphs({
