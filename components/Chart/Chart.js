@@ -39,10 +39,8 @@ export function Chart (options) {
   const renderMainGraph = memoizeObjectArgument(renderGraphs)
   const renderOverviewGraph = memoizeObjectArgument(renderGraphs)
   const boundingRect = overview.element.getBoundingClientRect()
-  const points = {}
 
   initDragListeners()
-  render(state)
 
   const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect () {
     return graphs.element.getBoundingClientRect()
@@ -50,24 +48,23 @@ export function Chart (options) {
 
   const setTooltipVisibe = memoizeOne(function setTooltipVisibe (visible) {
     tooltipLine.style.visibility = visible ? 'visible' : ''
-    getVisibleGraphNames().forEach(graphName =>
-      tooltipCircles[graphName].style.visibility = visible ? 'visible' : ''
-    )
     tooltip.style.visibility = visible ? 'visible' : ''
-
     const visibleGraphNames = getVisibleGraphNames()
+    options.graphNames.forEach(graphName =>
+      tooltipCircles[graphName].style.visibility = visible && visibleGraphNames.indexOf(graphName) > -1 ?'visible' : ''
+    )
     options.graphNames.forEach(graphName =>
       tooltipGraphInfo[graphName].hidden = visibleGraphNames.indexOf(graphName) > - 1 ? false : true
     )
   })
 
-  const setTooltipPosition = memoizeOne(function setTooltipPosition (index) {
+  const setTooltipPosition = memoizeOne(function setTooltipPosition (index, points) {
     const visibleGraphNames = getVisibleGraphNames()
     const { x, y } = points[options.graphNames[0]][index]
     tooltipLine.style.transform = `translateX(${x / devicePixelRatio - 1 / 2}px)`
     const dataIndex = index + Math.floor(state.startIndex)
     for (let i = 0; i < visibleGraphNames.length; i++) {
-      const { x, y } = points[options.graphNames[i]][index]
+      const { x, y } = points[visibleGraphNames[i]][index]
       tooltipCircles[visibleGraphNames[i]].style.transform = `translateX(${x / devicePixelRatio + CENTER_OFFSET}px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`
       tooltipValues[visibleGraphNames[i]].innerText = getShortNumber(options.data[visibleGraphNames[i]][dataIndex])
     }
@@ -76,9 +73,12 @@ export function Chart (options) {
     tooltip.style.transform = `translateX(${x / devicePixelRatio - tooltip.offsetWidth / 2}px)`
   })
 
+  render(state)
+
   return { element }
 
   function render (state) {
+    const points = {}
     for (let i = 0; i < options.graphNames.length; i++) {
       points[options.graphNames[i]] = mapDataToCoords(
         options.data[options.graphNames[i]],
@@ -88,6 +88,7 @@ export function Chart (options) {
         options.lineWidth * devicePixelRatio,
       )
     }
+    setInstantState({ points })
 
     renderMainGraph({
       ...state,
@@ -142,7 +143,7 @@ export function Chart (options) {
   function setInstantState (newState) {
     Object.assign(instantState, newState)
     setTooltipVisibe(!instantState.dragging && instantState.hovering && Boolean(getVisibleGraphNames().length))
-    setTooltipPosition(instantState.tooltipIndex)
+    setTooltipPosition(instantState.tooltipIndex, instantState.points)
   }
 
   function onButtonClick (graphName) {
@@ -221,9 +222,11 @@ export function Chart (options) {
 
   function findClosestPointsIndex (x) {
     let closestPointIndex = 0
-    for (let i = 1; i < points[options.graphNames[0]].length; i++) {
-      const distance = Math.abs(points[options.graphNames[0]][i].x / devicePixelRatio - x)
-      const closesDistance = Math.abs(points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
+    for (let i = 1; i < instantState.points[options.graphNames[0]].length; i++) {
+      const distance = Math.abs(instantState.
+points[options.graphNames[0]][i].x / devicePixelRatio - x)
+      const closesDistance = Math.abs(instantState.
+points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
       if (distance < closesDistance) closestPointIndex = i
     }
     return closestPointIndex
