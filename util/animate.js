@@ -113,7 +113,7 @@ export function createTransitionGroup (transitions, onFrame) {
     }
   }
 
-  const setTargets = targets => {
+  const setTarget = targets => {
     if (animationId) {
       cancelAnimationFrame(animationId)
       animationId = undefined
@@ -133,5 +133,42 @@ export function createTransitionGroup (transitions, onFrame) {
     }
   }
 
-  return { setTargets, getState }
+  return {
+    setTarget,
+    getState,
+  }
+}
+
+export function simpleGroupTransition (transitions) {
+  let state = computeState()
+
+  function computeState () {
+    const newState = {}
+    for (const key in transitions) {
+      newState[key] = transitions[key].getState()
+    }
+    return newState
+  }
+
+  function getState () {
+    const newState = computeState()
+    if (shallowEqual(state, newState)) {
+      // Preserve referential transparency for selectors
+      return state
+    }
+    state = newState
+    return state
+  }
+
+  function setTarget (target) {
+    for (const key in target) {
+      transitions[key].setTarget(target[key])
+    }
+  }
+
+  function isFinished () {
+    return values(transitions).every(transition => transition.isFinished())
+  }
+
+  return { setTarget, isFinished, getState }
 }
