@@ -20,18 +20,9 @@ const DOT_SIZE = 10
 const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
 
 const FRAME = 1000 / 60
-// AnimatableState = { startIndex, endIndex, max, ...visibilityState }
-// - Durations
-// - Easings
-// - Multiple renders per frame
-// - Overview
-// Can remove left right overview state, just use start/end index
 // Use divs for buttons
-// move mapDataToCoords up
 // - change easings when dragging viewbox
-// - bug: tooltip appears on 0 index
 export function Chart (options) {
-  // const state = getInitialState()
   const overviewState = getInitialOverviewState()
 
   const { element, overview, graphs, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate } = createDOM()
@@ -230,15 +221,6 @@ export function Chart (options) {
         [graphName]: !overviewState.enabledGraphNamesState[graphName],
       },
     })
-  }
-
-  function getInitialState () {
-    return {
-      startIndex: options.viewBox.startIndex,
-      endIndex: options.viewBox.endIndex,
-      max: beautifyNumber(getMaxValueInRange(options.viewBox.startIndex, options.viewBox.endIndex, options.graphNames)),
-      totalMax: getMaxValueInRange(0, options.data.total - 1, options.graphNames),
-    }
   }
 
   function getInitialOverviewState () {

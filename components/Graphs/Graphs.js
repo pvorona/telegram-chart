@@ -1,3 +1,5 @@
+import { hexToRGB } from '../../util'
+
 export function renderGraphs ({ context, points, graphNames, lineWidth, strokeStyles, width, height, opacityState }) {
   context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
   for (let i = 0; i < graphNames.length; i++) {
@@ -14,13 +16,4 @@ export function renderGraphs ({ context, points, graphNames, lineWidth, strokeSt
     }
     context.stroke()
   }
-}
-
-function hexToRGB (hex) {
-  const [hash, r1, r2, g1, g2, b1, b2] = hex
-  return [
-    parseInt(r1 + r2, 16),
-    parseInt(g1 + g2, 16),
-    parseInt(b1 + b2, 16),
-  ]
 }
