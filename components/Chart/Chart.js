@@ -273,7 +273,8 @@ export function Chart (options) {
 
   function initDragListeners () {
     graphs.element.addEventListener('mouseenter', function (e) {
-      setOverviewState({ hovering: true })
+      const x = e.clientX - getGraphsBoundingRect().left
+      setOverviewState({ hovering: true, mouseX: x })
     })
     graphs.element.addEventListener('mouseleave', function (e) {
       setOverviewState({ hovering: false })

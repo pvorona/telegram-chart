@@ -6,6 +6,7 @@ export function renderGraphs ({ context, points, graphNames, lineWidth, strokeSt
     const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
     context.strokeStyle = color
     context.lineWidth = lineWidth * devicePixelRatio
+    context.lineJoin = 'round'
     context.beginPath()
     for (let j = 0; j < points[graphNames[i]].length; j++) {
       const { x, y } = points[graphNames[i]][j]
@@ -22,8 +23,4 @@ function hexToRGB (hex) {
     parseInt(g1 + g2, 16),
     parseInt(b1 + b2, 16),
   ]
-}
-
-function getVisibilityKey (name) {
-  return `${name}_opacity`
 }
