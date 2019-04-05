@@ -15,6 +15,12 @@ const classes = {
   resize: 'cursor-ew-resize'
 }
 
+const cursors = {
+  resize: 'ew-resize',
+  grabbing: 'grabbing',
+  default: '',
+}
+
 const DOT_BORDER_SIZE = 2
 const DOT_SIZE = 10
 const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
@@ -60,6 +66,7 @@ export function Chart (options) {
   const getMouseX = function getMouseX () {
     return overviewState.mouseX
   }
+  const getActiveCursor = () => overviewState.cursor
 
   const getInertStartIndex = () => transitions.getState().startIndex
   const getInertEndIndex = () => transitions.getState().endIndex
@@ -173,6 +180,11 @@ export function Chart (options) {
       strokeStyles: options.colors,
     })
   )
+  const updateCursor = createComputedValue(getActiveCursor)((cursor) =>
+    [document.body, overview.viewBoxElement, overview.resizerLeft, overview.resizerRight].forEach(
+      element => element.style.cursor = cursor
+    )
+  )
 
   const transitions = createTransitionGroup(createTransitions(), render)
 
@@ -187,9 +199,14 @@ export function Chart (options) {
   return { element }
 
   function render () {
+    updateViewBoxLeft()
+    updateViewBoxRight()
+    updateTooltipVisibility()
+    updateTooltipPosition()
+    updateCursor()
+
     updateMainGraph()
     updateOverviewGraph()
-    updateTooltipPosition()
   }
 
   function onRawStateChanged () {
@@ -205,13 +222,8 @@ export function Chart (options) {
 
   function setOverviewState (newState) {
     Object.assign(overviewState, newState)
-
-    updateViewBoxLeft()
-    updateViewBoxRight()
-    updateTooltipVisibility()
-    updateTooltipPosition()
-
     onRawStateChanged()
+    render()
   }
 
   function onButtonClick (graphName) {
@@ -235,7 +247,8 @@ export function Chart (options) {
       dragging: false,
       hovering: false,
       mouseX: 0,
-     }
+      cursor: cursors.default,
+    }
   }
 
   function createTransitions () {
@@ -293,27 +306,19 @@ export function Chart (options) {
     return graphNames.map(graphName => options.data[graphName])
   }
 
-  function getVisibleGraphNames () {
-    return options.graphNames.filter(graphName => state[getVisibilityKey(graphName)])
-  }
-
-  function applyCursor (className) {
-    [document.body, overview.viewBoxElement, overview.resizerLeft, overview.resizerRight].forEach(
-      element => element.classList.toggle(className)
-    )
-  }
-
   function onLeftResizerMouseDown (e) {
-    applyCursor(classes.resize)
     setOverviewState({
       cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left),
       dragging: true,
+      cursor: cursors.resize,
     })
   }
 
   function removeLeftResizerListener () {
-    applyCursor(classes.resize)
-    setOverviewState({ dragging: false })
+    setOverviewState({
+      dragging: false,
+      cursor: cursors.default,
+    })
   }
 
   function onLeftResizerMouseMove (e) {
@@ -324,16 +329,18 @@ export function Chart (options) {
   }
 
   function onRightResizerMouseDown (e) {
-    applyCursor(classes.resize)
     setOverviewState({
       cursorResizerDelta: getX(e) - (overviewState.right - boundingRect.left),
       dragging: true,
+      cursor: cursors.resize,
     })
   }
 
   function removeRightResizerListener () {
-    applyCursor(classes.resize)
-    setOverviewState({ dragging: false })
+    setOverviewState({
+      dragging: false,
+      cursor: cursors.default,
+    })
   }
 
   function onRightResizerMouseMove (e) {
@@ -352,16 +359,18 @@ export function Chart (options) {
   }
 
   function onViewBoxElementMouseDown (e) {
-    applyCursor(classes.grabbing)
     setOverviewState({
       cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left),
       dragging: true,
+      cursor: cursors.grabbing,
     })
   }
 
   function onViewBoxElementMouseUp () {
-    applyCursor(classes.grabbing)
-    setOverviewState({ dragging: false })
+    setOverviewState({
+      dragging: false,
+      cursor: cursors.default,
+    })
   }
 
   function onViewBoxElementMouseMove (e) {
@@ -491,10 +500,6 @@ export function Chart (options) {
     element.appendChild(viewBoxElement)
     return { element, resizerLeft, resizerRight, viewBoxElement, graphs }
   }
-}
-
-function getVisibilityKey (name) {
-  return `${name}_opacity`
 }
 
 function keepInBounds (value, min, max) {
