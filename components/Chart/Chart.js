@@ -1,3 +1,5 @@
+import { createSelectors } from './selectors'
+
 import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
@@ -20,55 +22,30 @@ const DOT_SIZE = 10
 const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
 
 const FRAME = 1000 / 60
-// AnimatableState = { startIndex, endIndex, max, ...visibilityState }
-// - Durations
-// - Easings
-// - Multiple renders per frame
-// - Overview
-// Can remove left right overview state, just use start/end index
-// Use divs for buttons
-// move mapDataToCoords up
-// - change easings when dragging viewbox
-// - bug: tooltip appears on 0 index
-export function Chart (options) {
-  // const state = getInitialState()
-  const overviewState = getInitialOverviewState()
 
+
+// - change easings when dragging viewbox
+export function Chart (options) {
+  const instantState = getInitialState()
   const { element, overview, graphs, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate } = createDOM()
   const boundingRect = overview.element.getBoundingClientRect()
 
-  const getLeft = () => overviewState.left
-  const getRight = () => overviewState.right
-  const getEnabledGraphNamesState = () => overviewState.enabledGraphNamesState
-  const isDragging = () => overviewState.dragging
-  const isHovering = () => overviewState.hovering
-
-  const getEnabledGraphNames = createComputedValue(getEnabledGraphNamesState)(
-    enabledGraphNamesState => options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
-  )
-  const getStartIndex = createComputedValue(getLeft)(left => left / options.width * (options.data.total - 1))
-  const getEndIndex = createComputedValue(getRight)(right => right / options.width * (options.data.total - 1))
-  const getMax = createComputedValue(getStartIndex, getEndIndex, getEnabledGraphNames)(
-    (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
-  )
-  const getTotalMax = createComputedValue(getEnabledGraphNames)(
-    (enabledGraphNames) => getMaxValueInRange(0, options.data.total - 1, enabledGraphNames)
-  )
-  const getVisibilityStateSelector = createComputedValue(getEnabledGraphNamesState)(
-    (enabledGraphNamesState) => options.graphNames.reduce((state, graphName) => ({
-      ...state,
-      [graphName]: Number(enabledGraphNamesState[graphName]),
-    }), {})
-  )
-  const isAnyGraphEnabled = createComputedValue(getEnabledGraphNames)(
-    (enabledGraphNames) => Boolean(enabledGraphNames.length)
-  )
-  const isTooltipVisible = createComputedValue(isDragging, isHovering, isAnyGraphEnabled)(
-    (isDragging, isHovering) => !isDragging && isHovering && isAnyGraphEnabled
-  )
-  const getMouseX = function getMouseX () {
-    return overviewState.mouseX
-  }
+  const {
+    getLeft,
+    getRight,
+    getEnabledGraphNamesState,
+    isDragging,
+    isHovering,
+    getEnabledGraphNames,
+    getStartIndex,
+    getEndIndex,
+    getMax,
+    getTotalMax,
+    getVisibilityStateSelector,
+    isAnyGraphEnabled,
+    isTooltipVisible,
+    getMouseX,
+  } = createSelectors(options, instantState)
 
   const getInertStartIndex = () => transitions.getState().startIndex
   const getInertEndIndex = () => transitions.getState().endIndex
@@ -196,6 +173,10 @@ export function Chart (options) {
   return { element }
 
   function render () {
+    updateViewBoxLeft()
+    updateViewBoxRight()
+    updateTooltipVisibility()
+    updateTooltipPosition()
     updateMainGraph()
     updateOverviewGraph()
     updateTooltipPosition()
@@ -212,36 +193,22 @@ export function Chart (options) {
   }
 
 
-  function setOverviewState (newState) {
-    Object.assign(overviewState, newState)
-
-    updateViewBoxLeft()
-    updateViewBoxRight()
-    updateTooltipVisibility()
-    updateTooltipPosition()
-
+  function setState (newState) {
+    Object.assign(instantState, newState)
     onRawStateChanged()
+    render()
   }
 
   function onButtonClick (graphName) {
-    setOverviewState({
+    setState({
       enabledGraphNamesState: {
-        ...overviewState.enabledGraphNamesState,
-        [graphName]: !overviewState.enabledGraphNamesState[graphName],
+        ...instantState.enabledGraphNamesState,
+        [graphName]: !instantState.enabledGraphNamesState[graphName],
       },
     })
   }
 
   function getInitialState () {
-    return {
-      startIndex: options.viewBox.startIndex,
-      endIndex: options.viewBox.endIndex,
-      max: beautifyNumber(getMaxValueInRange(options.viewBox.startIndex, options.viewBox.endIndex, options.graphNames)),
-      totalMax: getMaxValueInRange(0, options.data.total - 1, options.graphNames),
-    }
-  }
-
-  function getInitialOverviewState () {
     return {
       left: options.viewBox.startIndex / (options.data.total - 1) * options.width,
       right: options.width,
@@ -273,14 +240,15 @@ export function Chart (options) {
 
   function initDragListeners () {
     graphs.element.addEventListener('mouseenter', function (e) {
-      setOverviewState({ hovering: true })
+      const x = e.clientX - getGraphsBoundingRect().left
+      setState({ hovering: true, mouseX: x })
     })
     graphs.element.addEventListener('mouseleave', function (e) {
-      setOverviewState({ hovering: false })
+      setState({ hovering: false })
     })
     graphs.element.addEventListener('mousemove', function (e) {
       const x = e.clientX - getGraphsBoundingRect().left
-      setOverviewState({ mouseX: x })
+      setState({ mouseX: x })
     })
     handleDrag(overview.resizerLeft, {
       onDragStart: onLeftResizerMouseDown,
@@ -299,19 +267,8 @@ export function Chart (options) {
     })
   }
 
-  function getMaxValueInRange (startIndex, endIndex, graphNames) {
-    return getMaxValue(
-      { startIndex, endIndex },
-      getValues(graphNames),
-    )
-  }
-
-  function getValues (graphNames) {
-    return graphNames.map(graphName => options.data[graphName])
-  }
-
   function getVisibleGraphNames () {
-    return options.graphNames.filter(graphName => state[getVisibilityKey(graphName)])
+    return options.graphNames.filter(graphName => instantState[getVisibilityKey(graphName)])
   }
 
   function applyCursor (className) {
@@ -322,41 +279,41 @@ export function Chart (options) {
 
   function onLeftResizerMouseDown (e) {
     applyCursor(classes.resize)
-    setOverviewState({
-      cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left),
+    setState({
+      cursorResizerDelta: getX(e) - (instantState.left - boundingRect.left),
       dragging: true,
     })
   }
 
   function removeLeftResizerListener () {
     applyCursor(classes.resize)
-    setOverviewState({ dragging: false })
+    setState({ dragging: false })
   }
 
   function onLeftResizerMouseMove (e) {
-    const left = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
-    setOverviewState({
-      left: keepInBounds(left, 0, overviewState.right - minimalPixelsBetweenResizers)
+    const left = ensureInOverviewBounds(getX(e) - instantState.cursorResizerDelta)
+    setState({
+      left: keepInBounds(left, 0, instantState.right - minimalPixelsBetweenResizers)
     })
   }
 
   function onRightResizerMouseDown (e) {
     applyCursor(classes.resize)
-    setOverviewState({
-      cursorResizerDelta: getX(e) - (overviewState.right - boundingRect.left),
+    setState({
+      cursorResizerDelta: getX(e) - (instantState.right - boundingRect.left),
       dragging: true,
     })
   }
 
   function removeRightResizerListener () {
     applyCursor(classes.resize)
-    setOverviewState({ dragging: false })
+    setState({ dragging: false })
   }
 
   function onRightResizerMouseMove (e) {
-    const right = ensureInOverviewBounds(getX(e) - overviewState.cursorResizerDelta)
-    setOverviewState({
-      right: keepInBounds(right, overviewState.left + minimalPixelsBetweenResizers, right)
+    const right = ensureInOverviewBounds(getX(e) - instantState.cursorResizerDelta)
+    setState({
+      right: keepInBounds(right, instantState.left + minimalPixelsBetweenResizers, right)
     })
   }
 
@@ -370,22 +327,22 @@ export function Chart (options) {
 
   function onViewBoxElementMouseDown (e) {
     applyCursor(classes.grabbing)
-    setOverviewState({
-      cursorResizerDelta: getX(e) - (overviewState.left - boundingRect.left),
+    setState({
+      cursorResizerDelta: getX(e) - (instantState.left - boundingRect.left),
       dragging: true,
     })
   }
 
   function onViewBoxElementMouseUp () {
     applyCursor(classes.grabbing)
-    setOverviewState({ dragging: false })
+    setState({ dragging: false })
   }
 
   function onViewBoxElementMouseMove (e) {
-    const width = overviewState.right - overviewState.left
-    const nextLeft = getX(e) - overviewState.cursorResizerDelta
+    const width = instantState.right - instantState.left
+    const nextLeft = getX(e) - instantState.cursorResizerDelta
     const stateLeft = keepInBounds(nextLeft, 0, options.width - width)
-    setOverviewState({
+    setState({
       left: stateLeft,
       right: stateLeft + width,
     })
@@ -497,7 +454,6 @@ export function Chart (options) {
     resizerRight.className = 'overview__resizer overview__resizer--right'
     const viewBoxElement = document.createElement('div')
     viewBoxElement.className ='overview__viewbox'
-    viewBoxElement.style.left = `${overviewState.left}px`
     viewBoxElement.appendChild(resizerLeft)
     viewBoxElement.appendChild(resizerRight)
     const graphs = createGraphs({
