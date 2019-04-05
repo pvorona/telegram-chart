@@ -1,7 +1,6 @@
 import './polyfills'
 import { LIGHT, DARK } from './components/constants'
 import { ThemeSwitcher, createChartConfig, Chart } from './components'
-import './css/cursors.css'
 
 document.body.appendChild(ThemeSwitcher(LIGHT))
 

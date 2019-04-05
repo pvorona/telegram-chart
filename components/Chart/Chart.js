@@ -10,10 +10,6 @@ import { MONTHS, DAYS } from '../constants'
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 const resizerWidthPixels = 8
 const minimalPixelsBetweenResizers = 40
-const classes = {
-  grabbing: 'cursor-grabbing',
-  resize: 'cursor-ew-resize'
-}
 
 const cursors = {
   resize: 'ew-resize',
