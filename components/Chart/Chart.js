@@ -2,7 +2,7 @@ import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
 import { easeInOutQuart, linear } from '../../easings'
-import { createComputedValue, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition,
+import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition,
   simpleGroupTransition,
 } from '../../util'
 import { MONTHS, DAYS } from '../constants'
@@ -35,34 +35,44 @@ export function Chart (options) {
   const getEnabledGraphNamesState = () => overviewState.enabledGraphNamesState
   const isDragging = () => overviewState.dragging
   const isHovering = () => overviewState.hovering
+  const getMouseX = () => overviewState.mouseX
+  const getActiveCursor = () => overviewState.cursor
 
-  const getEnabledGraphNames = createComputedValue(getEnabledGraphNamesState)(
+  const getEnabledGraphNames = computed(
+    [getEnabledGraphNamesState],
     enabledGraphNamesState => options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
   )
-  const getStartIndex = createComputedValue(getLeft)(left => left / options.width * (options.data.total - 1))
-  const getEndIndex = createComputedValue(getRight)(right => right / options.width * (options.data.total - 1))
-  const getMax = createComputedValue(getStartIndex, getEndIndex, getEnabledGraphNames)(
+  const getStartIndex = computed(
+    [getLeft],
+    left => left / options.width * (options.data.total - 1)
+  )
+  const getEndIndex = computed(
+    [getRight],
+    right => right / options.width * (options.data.total - 1)
+  )
+  const getMax = computed(
+    [getStartIndex, getEndIndex, getEnabledGraphNames],
     (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   )
-  const getTotalMax = createComputedValue(getEnabledGraphNames)(
+  const getTotalMax = computed(
+    [getEnabledGraphNames],
     (enabledGraphNames) => getMaxValueInRange(0, options.data.total - 1, enabledGraphNames)
   )
-  const getVisibilityStateSelector = createComputedValue(getEnabledGraphNamesState)(
+  const getVisibilityStateSelector = computed(
+    [getEnabledGraphNamesState],
     (enabledGraphNamesState) => options.graphNames.reduce((state, graphName) => ({
       ...state,
       [graphName]: Number(enabledGraphNamesState[graphName]),
     }), {})
   )
-  const isAnyGraphEnabled = createComputedValue(getEnabledGraphNames)(
+  const isAnyGraphEnabled = computed(
+    [getEnabledGraphNames],
     (enabledGraphNames) => Boolean(enabledGraphNames.length)
   )
-  const isTooltipVisible = createComputedValue(isDragging, isHovering, isAnyGraphEnabled)(
-    (isDragging, isHovering) => !isDragging && isHovering && isAnyGraphEnabled
+  const isTooltipVisible = computed(
+    [isDragging, isHovering, isAnyGraphEnabled],
+    (isDragging, isHovering, isAnyGraphEnabled) => !isDragging && isHovering && isAnyGraphEnabled
   )
-  const getMouseX = function getMouseX () {
-    return overviewState.mouseX
-  }
-  const getActiveCursor = () => overviewState.cursor
 
   const getInertStartIndex = () => transitions.getState().startIndex
   const getInertEndIndex = () => transitions.getState().endIndex
@@ -70,7 +80,9 @@ export function Chart (options) {
   const getInertTotalMax = () => transitions.getState().totalMax
   const getOpacityState = () => transitions.getState().opacityState
 
-  const getMainGraphPoints = createComputedValue(getInertStartIndex, getInertEndIndex, getInertMax)((startIndex, endIndex, max) =>
+  const getMainGraphPoints = computed(
+    [getInertStartIndex, getInertEndIndex, getInertMax],
+    (startIndex, endIndex, max) =>
     options.graphNames.reduce((points, graphName) => ({
       ...points,
       [graphName]: mapDataToCoords(
@@ -82,39 +94,41 @@ export function Chart (options) {
       )
     }),{})
   )
-  const getOverviewPoints = createComputedValue(getInertTotalMax)((totalMax) =>
-    options.graphNames.reduce((points, graphName) => ({
-      ...points,
-      [graphName]: mapDataToCoords(
-        options.data[graphName],
-        totalMax,
-        { width: options.overviewWidth * devicePixelRatio, height: (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) * devicePixelRatio },
-        { startIndex: 0, endIndex: options.data.total - 1 },
-        options.lineWidth * devicePixelRatio,
-      )
-    }),{})
+  const getOverviewPoints = computed(
+    [getInertTotalMax],
+    (totalMax) =>
+      options.graphNames.reduce((points, graphName) => ({
+        ...points,
+        [graphName]: mapDataToCoords(
+          options.data[graphName],
+          totalMax,
+          { width: options.overviewWidth * devicePixelRatio, height: (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) * devicePixelRatio },
+          { startIndex: 0, endIndex: options.data.total - 1 },
+          options.lineWidth * devicePixelRatio,
+        )
+      }),{})
   )
 
   // Calculating points for hidden graphs
-  const getTooltipIndex = createComputedValue(
-    getMouseX,
-    getMainGraphPoints,
-    isTooltipVisible,
-  )((x, points, isTooltipVisible) => {
-    if (!isTooltipVisible) return
+  const getTooltipIndex = computed(
+    [getMouseX, getMainGraphPoints, isTooltipVisible],
+    (x, points, isTooltipVisible) => {
+      if (!isTooltipVisible) return
 
-    let closestPointIndex = 0
-    for (let i = 1; i < points[options.graphNames[0]].length; i++) {
-      const distance = Math.abs(points[options.graphNames[0]][i].x / devicePixelRatio - x)
-      const closesDistance = Math.abs(points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
-      if (distance < closesDistance) closestPointIndex = i
+      let closestPointIndex = 0
+      for (let i = 1; i < points[options.graphNames[0]].length; i++) {
+        const distance = Math.abs(points[options.graphNames[0]][i].x / devicePixelRatio - x)
+        const closesDistance = Math.abs(points[options.graphNames[0]][closestPointIndex].x / devicePixelRatio - x)
+        if (distance < closesDistance) closestPointIndex = i
+      }
+      return closestPointIndex
     }
-    return closestPointIndex
-  })
+  )
 
 
   // Can be splitted?
-  const updateTooltipVisibility = createComputedValue(isTooltipVisible, getEnabledGraphNames)(
+  const updateTooltipVisibility = computed(
+    [isTooltipVisible, getEnabledGraphNames],
     (visible, enabledGraphNames) => {
       tooltipLine.style.visibility = visible ? 'visible' : ''
       tooltip.style.visibility = visible ? 'visible' : ''
@@ -126,9 +140,8 @@ export function Chart (options) {
       )
     }
   )
-  const updateTooltipPosition = createComputedValue(
-    isTooltipVisible, getMainGraphPoints, getEnabledGraphNames, getTooltipIndex, getInertStartIndex,
-  )(
+  const updateTooltipPosition = computed(
+    [isTooltipVisible, getMainGraphPoints, getEnabledGraphNames, getTooltipIndex, getInertStartIndex],
     (isTooltipVisible, points, enabledGraphNames, index, inertStartIndex) => {
       if (!isTooltipVisible) return
 
@@ -146,9 +159,16 @@ export function Chart (options) {
     }
   )
 
-  const updateViewBoxLeft = createComputedValue(getLeft)(left => overview.viewBoxElement.style.left = `${left}px`)
-  const updateViewBoxRight = createComputedValue(getRight)(right => overview.viewBoxElement.style.right = `${options.width - right}px`)
-  const updateMainGraph = createComputedValue(getInertStartIndex, getInertEndIndex, getInertMax, getMainGraphPoints, getOpacityState)(
+  const updateViewBoxLeft = computed(
+    [getLeft],
+    left => overview.viewBoxElement.style.left = `${left}px`
+  )
+  const updateViewBoxRight = computed(
+    [getRight],
+    right => overview.viewBoxElement.style.right = `${options.width - right}px`
+  )
+  const updateMainGraph = computed(
+    [getInertStartIndex, getInertEndIndex, getInertMax, getMainGraphPoints, getOpacityState],
     (startIndex, endIndex, max, points, opacityState) => renderGraphs({
       startIndex,
       endIndex,
@@ -164,7 +184,8 @@ export function Chart (options) {
       strokeStyles: options.colors,
     })
   )
-  const updateOverviewGraph = createComputedValue(getOpacityState, getTotalMax, getOverviewPoints)(
+  const updateOverviewGraph = computed(
+    [getOpacityState, getTotalMax, getOverviewPoints],
     (opacityState, totalMax, points) => renderGraphs({
       opacityState,
       points,
@@ -179,10 +200,12 @@ export function Chart (options) {
       strokeStyles: options.colors,
     })
   )
-  const updateCursor = createComputedValue(getActiveCursor)((cursor) =>
-    [document.body, overview.viewBoxElement, overview.resizerLeft, overview.resizerRight].forEach(
-      element => element.style.cursor = cursor
-    )
+  const updateCursor = computed(
+    [getActiveCursor],
+    (cursor) =>
+      [document.body, overview.viewBoxElement, overview.resizerLeft, overview.resizerRight].forEach(
+        element => element.style.cursor = cursor
+      )
   )
 
   const transitions = createTransitionGroup(createTransitions(), render)
