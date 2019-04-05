@@ -103,7 +103,10 @@ export function Chart (options) {
   const getTooltipIndex = createComputedValue(
     getMouseX,
     getMainGraphPoints,
-  )((x, points) => {
+    isTooltipVisible,
+  )((x, points, isTooltipVisible) => {
+    if (!isTooltipVisible) return
+
     let closestPointIndex = 0
     for (let i = 1; i < points[options.graphNames[0]].length; i++) {
       const distance = Math.abs(points[options.graphNames[0]][i].x / devicePixelRatio - x)
