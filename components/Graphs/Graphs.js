@@ -5,13 +5,16 @@ export function renderGraphs ({ context, points, graphNames, lineWidth, strokeSt
     if (opacity === 0) continue
     const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`
     context.strokeStyle = color
-    context.lineWidth = lineWidth * devicePixelRatio
-    context.beginPath()
-    for (let j = 0; j < points[graphNames[i]].length; j++) {
+    context.lineWidth = 1
+    // context.lineWidth = lineWidth * devicePixelRatio
+    // context.beginPath()
+    for (let j = 1; j < points[graphNames[i]].length; j++) {
       const { x, y } = points[graphNames[i]][j]
-      context.lineTo(x, y)
+      const { x: x0, y: y0 } = points[graphNames[i]][j - 1]
+      // context.lineTo(x, y)
+      line(x0, y0, x, y, context)
     }
-    context.stroke()
+    // context.stroke()
   }
 }
 
@@ -26,4 +29,21 @@ function hexToRGB (hex) {
 
 function getVisibilityKey (name) {
   return `${name}_opacity`
+}
+
+function line (x0, y0, x1, y1, context) {
+   var dx = Math.abs(x1 - x0);
+   var dy = Math.abs(y1 - y0);
+   var sx = (x0 < x1) ? 1 : -1;
+   var sy = (y0 < y1) ? 1 : -1;
+   var err = dx - dy;
+
+   while (Math.abs(x0 - x1) > 1 || Math.abs(y0 - y1) > 1) {
+      context.fillRect(x0, y0, 1, 1)
+      context.fillRect(x1, y1, 1, 1)
+
+      var e2 = 2*err;
+      if (e2 > -dy) { err -= dy; x0  += sx; }
+      if (e2 < dx) { err += dx; y0  += sy; }
+   }
 }
