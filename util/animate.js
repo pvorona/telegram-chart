@@ -2,13 +2,12 @@ import { values } from './values'
 import { shallowEqual } from './shallowEqual'
 
 export function animate (from, to, duration, easing, callback) {
-  const startAnimationTime = Date.now()
+  const startAnimationTime = performance.now() + performance.timing.navigationStart
   let lastDispatchedValue = from
   let animating = true
   let animationId
 
-  function frame () {
-    const currentTime = Date.now()
+  function frame (currentTime) {
     if (currentTime - startAnimationTime >= duration) {
       if (lastDispatchedValue !== to) {
         callback(to)
@@ -27,7 +26,7 @@ export function animate (from, to, duration, easing, callback) {
 
   return function cancelAnimation () {
     if (animating) {
-      const currentTime = Date.now()
+      const currentTime = performance.now() + performance.timing.navigationStart
       callback(easing(
         (currentTime - startAnimationTime) / duration
       ) * (to - from) + from)
@@ -37,13 +36,13 @@ export function animate (from, to, duration, easing, callback) {
 }
 
 export function transition (initialValue, duration, easing) {
-  let startTime = Date.now()
+  let startTime = performance.now() + performance.timing.navigationStart
   let startValue = initialValue
   let targetValue = initialValue
   let finished = true
 
   const getState = () => {
-    const progress = Math.min((Date.now() - startTime) / duration, 1)
+    const progress = Math.min((performance.now() + performance.timing.navigationStart - startTime) / duration, 1)
 
     if (progress === 1) {
       finished = true
@@ -61,7 +60,7 @@ export function transition (initialValue, duration, easing) {
     startValue = getState()
     targetValue = target
     finished = false
-    startTime = Date.now()
+    startTime = performance.now() + performance.timing.navigationStart
   }
 
   return {
@@ -71,14 +70,10 @@ export function transition (initialValue, duration, easing) {
   }
 }
 
-export function createTransitionGroup (transitions, onFrame) {
+export function animation (transition, onFrame) {
   let animationId = undefined
   let lastDispatchedState = {}
-  let state = computeNewState()
-
-  for (let key in transitions) {
-    lastDispatchedState[key] = transitions[key].value
-  }
+  let state = transition.getState()
 
   const scheduleUpdate = () => {
     if (animationId === undefined) {
@@ -90,45 +85,30 @@ export function createTransitionGroup (transitions, onFrame) {
     return state
   }
 
-  function computeNewState () {
-    const state = {}
-    for (let key in transitions) {
-      state[key] = transitions[key].getState()
-    }
-    return state
-  }
-
   const handleAnimationFrame = () => {
     animationId = undefined
-    const allTransitionsFinished = values(transitions).every(transition => transition.isFinished())
 
-    if (!allTransitionsFinished) {
+    if (!transition.isFinished()) {
       scheduleUpdate()
     }
 
-    const newState = Object.assign({}, state, computeNewState())
+    const newState = transition.getState()
     if (!shallowEqual(newState, state)) {
       state = newState
       onFrame(state)
     }
   }
 
-  const setTarget = targets => {
+  const setTarget = target => {
     if (animationId) {
       cancelAnimationFrame(animationId)
       animationId = undefined
     }
     let shouldAnimate = false
 
-    for (let key in targets) {
-      transitions[key].setTarget(targets[key])
+    transition.setTarget(target)
 
-      if (!transitions[key].isFinished()) {
-        shouldAnimate = true
-      }
-    }
-
-    if (shouldAnimate) {
+    if (!transition.isFinished()) {
       scheduleUpdate()
     }
   }
@@ -139,7 +119,7 @@ export function createTransitionGroup (transitions, onFrame) {
   }
 }
 
-export function simpleGroupTransition (transitions) {
+export function groupTransition (transitions) {
   let state = computeState()
 
   function computeState () {
