@@ -2,8 +2,8 @@ import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
 import { easeInOutQuart, linear } from '../../easings'
-import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, createTransitionGroup, transition,
-  simpleGroupTransition,
+import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, animation, transition,
+  groupTransition,
 } from '../../util'
 import { MONTHS, DAYS } from '../constants'
 
@@ -52,7 +52,8 @@ export function Chart (options) {
   )
   const getMax = computed(
     [getStartIndex, getEndIndex, getEnabledGraphNames],
-    (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
+    (startIndex, endIndex, enabledGraphNames) => getMaxValueInRange(startIndex, endIndex, enabledGraphNames)
+    // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   )
   const getTotalMax = computed(
     [getEnabledGraphNames],
@@ -184,6 +185,7 @@ export function Chart (options) {
       strokeStyles: options.colors,
     })
   )
+  // const updateOverviewGraph = () => {}
   const updateOverviewGraph = computed(
     [getOpacityState, getTotalMax, getOverviewPoints],
     (opacityState, totalMax, points) => renderGraphs({
@@ -208,7 +210,7 @@ export function Chart (options) {
       )
   )
 
-  const transitions = createTransitionGroup(createTransitions(), render)
+  const transitions = animation(createTransitions(), render)
 
   initDragListeners()
 
@@ -274,18 +276,18 @@ export function Chart (options) {
   }
 
   function createTransitions () {
-    return {
+    return groupTransition({
       startIndex: transition(getStartIndex(), FRAME * 4, linear),
       endIndex: transition(getEndIndex(), FRAME * 4, linear),
       max: transition(getMax(), FRAME * 36, easeInOutQuart),
       totalMax: transition(getTotalMax(), FRAME * 36, easeInOutQuart),
-      opacityState: simpleGroupTransition(
+      opacityState: groupTransition(
         options.graphNames.reduce((state, graphName) => ({
           ...state,
           [graphName]: transition(1, FRAME * 36, easeInOutQuart),
         }), {})
       ),
-    }
+    })
   }
 
   function initDragListeners () {
