@@ -23,7 +23,6 @@ const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
 
 const FRAME = 1000 / 60
 // Use divs for buttons
-// - change easings when dragging viewbox
 export function Chart (options) {
   const overviewState = getInitialOverviewState()
 
@@ -210,7 +209,18 @@ export function Chart (options) {
       )
   )
 
-  const transitions = animation(createTransitions(), render)
+  const updateEasings = computed(
+    [isDragging],
+    (isDragging) => {
+      if (isDragging) {
+        transitions = animation(createTransitionsForDrag(), render)
+      } else {
+        transitions = animation(createTransitions(), render)
+      }
+    }
+  )
+
+  let transitions = animation(createTransitions(), render)
 
   initDragListeners()
 
@@ -234,6 +244,7 @@ export function Chart (options) {
   }
 
   function onRawStateChanged () {
+    updateEasings()
     transitions.setTarget({
       startIndex: getStartIndex(),
       endIndex: getEndIndex(),
@@ -285,6 +296,21 @@ export function Chart (options) {
         options.graphNames.reduce((state, graphName) => ({
           ...state,
           [graphName]: transition(1, FRAME * 36, easeInOutQuart),
+        }), {})
+      ),
+    })
+  }
+
+  function createTransitionsForDrag () {
+    return groupTransition({
+      startIndex: transition(getStartIndex(), FRAME * 4, linear),
+      endIndex: transition(getEndIndex(), FRAME * 4, linear),
+      max: transition(getMax(), FRAME * 10, linear),
+      totalMax: transition(getTotalMax(), FRAME * 10, linear),
+      opacityState: groupTransition(
+        options.graphNames.reduce((state, graphName) => ({
+          ...state,
+          [graphName]: transition(1, FRAME * 10, linear),
         }), {})
       ),
     })
