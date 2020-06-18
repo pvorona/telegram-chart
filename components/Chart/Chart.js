@@ -1,6 +1,8 @@
 import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
+import { smartObserve } from './RenderPipeline'
+
 import { easeInOutQuart, linear } from '../../easings'
 import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, animation, transition,
   groupTransition,
@@ -145,7 +147,7 @@ export function Chart (options) {
 
   const left = observable(overviewState.left)
   const right = observable(overviewState.right)
-  const enabledGraphNames = observable(overviewState.enabledGraphNamesState)
+  const enabledGraphNamesStateObservable = observable(overviewState.enabledGraphNamesState)
   const dragging = observable(overviewState.dragging)
   const hovering = observable(overviewState.hovering)
   const mouseX = observable(overviewState.mouseX)
@@ -166,10 +168,10 @@ export function Chart (options) {
   //   enabledGraphNamesState => options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
   // )
   const getEnabledGraphNamesObservable = compute(
-    [enabledGraphNames],
+    [enabledGraphNamesStateObservable],
     enabledGraphNamesState => options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
   )
-
+getEnabledGraphNamesObservable.get()
   // const getStartIndex = computed(
   //   [getLeft],
   //   left => left / options.width * (options.data.total - 1)
@@ -205,7 +207,7 @@ export function Chart (options) {
   //   }), {})
   // )
   const getVisibilityStateSelectorObservable = compute(
-    [enabledGraphNames],
+    [enabledGraphNamesStateObservable],
     (enabledGraphNamesState) => options.graphNames.reduce((state, graphName) => ({
       ...state,
       [graphName]: Number(enabledGraphNamesState[graphName]),
@@ -217,7 +219,7 @@ export function Chart (options) {
   //   (enabledGraphNames) => Boolean(enabledGraphNames.length)
   // )
   const isAnyGraphEnabledObservable = compute(
-    [enabledGraphNames],
+    [getEnabledGraphNamesObservable],
     (enabledGraphNames) => Boolean(enabledGraphNames.length)
   )
 
@@ -355,7 +357,7 @@ export function Chart (options) {
   //     )
   //   }
   // )
-  const updateTooltipVisibilityObserve = observe(
+  const updateTooltipVisibilityObserve = smartObserve(
     [isTooltipVisibleObservable, getEnabledGraphNamesObservable],
     (visible, enabledGraphNames) => {
       tooltipLine.style.visibility = visible ? 'visible' : ''
@@ -387,7 +389,7 @@ export function Chart (options) {
 //       tooltip.style.transform = `translateX(${x / devicePixelRatio - tooltip.offsetWidth / 2}px)`
 //     }
 //   )
-  const updateTooltipPositionObserve = observe(
+  const updateTooltipPositionObserve = smartObserve(
     [isTooltipVisibleObservable, getMainGraphPointsObservable, getEnabledGraphNamesObservable, getTooltipIndexObservable, inertStartIndex],
     (isTooltipVisible, points, enabledGraphNames, index, inertStartIndex) => {
       if (!isTooltipVisible) return
@@ -410,16 +412,18 @@ export function Chart (options) {
   //   [getLeft],
   //   left => overview.viewBoxElement.style.left = `${left}px`
   // )
-  const updateViewBoxLeftObserve = observe(
+  const updateViewBoxLeftObserve = smartObserve(
     [left],
-    left => overview.viewBoxElement.style.left = `${left}px`
+    left => {
+      overview.viewBoxElement.style.left = `${left}px`
+    }
   )
 
   // const updateViewBoxRight = computed(
   //   [getRight],
   //   right => overview.viewBoxElement.style.right = `${options.width - right}px`
   // )
-  const updateViewBoxRightObserve = observe(
+  const updateViewBoxRightObserve = smartObserve(
     [right],
     right => overview.viewBoxElement.style.right = `${options.width - right}px`
   )
@@ -476,7 +480,7 @@ export function Chart (options) {
   //     strokeStyles: options.colors,
   //   })
   // )
-  const updateOverviewGraphObserve = observe(
+  const updateOverviewGraphObserve = smartObserve(
     [getVisibilityStateSelectorObservable, getTotalMaxObservable, getOverviewPointsObservable],
     (opacityState, totalMax, points) => renderGraphs({
       opacityState,
@@ -500,7 +504,7 @@ export function Chart (options) {
   //       element => element.style.cursor = cursor
   //     )
   // )
-  const updateCursorObserve = observe(
+  const updateCursorObserve = smartObserve(
     [activeCursor],
     (cursor) =>
       [document.body, overview.viewBoxElement, overview.resizerLeft, overview.resizerRight].forEach(
