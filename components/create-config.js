@@ -1,5 +1,5 @@
 import { ceil, max } from '../util'
-const LINE_WIDTH = 2
+const LINE_WIDTH = 1
 const OVERVIEW_LINE_WIDTH = 1
 // Change here to test mobile screens
 const CANVAS_WIDTH = 768 * 1

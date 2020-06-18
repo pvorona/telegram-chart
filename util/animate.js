@@ -152,3 +152,60 @@ export function groupTransition (transitions) {
 
   return { setTarget, isFinished, getState }
 }
+
+export function animationObservable (transition) {
+  const observers = []
+  let animationId = undefined
+  let lastDispatchedState = {}
+  let state = transition.getState()
+
+  function notify () {
+    observers.forEach(observer => observer(state))
+  }
+
+  const scheduleUpdate = () => {
+    if (animationId === undefined) {
+      animationId = requestAnimationFrame(handleAnimationFrame)
+    }
+  }
+
+  const get = () => {
+    return state
+  }
+
+  const handleAnimationFrame = () => {
+    animationId = undefined
+
+    if (!transition.isFinished()) {
+      scheduleUpdate()
+    }
+
+    const newState = transition.getState()
+    if (state !== newState) {
+      state = newState
+      notify()
+    }
+  }
+
+  const set = target => {
+    if (animationId) {
+      cancelAnimationFrame(animationId)
+      animationId = undefined
+    }
+    let shouldAnimate = false
+
+    transition.setTarget(target)
+
+    if (!transition.isFinished()) {
+      scheduleUpdate()
+    }
+  }
+
+  return {
+    set,
+    get,
+    observe (observer) {
+      observers.push(observer)
+    },
+  }
+}
