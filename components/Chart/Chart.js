@@ -228,19 +228,26 @@ export function Chart (options) {
     return graphs.element.getBoundingClientRect()
   })
 
+  let frameId = undefined
   render()
+
 
   return { element }
 
   function render () {
-    updateViewBoxLeft()
-    updateViewBoxRight()
-    updateTooltipVisibility()
-    updateTooltipPosition()
-    updateCursor()
+    if (frameId) return
+    frameId = requestAnimationFrame(() => {
+      updateViewBoxLeft()
+      updateViewBoxRight()
+      updateTooltipVisibility()
+      updateTooltipPosition()
+      updateCursor()
 
-    updateMainGraph()
-    updateOverviewGraph()
+      updateMainGraph()
+      updateOverviewGraph()
+
+      frameId = undefined
+    })
   }
 
   function onRawStateChanged () {
@@ -253,7 +260,6 @@ export function Chart (options) {
       opacityState: getVisibilityStateSelector(),
     })
   }
-
 
   function setOverviewState (newState) {
     Object.assign(overviewState, newState)
