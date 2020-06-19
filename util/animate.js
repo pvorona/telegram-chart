@@ -271,7 +271,7 @@ function scheduleTask (callback, order = TASK.DOM_WRITE) {
   return task
 }
 
-export function smartObserve (
+export function effect (
   deps,
   observer,
 ) {
