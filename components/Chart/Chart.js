@@ -1,12 +1,11 @@
 import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
 
-import { smartObserve } from './RenderPipeline'
-
 import { easeInOutQuart, linear } from '../../easings'
 import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memoizeObjectArgument, getMaxValue, beautifyNumber, animation, transition,
   groupTransition,
   animationObservable,
+  smartObserve,
 } from '../../util'
 import { MONTHS, DAYS } from '../constants'
 
@@ -77,32 +76,6 @@ export function observe (
 
   function notify () {
     return observer(...deps.map(dep => dep.get()))
-  }
-
-  return () => {
-    unobserves.forEach(unobserve => unobserve())
-  }
-}
-
-export function observeAnimationFrame (
-  deps,
-  observer,
-) {
-  let notifyScheduled = false
-  scheduleNotify()
-
-  const unobserves = deps.map(dep => dep.observe(scheduleNotify))
-
-  function scheduleNotify () {
-    if (!notifyScheduled) {
-      requestAnimationFrame(notify)
-      notifyScheduled = true
-    }
-  }
-
-  function notify () {
-    observer(...deps.map(dep => dep.get()))
-    notifyScheduled = false
   }
 
   return () => {
@@ -445,7 +418,7 @@ getEnabledGraphNamesObservable.get()
   //     strokeStyles: options.colors,
   //   })
   // )
-  const updateMainGraphObserve = observeAnimationFrame(
+  const updateMainGraphObserve = smartObserve(
     [inertStartIndex, inertEndIndex, inertMax, getMainGraphPointsObservable, getVisibilityStateSelectorObservable],
     (startIndex, endIndex, max, points, opacityState) => renderGraphs({
       startIndex,

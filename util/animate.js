@@ -155,8 +155,7 @@ export function groupTransition (transitions) {
 
 export function animationObservable (transition) {
   const observers = []
-  let animationId = undefined
-  let lastDispatchedState = {}
+  let task = undefined
   let state = transition.getState()
 
   function notify () {
@@ -164,8 +163,8 @@ export function animationObservable (transition) {
   }
 
   const scheduleUpdate = () => {
-    if (animationId === undefined) {
-      animationId = requestAnimationFrame(handleAnimationFrame)
+    if (task === undefined || task.completed || task.cancelled) {
+      task = scheduleTask(handleAnimationFrame, TASK.COMPUTATION)
     }
   }
 
@@ -174,25 +173,21 @@ export function animationObservable (transition) {
   }
 
   const handleAnimationFrame = () => {
-    animationId = undefined
-
-    if (!transition.isFinished()) {
-      scheduleUpdate()
-    }
-
     const newState = transition.getState()
     if (state !== newState) {
       state = newState
       notify()
     }
+
+    if (!transition.isFinished()) {
+      return handleAnimationFrame
+    }
   }
 
   const set = target => {
-    if (animationId) {
-      cancelAnimationFrame(animationId)
-      animationId = undefined
+    if (task && !task.completed) {
+      cancelTask(task)
     }
-    let shouldAnimate = false
 
     transition.setTarget(target)
 
@@ -207,5 +202,97 @@ export function animationObservable (transition) {
     observe (observer) {
       observers.push(observer)
     },
+  }
+}
+
+function cancelTask (task) {
+  task.cancelled = true
+}
+
+var renderFrameId = undefined
+
+function scheduleRender () {
+  if (renderFrameId) return
+  renderFrameId = requestAnimationFrame(render)
+}
+
+const TASK = {
+  DOM_READ: 0,
+  COMPUTATION: 1,
+  DOM_WRITE: 2,
+}
+
+const ORDER = [
+  TASK.DOM_READ,
+  TASK.COMPUTATION,
+  TASK.DOM_WRITE,
+]
+
+const tasks = {
+  [TASK.DOM_READ]: [],
+  [TASK.COMPUTATION]: [],
+  [TASK.DOM_WRITE]: [],
+}
+
+let rafTasks = []
+
+function render () {
+  let shouldRequestRender = false
+  for (const order of ORDER) {
+    const producedTasks = []
+    for (const task of tasks[order]) {
+      if (!task.cancelled) {
+        const producedTask = task.execute()
+        task.completed = true
+        if (typeof producedTask === 'function') {
+          producedTasks.push(createTask(producedTask))
+          shouldRequestRender = true
+        }
+      }
+    }
+    tasks[order] = producedTasks
+  }
+  renderFrameId = undefined
+  if (shouldRequestRender) {
+    scheduleRender()
+  }
+}
+
+function createTask (callback) {
+  return {
+    completed: false,
+    cancelled: false,
+    execute: callback,
+  }
+}
+
+function scheduleTask (callback, order = TASK.DOM_WRITE) {
+  if (typeof callback !== 'function') debugger
+  const task = createTask(callback)
+  tasks[order].push(task)
+  scheduleRender()
+  return task
+}
+
+export function smartObserve (
+  deps,
+  observer,
+) {
+  let task = scheduleTask(notify)
+
+  const unobserves = deps.map(dep => dep.observe(scheduleNotify))
+
+  function scheduleNotify () {
+    if (task.completed || task.cancelled) {
+      task = scheduleTask(notify)
+    }
+  }
+
+  function notify () {
+    return observer(...deps.map(dep => dep.get()))
+  }
+
+  return () => {
+    unobserves.forEach(unobserve => unobserve())
   }
 }
