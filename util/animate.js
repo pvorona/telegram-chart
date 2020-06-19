@@ -153,26 +153,29 @@ export function groupTransition (transitions) {
   return { setTarget, isFinished, getState }
 }
 
+function oncePerFrame (original) {
+  let task = undefined
+
+  return function frameHandler () {
+    if (task === undefined || task.completed || task.cancelled) {
+      task = scheduleTask(original)
+    }
+  }
+}
+
 export function animationObservable (transition) {
   const observers = []
-  let task = undefined
   let state = transition.getState()
 
   function notify () {
     observers.forEach(observer => observer(state))
   }
 
-  const scheduleUpdate = () => {
-    if (task === undefined || task.completed || task.cancelled) {
-      task = scheduleTask(handleAnimationFrame, TASK.COMPUTATION)
-    }
-  }
-
   const get = () => {
     return state
   }
 
-  const handleAnimationFrame = () => {
+  const handleAnimationFrame = oncePerFrame(function onFrame () {
     const newState = transition.getState()
     if (state !== newState) {
       state = newState
@@ -180,19 +183,16 @@ export function animationObservable (transition) {
     }
 
     if (!transition.isFinished()) {
-      return handleAnimationFrame
+      return onFrame
     }
-  }
+  })
 
   const set = target => {
-    if (task && !task.completed) {
-      cancelTask(task)
-    }
-
+    // might need cancel task here
     transition.setTarget(target)
 
     if (!transition.isFinished()) {
-      scheduleUpdate()
+      handleAnimationFrame()
     }
   }
 
@@ -234,8 +234,6 @@ const tasks = {
   [TASK.DOM_WRITE]: [],
 }
 
-let rafTasks = []
-
 function render () {
   let shouldRequestRender = false
   for (const order of ORDER) {
@@ -267,7 +265,6 @@ function createTask (callback) {
 }
 
 function scheduleTask (callback, order = TASK.DOM_WRITE) {
-  if (typeof callback !== 'function') debugger
   const task = createTask(callback)
   tasks[order].push(task)
   scheduleRender()
@@ -278,19 +275,10 @@ export function smartObserve (
   deps,
   observer,
 ) {
-  let task = scheduleTask(notify)
+  const notify = oncePerFrame(() => observer(...deps.map(dep => dep.get())))
+  const unobserves = deps.map(dep => dep.observe(notify))
 
-  const unobserves = deps.map(dep => dep.observe(scheduleNotify))
-
-  function scheduleNotify () {
-    if (task.completed || task.cancelled) {
-      task = scheduleTask(notify)
-    }
-  }
-
-  function notify () {
-    return observer(...deps.map(dep => dep.get()))
-  }
+  notify()
 
   return () => {
     unobserves.forEach(unobserve => unobserve())
