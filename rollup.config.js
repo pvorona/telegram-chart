@@ -9,7 +9,7 @@ module.exports = {
     format: 'iife'
   },
   plugins: [
-    css({ minified: true }),
+    css({ minified: false }),
     resolve(),
     filesize({ showBrotliSize: true }),
   ],
