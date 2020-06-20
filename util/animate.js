@@ -1,5 +1,6 @@
 import { values } from './values'
 import { shallowEqual } from './shallowEqual'
+import { computed } from './computed'
 
 export function animate (from, to, duration, easing, callback) {
   const startAnimationTime = performance.now() + performance.timing.navigationStart
@@ -193,33 +194,42 @@ function computation (compute, name) {
 export function animationObservable (transition) {
   const observers = []
   let state = transition.getState()
+  let futureTask = undefined
 
   function notify () {
-    observers.forEach(observer => observer(state))
+    for (const observer of observers) {
+      observer()
+    }
   }
 
   const get = () => {
-    return state
-  }
-
-  const handleAnimationFrame = oncePerFrame(function onFrame () {
     const newState = transition.getState()
     if (state !== newState) {
       state = newState
-      notify()
     }
 
     if (!transition.isFinished()) {
-      return onFrame
+      if (!futureTask || futureTask.completed) {
+        // if phase is rendering
+        // execute notify task in next frame
+        // else notify
+        futureTask = createTask(notify)
+        tasks.future.push(futureTask)
+      }
     }
-  }, TASK.COMPUTATION)
+
+    return state
+  }
 
   const set = target => {
     // might need cancel task here
+    // if (futureTask && !futureTask.cancelled) {
+    //   cancelTask(futureTask)
+    // }
     transition.setTarget(target)
 
     if (!transition.isFinished()) {
-      handleAnimationFrame()
+      notify()
     }
   }
 
@@ -259,35 +269,33 @@ const tasks = {
   [TASK.DOM_READ]: [],
   [TASK.COMPUTATION]: [],
   [TASK.DOM_WRITE]: [],
+  future: [],
 }
 
 function render () {
-  console.log('-----------------------------')
-  console.log('FRAME START')
+  // console.log('-----------------------------')
+  // console.log('FRAME START')
   queue.phase = RENDERING
   let shouldRequestRender = false
   for (const order of ORDER) {
     queue.order = order
-    const producedTasks = []
     for (const task of tasks[order]) {
       if (!task.cancelled) {
-        const producedTask = task.execute()
+        task.execute()
         task.completed = true
-        if (typeof producedTask === 'function') {
-          producedTasks.push(createTask(producedTask))
-          shouldRequestRender = true
-        }
       }
     }
-    tasks[order] = producedTasks
+    tasks[order] = []
   }
   renderFrameId = undefined
-  if (shouldRequestRender) {
+  if (tasks.future.length) {
+    tasks[TASK.DOM_WRITE] = tasks.future
+    tasks.future = []
     scheduleRender()
   }
   queue.phase = INTERACTING
-  console.log('FRAME END')
-  console.log('-----------------------------')
+  // console.log('FRAME END')
+  // console.log('-----------------------------')
 
 }
 
@@ -310,20 +318,68 @@ export function effect (
   deps,
   observer,
 ) {
-  const notify = oncePerFrame(() => observer(...deps.map(dep => dep.get())), TASK.DOM_WRITE)
-  const unobserves = deps.map(dep => dep.observe(notify))
+  const scheduleNotify = oncePerFrame(function notify () {
+    const values = []
+    for (const dep of deps) {
+      values.push(dep.get())
+    }
+    observer(...values)
+    // console.log('Effect', observer.name)
+  }, TASK.DOM_WRITE)
+  const unobserves = deps.map(dep => dep.observe(scheduleNotify))
 
-  notify()
+  scheduleNotify()
 
   return () => {
     unobserves.forEach(unobserve => unobserve())
   }
 }
 
+export function lazyCompute (
+  deps,
+  compute,
+) {
+  const observers = []
+  let value
+  let dirty = true
+
+  for (const dep of deps) {
+    dep.observe(markDirty)
+  }
+
+  function markDirty () {
+    dirty = true
+    for (const observer of observers) {
+      observer()
+    }
+  }
+
+  function recompute () {
+    const values = []
+    for (const dep of deps) {
+      values.push(dep.get())
+    }
+    // console.log('LazyCompute', compute.name)
+    return compute(...values)
+  }
+
+  return {
+    get () {
+      if (dirty) {
+        value = recompute()
+        dirty = false
+      }
+      return value
+    },
+    observe (observer) {
+      observers.push(observer)
+    }
+  }
+}
+
 export function compute (
   deps,
   compute,
-  name,
 ) {
   const obs = observable(recompute())
   const wrapperNotifyComputationObservers = computation(function notifyComputationObservers () {
@@ -355,7 +411,9 @@ export function observable (initialValue) {
   const observers = []
 
   function notify () {
-    observers.forEach(observer => observer(value))
+    for (const observer of observers) {
+      observer(value)
+    }
   }
 
   return {

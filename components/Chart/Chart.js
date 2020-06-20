@@ -6,7 +6,7 @@ import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memo
   groupTransition,
   animationObservable,
   effect,
-  compute,
+  lazyCompute,
   observable,
   observe,
 } from '../../util'
@@ -53,49 +53,65 @@ export function Chart (options) {
 
   let cursorResizerDelta = 0
 
-  const getEnabledGraphNamesObservable = compute(
+  const getEnabledGraphNamesObservable = lazyCompute(
     [enabledGraphNamesStateObservable],
-    enabledGraphNamesState => options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
+    function getEnabledGraphNamesCompute (enabledGraphNamesState) {
+      return options.graphNames.filter(graphName => enabledGraphNamesState[graphName])
+    }
   )
 
-  const getStartIndexObservable = compute(
+  const getStartIndexObservable = lazyCompute(
     [left],
-    left => left / options.width * (options.data.total - 1)
+    function getStartIndexCompute (left) {
+      return left / options.width * (options.data.total - 1)
+    }
   )
 
-  const getEndIndexObservalbe = compute(
+  const getEndIndexObservalbe = lazyCompute(
     [right],
-    right => right / options.width * (options.data.total - 1)
+    function getEndIndexCompute (right) {
+      return right / options.width * (options.data.total - 1)
+    }
   )
 
-  const getTotalMaxObservable = compute(
+  const getTotalMaxObservable = lazyCompute(
     [getEnabledGraphNamesObservable],
-    (enabledGraphNames) => getMaxValueInRange(0, options.data.total - 1, enabledGraphNames)
+    function getTotalMaxCompute (enabledGraphNames) {
+      return getMaxValueInRange(0, options.data.total - 1, enabledGraphNames)
+    }
   )
 
-  const getVisibilityStateSelectorObservable = compute(
+  const getVisibilityStateSelectorObservable = lazyCompute(
     [enabledGraphNamesStateObservable],
-    (enabledGraphNamesState) => options.graphNames.reduce((state, graphName) => ({
-      ...state,
-      [graphName]: Number(enabledGraphNamesState[graphName]),
-    }), {})
+    function getVisibilityStateSelectorCompute (enabledGraphNamesState) {
+      return options.graphNames.reduce((state, graphName) => ({
+        ...state,
+        [graphName]: Number(enabledGraphNamesState[graphName]),
+      }), {})
+    }
   )
 
-  const isAnyGraphEnabledObservable = compute(
+  const isAnyGraphEnabledObservable = lazyCompute(
     [getEnabledGraphNamesObservable],
-    (enabledGraphNames) => Boolean(enabledGraphNames.length)
+    function isAnyGraphEnabledCompute (enabledGraphNames) {
+      return Boolean(enabledGraphNames.length)
+    }
   )
 
-  const isTooltipVisibleObservable = compute(
+  const isTooltipVisibleObservable = lazyCompute(
     [dragging, hovering, isAnyGraphEnabledObservable],
-    (isDragging, isHovering, isAnyGraphEnabled) => !isDragging && isHovering && isAnyGraphEnabled
+    function isTooltipVisibleCompute (isDragging, isHovering, isAnyGraphEnabled) {
+      return !isDragging && isHovering && isAnyGraphEnabled
+    }
   )
 
   const inertStartIndex = animationObservable(transition(getStartIndexObservable.get(), FRAME * 4, linear))
   const inertEndIndex = animationObservable(transition(getEndIndexObservalbe.get(), FRAME * 4, linear))
-  const getMaxObservable = compute(
+  const getMaxObservable = lazyCompute(
     [getStartIndexObservable, getEndIndexObservalbe, getEnabledGraphNamesObservable],
-    (startIndex, endIndex, enabledGraphNames) => getMaxValueInRange(startIndex, endIndex, enabledGraphNames)
+    function getMaxCompute (startIndex, endIndex, enabledGraphNames) {
+      return getMaxValueInRange(startIndex, endIndex, enabledGraphNames)
+    }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   )
   // const inertMax = animationObservable(transition(getMaxObservable.get(), FRAME * 6, linear))
@@ -110,28 +126,28 @@ export function Chart (options) {
     )
   )
 
-  const getMainGraphPointsObservable = compute(
-    [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable],
-    // [inertStartIndex, inertEndIndex, inertMax],
-    (startIndex, endIndex, max) =>
-    (console.log('Calculating points'), options).graphNames.reduce((points, graphName) => ({
-      ...points,
-      [graphName]: mapDataToCoords(
-        options.data[graphName],
-        max,
-        { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
-        { startIndex, endIndex },
-        options.lineWidth * devicePixelRatio,
-      )
-    }),{}),
-    'getMainGraphPointsObservable'
+  const getMainGraphPointsObservable = lazyCompute(
+    // [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable],
+    [inertStartIndex, inertEndIndex, inertMax],
+    function getMainGraphPointsCompute (startIndex, endIndex, max) {
+      return options.graphNames.reduce((points, graphName) => ({
+        ...points,
+        [graphName]: mapDataToCoords(
+          options.data[graphName],
+          max,
+          { width: options.width * devicePixelRatio, height: options.height * devicePixelRatio },
+          { startIndex, endIndex },
+          options.lineWidth * devicePixelRatio,
+        )
+      }),{})
+    }
   )
 
-  const getOverviewPointsObservable = compute(
-    [getTotalMaxObservable],
-    // [inertTotalMax],
-    (totalMax) =>
-      options.graphNames.reduce((points, graphName) => ({
+  const getOverviewPointsObservable = lazyCompute(
+    // [getTotalMaxObservable],
+    [inertTotalMax],
+    function getOverviewPointsCompute (totalMax) {
+      return options.graphNames.reduce((points, graphName) => ({
         ...points,
         [graphName]: mapDataToCoords(
           options.data[graphName],
@@ -141,12 +157,13 @@ export function Chart (options) {
           options.lineWidth * devicePixelRatio,
         )
       }),{})
+    }
   )
 
   // Calculating points for hidden graphs
-  const getTooltipIndexObservable = compute(
+  const getTooltipIndexObservable = lazyCompute(
     [mouseX, getMainGraphPointsObservable, isTooltipVisibleObservable],
-    (x, points, isTooltipVisible) => {
+    function getTooltipIndexCompute (x, points, isTooltipVisible) {
       if (!isTooltipVisible) return
 
       let closestPointIndex = 0
@@ -163,7 +180,7 @@ export function Chart (options) {
   // Can be splitted?
   const updateTooltipVisibilityObserve = effect(
     [isTooltipVisibleObservable, getEnabledGraphNamesObservable],
-    (visible, enabledGraphNames) => {
+    function updateTooltipVisibilityEffect (visible, enabledGraphNames) {
       tooltipLine.style.visibility = visible ? 'visible' : ''
       tooltip.style.visibility = visible ? 'visible' : ''
       options.graphNames.forEach(graphName =>
@@ -178,7 +195,7 @@ export function Chart (options) {
   const updateTooltipPositionObserve = effect(
     [isTooltipVisibleObservable, getMainGraphPointsObservable, getEnabledGraphNamesObservable, getTooltipIndexObservable, getStartIndexObservable],
     // [isTooltipVisibleObservable, getMainGraphPointsObservable, getEnabledGraphNamesObservable, getTooltipIndexObservable, inertStartIndex],
-    (isTooltipVisible, points, enabledGraphNames, index, inertStartIndex) => {
+    function updateTooltipPositionEffect (isTooltipVisible, points, enabledGraphNames, index, inertStartIndex) {
       if (!isTooltipVisible) return
 
       const { x, y } = points[enabledGraphNames[0]][index]
@@ -197,59 +214,66 @@ export function Chart (options) {
 
   const updateViewBoxLeftObserve = effect(
     [left],
-    left => {
+    function updateViewBoxLeftEffect (left) {
       overview.viewBoxElement.style.left = `${left}px`
     }
   )
 
   const updateViewBoxRightObserve = effect(
     [right],
-    right => overview.viewBoxElement.style.right = `${options.width - right}px`
+    function updateViewBoxRightEffect (right) {
+      overview.viewBoxElement.style.right = `${options.width - right}px`
+    }
   )
 
   const updateMainGraphObserve = effect(
-    [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable, getMainGraphPointsObservable, getVisibilityStateSelectorObservable],
-    // [inertStartIndex, inertEndIndex, inertMax, getMainGraphPointsObservable, inertOpacityState],
-    (startIndex, endIndex, max, points, opacityState) => renderGraphs({
-      startIndex,
-      endIndex,
-      max,
-      points,
-      opacityState,
-      context: graphs.context,
-      width: options.width,
-      height: options.height,
-      values: options.data,
-      graphNames: options.graphNames,
-      lineWidth: options.lineWidth,
-      strokeStyles: options.colors,
-    })
+    // [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable, getMainGraphPointsObservable, getVisibilityStateSelectorObservable],
+    [inertStartIndex, inertEndIndex, inertMax, getMainGraphPointsObservable, inertOpacityState],
+    function updateMainGraphEffect (startIndex, endIndex, max, points, opacityState) {
+      renderGraphs({
+        startIndex,
+        endIndex,
+        max,
+        points,
+        opacityState,
+        context: graphs.context,
+        width: options.width,
+        height: options.height,
+        values: options.data,
+        graphNames: options.graphNames,
+        lineWidth: options.lineWidth,
+        strokeStyles: options.colors,
+      })
+    }
   )
 
   const updateOverviewGraphObserve = effect(
-    [getVisibilityStateSelectorObservable, getTotalMaxObservable, getOverviewPointsObservable],
-    // [inertOpacityState, inertTotalMax, getOverviewPointsObservable],
-    (opacityState, totalMax, points) => renderGraphs({
-      opacityState,
-      points,
-      max: totalMax,
-      startIndex: 0,
-      endIndex: options.data.total - 1,
-      context: overview.graphs.context,
-      width: options.overviewWidth,
-      height: options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
-      graphNames: options.graphNames,
-      lineWidth: options.OVERVIEW_LINE_WIDTH,
-      strokeStyles: options.colors,
-    })
+    // [getVisibilityStateSelectorObservable, getTotalMaxObservable, getOverviewPointsObservable],
+    [inertOpacityState, inertTotalMax, getOverviewPointsObservable],
+    function updateOverviewGraphEffect (opacityState, totalMax, points) {
+      renderGraphs({
+        opacityState,
+        points,
+        max: totalMax,
+        startIndex: 0,
+        endIndex: options.data.total - 1,
+        context: overview.graphs.context,
+        width: options.overviewWidth,
+        height: options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
+        graphNames: options.graphNames,
+        lineWidth: options.OVERVIEW_LINE_WIDTH,
+        strokeStyles: options.colors,
+      })
+    }
   )
 
   const updateCursorObserve = effect(
     [activeCursor],
-    (cursor) =>
+    function updateCursorEffect (cursor) {
       [document.body, overview.viewBoxElement, overview.resizerLeft, overview.resizerRight].forEach(
         element => element.style.cursor = cursor
       )
+    }
   )
 
   // const updateEasings = computed(
@@ -265,36 +289,36 @@ export function Chart (options) {
 
   // let transitions = animation(createTransitions(), render)
 
-//   observe(
-//     [getMaxObservable],
-//     v => {
-//       inertMax.set(v)
-//     },
-//   )
-//
-//   observe(
-//     [getStartIndexObservable],
-//     v => {
-//       inertStartIndex.set(v)
-//     },
-//   )
-//
-//   observe(
-//     [getEndIndexObservalbe],
-//     v => {
-//       inertEndIndex.set(v)
-//     },
-//   )
-//
-//   observe(
-//     [getTotalMaxObservable],
-//     (v) => inertTotalMax.set(v)
-//   )
-//
-//   observe(
-//     [getVisibilityStateSelectorObservable],
-//     (v) => inertOpacityState.set(v)
-//   )
+  observe(
+    [getMaxObservable],
+    v => {
+      inertMax.set(v)
+    },
+  )
+
+  observe(
+    [getStartIndexObservable],
+    v => {
+      inertStartIndex.set(v)
+    },
+  )
+
+  observe(
+    [getEndIndexObservalbe],
+    v => {
+      inertEndIndex.set(v)
+    },
+  )
+
+  observe(
+    [getTotalMaxObservable],
+    (v) => inertTotalMax.set(v)
+  )
+
+  observe(
+    [getVisibilityStateSelectorObservable],
+    (v) => inertOpacityState.set(v)
+  )
 
   initDragListeners()
 
