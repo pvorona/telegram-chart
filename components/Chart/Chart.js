@@ -6,6 +6,9 @@ import { computed, handleDrag, memoizeOne, getShortNumber, mapDataToCoords, memo
   groupTransition,
   animationObservable,
   effect,
+  compute,
+  observable,
+  observe,
 } from '../../util'
 import { MONTHS, DAYS } from '../constants'
 
@@ -33,84 +36,6 @@ const FRAME = 1000 / 60
 
 // Update Order:
 // Frame Start | Simple Observables => Computed Observables => Observe Effects | Frame End
-
-export function observable (initialValue) {
-  let value = initialValue
-  const observers = []
-
-  function notify () {
-    observers.forEach(observer => observer(value))
-  }
-
-  return {
-    set (newValue) {
-      if (newValue === value) return
-      value = newValue
-      notify()
-    },
-    get () {
-      return value
-    },
-    observe (observer) {
-      observers.push(observer)
-
-      return () => {
-        for (let i = 0; i < observers.length; i++) {
-          if (observers[i] === observer) {
-            observers.splice(i, 1)
-            return
-          }
-        }
-      }
-    },
-  }
-}
-
-export function observe (
-  deps,
-  observer,
-) {
-  notify()
-
-  const unobserves = deps.map(dep => dep.observe(notify))
-
-  function notify () {
-    return observer(...deps.map(dep => dep.get()))
-  }
-
-  return () => {
-    unobserves.forEach(unobserve => unobserve())
-  }
-}
-
-export function compute (
-  deps,
-  compute,
-) {
-  const obs = observable(recompute())
-
-  const unobserves = deps.map(dep => dep.observe(onChange))
-
-  function onChange () {
-    obs.set(recompute())
-  }
-
-  function recompute () {
-    return compute(...deps.map(dep => dep.get()))
-  }
-
-  return {
-    ...obs,
-    observe: (observer) => {
-      const ownUnobserve = obs.observe(observer)
-
-      return () => {
-        ownUnobserve()
-        unobserves.forEach(unobserve => unobserve())
-      }
-    },
-  }
-}
 
 export function Chart (options) {
   const overviewState = getInitialOverviewState()
@@ -186,9 +111,10 @@ export function Chart (options) {
   )
 
   const getMainGraphPointsObservable = compute(
-    [inertStartIndex, inertEndIndex, inertMax],
+    [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable],
+    // [inertStartIndex, inertEndIndex, inertMax],
     (startIndex, endIndex, max) =>
-    options.graphNames.reduce((points, graphName) => ({
+    (console.log('Calculating points'), options).graphNames.reduce((points, graphName) => ({
       ...points,
       [graphName]: mapDataToCoords(
         options.data[graphName],
@@ -197,11 +123,13 @@ export function Chart (options) {
         { startIndex, endIndex },
         options.lineWidth * devicePixelRatio,
       )
-    }),{})
+    }),{}),
+    'getMainGraphPointsObservable'
   )
 
   const getOverviewPointsObservable = compute(
-    [inertTotalMax],
+    [getTotalMaxObservable],
+    // [inertTotalMax],
     (totalMax) =>
       options.graphNames.reduce((points, graphName) => ({
         ...points,
@@ -248,7 +176,8 @@ export function Chart (options) {
   )
 
   const updateTooltipPositionObserve = effect(
-    [isTooltipVisibleObservable, getMainGraphPointsObservable, getEnabledGraphNamesObservable, getTooltipIndexObservable, inertStartIndex],
+    [isTooltipVisibleObservable, getMainGraphPointsObservable, getEnabledGraphNamesObservable, getTooltipIndexObservable, getStartIndexObservable],
+    // [isTooltipVisibleObservable, getMainGraphPointsObservable, getEnabledGraphNamesObservable, getTooltipIndexObservable, inertStartIndex],
     (isTooltipVisible, points, enabledGraphNames, index, inertStartIndex) => {
       if (!isTooltipVisible) return
 
@@ -279,7 +208,8 @@ export function Chart (options) {
   )
 
   const updateMainGraphObserve = effect(
-    [inertStartIndex, inertEndIndex, inertMax, getMainGraphPointsObservable, inertOpacityState],
+    [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable, getMainGraphPointsObservable, getVisibilityStateSelectorObservable],
+    // [inertStartIndex, inertEndIndex, inertMax, getMainGraphPointsObservable, inertOpacityState],
     (startIndex, endIndex, max, points, opacityState) => renderGraphs({
       startIndex,
       endIndex,
@@ -297,7 +227,8 @@ export function Chart (options) {
   )
 
   const updateOverviewGraphObserve = effect(
-    [inertOpacityState, inertTotalMax, getOverviewPointsObservable],
+    [getVisibilityStateSelectorObservable, getTotalMaxObservable, getOverviewPointsObservable],
+    // [inertOpacityState, inertTotalMax, getOverviewPointsObservable],
     (opacityState, totalMax, points) => renderGraphs({
       opacityState,
       points,
@@ -334,36 +265,36 @@ export function Chart (options) {
 
   // let transitions = animation(createTransitions(), render)
 
-  observe(
-    [getMaxObservable],
-    v => {
-      inertMax.set(v)
-    },
-  )
-
-  observe(
-    [getStartIndexObservable],
-    v => {
-      inertStartIndex.set(v)
-    },
-  )
-
-  observe(
-    [getEndIndexObservalbe],
-    v => {
-      inertEndIndex.set(v)
-    },
-  )
-
-  observe(
-    [getTotalMaxObservable],
-    (v) => inertTotalMax.set(v)
-  )
-
-  observe(
-    [getVisibilityStateSelectorObservable],
-    (v) => inertOpacityState.set(v)
-  )
+//   observe(
+//     [getMaxObservable],
+//     v => {
+//       inertMax.set(v)
+//     },
+//   )
+//
+//   observe(
+//     [getStartIndexObservable],
+//     v => {
+//       inertStartIndex.set(v)
+//     },
+//   )
+//
+//   observe(
+//     [getEndIndexObservalbe],
+//     v => {
+//       inertEndIndex.set(v)
+//     },
+//   )
+//
+//   observe(
+//     [getTotalMaxObservable],
+//     (v) => inertTotalMax.set(v)
+//   )
+//
+//   observe(
+//     [getVisibilityStateSelectorObservable],
+//     (v) => inertOpacityState.set(v)
+//   )
 
   initDragListeners()
 

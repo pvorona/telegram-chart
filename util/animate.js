@@ -153,14 +153,41 @@ export function groupTransition (transitions) {
   return { setTarget, isFinished, getState }
 }
 
-function oncePerFrame (original) {
+const INTERACTING = 'INTERACTING'
+const RENDERING = 'RENDERING'
+const queue = {
+  phase: INTERACTING
+}
+
+
+function oncePerFrame (original, priority = TASK.DOM_WRITE) {
   let task = undefined
 
-  return function frameHandler () {
+  return function wrapperEffect () {
     if (task === undefined || task.completed || task.cancelled) {
-      task = scheduleTask(original)
+      task = scheduleTask(original, priority)
     }
   }
+}
+
+function computation (compute, name) {
+  let task = undefined
+
+  function wrappedComputation () {
+    if (queue.phase === RENDERING) {
+      compute()
+    } else {
+      if (task === undefined || task.completed || task.cancelled) {
+        task = scheduleTask(compute, TASK.COMPUTATION)
+      }
+    }
+  }
+
+  if (name) {
+    // wrappedComputation.name = `${wrappedComputation.name}(${name})`
+  }
+
+  return wrappedComputation
 }
 
 export function animationObservable (transition) {
@@ -185,7 +212,7 @@ export function animationObservable (transition) {
     if (!transition.isFinished()) {
       return onFrame
     }
-  })
+  }, TASK.COMPUTATION)
 
   const set = target => {
     // might need cancel task here
@@ -235,8 +262,12 @@ const tasks = {
 }
 
 function render () {
+  console.log('-----------------------------')
+  console.log('FRAME START')
+  queue.phase = RENDERING
   let shouldRequestRender = false
   for (const order of ORDER) {
+    queue.order = order
     const producedTasks = []
     for (const task of tasks[order]) {
       if (!task.cancelled) {
@@ -254,6 +285,10 @@ function render () {
   if (shouldRequestRender) {
     scheduleRender()
   }
+  queue.phase = INTERACTING
+  console.log('FRAME END')
+  console.log('-----------------------------')
+
 }
 
 function createTask (callback) {
@@ -275,10 +310,89 @@ export function effect (
   deps,
   observer,
 ) {
-  const notify = oncePerFrame(() => observer(...deps.map(dep => dep.get())))
+  const notify = oncePerFrame(() => observer(...deps.map(dep => dep.get())), TASK.DOM_WRITE)
   const unobserves = deps.map(dep => dep.observe(notify))
 
   notify()
+
+  return () => {
+    unobserves.forEach(unobserve => unobserve())
+  }
+}
+
+export function compute (
+  deps,
+  compute,
+  name,
+) {
+  const obs = observable(recompute())
+  const wrapperNotifyComputationObservers = computation(function notifyComputationObservers () {
+    obs.set(recompute())
+  }, name)
+
+  const unobserves = deps.map(dep => dep.observe(wrapperNotifyComputationObservers))
+
+
+  function recompute () {
+    return compute(...deps.map(dep => dep.get()))
+  }
+
+  return {
+    ...obs,
+    observe: (observer) => {
+      const ownUnobserve = obs.observe(observer)
+
+      return () => {
+        ownUnobserve()
+        unobserves.forEach(unobserve => unobserve())
+      }
+    },
+  }
+}
+
+export function observable (initialValue) {
+  let value = initialValue
+  const observers = []
+
+  function notify () {
+    observers.forEach(observer => observer(value))
+  }
+
+  return {
+    set (newValue) {
+      if (newValue === value) return
+      value = newValue
+      notify()
+    },
+    get () {
+      return value
+    },
+    observe (observer) {
+      observers.push(observer)
+
+      return () => {
+        for (let i = 0; i < observers.length; i++) {
+          if (observers[i] === observer) {
+            observers.splice(i, 1)
+            return
+          }
+        }
+      }
+    },
+  }
+}
+
+export function observe (
+  deps,
+  observer,
+) {
+  notify()
+
+  const unobserves = deps.map(dep => dep.observe(notify))
+
+  function notify () {
+    return observer(...deps.map(dep => dep.get()))
+  }
 
   return () => {
     unobserves.forEach(unobserve => unobserve())
