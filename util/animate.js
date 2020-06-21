@@ -64,10 +64,15 @@ export function transition (initialValue, duration, easing) {
     startTime = performance.now() + performance.timing.navigationStart
   }
 
+  function getTarget () {
+    return targetValue
+  }
+
   return {
     getState,
     isFinished,
     setTarget,
+    getTarget,
   }
 }
 
@@ -191,10 +196,14 @@ function computation (compute, name) {
   return wrappedComputation
 }
 
-export function animationObservable (transition) {
+export function animationObservable (
+  innerObservable,
+  initialTransition,
+) {
   const observers = []
-  let state = transition.getState()
   let futureTask = undefined
+  let transition = initialTransition
+  let state = transition.getState()
 
   function notify () {
     for (const observer of observers) {
@@ -221,7 +230,9 @@ export function animationObservable (transition) {
     return state
   }
 
-  const set = target => {
+  const set = t => {
+    // need better check if lazy
+    const target = t ? t : innerObservable.get()
     // might need cancel task here
     // if (futureTask && !futureTask.cancelled) {
     //   cancelTask(futureTask)
@@ -233,11 +244,17 @@ export function animationObservable (transition) {
     }
   }
 
+  innerObservable.observe(set)
+
   return {
     set,
     get,
     observe (observer) {
       observers.push(observer)
+    },
+    setTransition (newTransition) {
+      newTransition.setTarget(transition.getTarget())
+      transition = newTransition
     },
   }
 }

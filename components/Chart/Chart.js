@@ -67,7 +67,7 @@ export function Chart (options) {
     }
   )
 
-  const getEndIndexObservalbe = lazyCompute(
+  const getEndIndexObservable = lazyCompute(
     [right],
     function getEndIndexCompute (right) {
       return right / options.width * (options.data.total - 1)
@@ -105,29 +105,42 @@ export function Chart (options) {
     }
   )
 
-  const inertStartIndex = animationObservable(transition(getStartIndexObservable.get(), FRAME * 4, linear))
-  const inertEndIndex = animationObservable(transition(getEndIndexObservalbe.get(), FRAME * 4, linear))
+  const inertStartIndex = animationObservable(
+    getStartIndexObservable,
+    transition(getStartIndexObservable.get(), FRAME * 4, linear),
+  )
+  const inertEndIndex = animationObservable(
+    getEndIndexObservable,
+    transition(getEndIndexObservable.get(), FRAME * 4, linear),
+  )
   const getMaxObservable = lazyCompute(
-    [getStartIndexObservable, getEndIndexObservalbe, getEnabledGraphNamesObservable],
+    [getStartIndexObservable, getEndIndexObservable, getEnabledGraphNamesObservable],
     function getMaxCompute (startIndex, endIndex, enabledGraphNames) {
       return getMaxValueInRange(startIndex, endIndex, enabledGraphNames)
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   )
   // const inertMax = animationObservable(transition(getMaxObservable.get(), FRAME * 6, linear))
-  const inertMax = animationObservable(transition(getMaxObservable.get(), FRAME * 36, easeInOutQuart))
-  const inertTotalMax = animationObservable(transition(getMaxObservable.get(), FRAME * 36, easeInOutQuart))
+  const inertMax = animationObservable(
+    getMaxObservable,
+    transition(getMaxObservable.get(), FRAME * 36, easeInOutQuart),
+  )
+  const inertTotalMax = animationObservable(
+    getTotalMaxObservable,
+    transition(getMaxObservable.get(), FRAME * 36, easeInOutQuart),
+  )
   const inertOpacityState = animationObservable(
+    getVisibilityStateSelectorObservable,
     groupTransition(
       options.graphNames.reduce((state, graphName) => ({
         ...state,
         [graphName]: transition(1, FRAME * 36, easeInOutQuart),
       }), {})
-    )
+    ),
   )
 
   const getMainGraphPointsObservable = lazyCompute(
-    // [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable],
+    // [getStartIndexObservable, getEndIndexObservable, getMaxObservable],
     [inertStartIndex, inertEndIndex, inertMax],
     function getMainGraphPointsCompute (startIndex, endIndex, max) {
       return options.graphNames.reduce((points, graphName) => ({
@@ -227,7 +240,7 @@ export function Chart (options) {
   )
 
   const updateMainGraphObserve = effect(
-    // [getStartIndexObservable, getEndIndexObservalbe, getMaxObservable, getMainGraphPointsObservable, getVisibilityStateSelectorObservable],
+    // [getStartIndexObservable, getEndIndexObservable, getMaxObservable, getMainGraphPointsObservable, getVisibilityStateSelectorObservable],
     [inertStartIndex, inertEndIndex, inertMax, getMainGraphPointsObservable, inertOpacityState],
     function updateMainGraphEffect (startIndex, endIndex, max, points, opacityState) {
       renderGraphs({
@@ -276,48 +289,17 @@ export function Chart (options) {
     }
   )
 
-  // const updateEasings = computed(
-  //   [isDragging],
-  //   (isDragging) => {
-  //     if (isDragging) {
-  //       transitions = animation(createTransitionsForDrag(), render)
-  //     } else {
-  //       transitions = animation(createTransitions(), render)
-  //     }
-  //   }
-  // )
-
-  // let transitions = animation(createTransitions(), render)
-
-  observe(
-    [getMaxObservable],
-    v => {
-      inertMax.set(v)
-    },
-  )
-
-  observe(
-    [getStartIndexObservable],
-    v => {
-      inertStartIndex.set(v)
-    },
-  )
-
-  observe(
-    [getEndIndexObservalbe],
-    v => {
-      inertEndIndex.set(v)
-    },
-  )
-
-  observe(
-    [getTotalMaxObservable],
-    (v) => inertTotalMax.set(v)
-  )
-
-  observe(
-    [getVisibilityStateSelectorObservable],
-    (v) => inertOpacityState.set(v)
+  const updateEasings = observe(
+    [dragging],
+    (isDragging) => {
+      if (isDragging) {
+        inertMax.setTransition(transition(inertMax.get(), FRAME * 10, linear))
+        inertTotalMax.setTransition(transition(inertTotalMax.get(), FRAME * 10, linear))
+      } else {
+        inertMax.setTransition(transition(inertMax.get(), FRAME * 36, easeInOutQuart))
+        inertTotalMax.setTransition(transition(inertTotalMax.get(), FRAME * 36, easeInOutQuart))
+      }
+    }
   )
 
   initDragListeners()
