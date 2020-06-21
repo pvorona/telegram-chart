@@ -1,4 +1,6 @@
-export function Controls (config, onButtonClick) {
+import { ChartOptions } from '../../types'
+
+export function Controls (config: ChartOptions, onButtonClick: (graphName: string) => void) {
   const element = document.createElement('div')
   element.style.marginTop = '20px'
 

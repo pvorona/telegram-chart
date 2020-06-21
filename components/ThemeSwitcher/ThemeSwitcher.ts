@@ -1,3 +1,4 @@
+import { THEME } from '../constants'
 import {
   LABELS,
   THEME_CLASS_NAMES,
@@ -6,7 +7,7 @@ import {
 
 const ELEMENT_CLASS_NAME = 'theme-switcher'
 
-export function ThemeSwitcher (initialTheme) {
+export function ThemeSwitcher (initialTheme: THEME) {
   let theme = initialTheme
   const button = createDOM()
 
