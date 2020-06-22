@@ -1,6 +1,24 @@
 import { hexToRGB } from '../../util'
 
-export function renderGraphs ({ context, points, graphNames, lineWidth, strokeStyles, width, height, opacityState }) {
+export function renderGraphs ({
+  context,
+  points,
+  graphNames,
+  lineWidth,
+  strokeStyles,
+  width,
+  height,
+  opacityState,
+}: {
+  context: CanvasRenderingContext2D,
+  points: { [key: string]: { x: number, y: number }[] },
+  graphNames: string[],
+  lineWidth: number,
+  strokeStyles: { [key: string]: string },
+  width: number,
+  height: number,
+  opacityState: { [key: string]: number },
+}) {
   context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
   for (let i = 0; i < graphNames.length; i++) {
     const opacity = opacityState[graphNames[i]]

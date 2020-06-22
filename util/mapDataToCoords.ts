@@ -3,7 +3,13 @@ import { ceil, floor } from './math'
 
 // h = H * w / W
 // O(n)
-export function mapDataToCoords (data, max, { width, height: availableHeight }, { startIndex, endIndex }, lineWidth) {
+export function mapDataToCoords (
+  data: number[],
+  max: number,
+  { width, height: availableHeight }: { width: number, height: number },
+  { startIndex, endIndex }: { startIndex: number, endIndex: number },
+  lineWidth: number,
+): { x: number, y: number }[] {
   const height = availableHeight - lineWidth * 2
   const coords = []
 

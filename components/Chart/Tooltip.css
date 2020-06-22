@@ -29,7 +29,7 @@
 }
 
 .theme-dark .tooltip {
-  background-color: #243242;
+  background-color: hsla(240, 5%, 24%, 0.5);
   color: white;
 }
 
