@@ -1,4 +1,4 @@
-var suffixes: { readonly [key: string]: number } = {
+var suffixes = {
   'K': 6,
   'M': 9,
   'B': 12,
@@ -20,7 +20,8 @@ export function getShortNumber (num: number): string {
   exponent = size % 3 === 0 ? size - 3 : size - (size % 3)
   shortNumber = String(Math.round(10 * (num / Math.pow(10, exponent))) / 10)
 
-  for (var suffix in suffixes) {
+  var suffix: keyof typeof suffixes
+  for (suffix in suffixes) {
     if (exponent < suffixes[suffix]) {
       shortNumber += suffix
       break
