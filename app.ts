@@ -2,10 +2,9 @@
 // import { DARK } from './components/constants'
 import {
   // ThemeSwitcher,
-  createChartConfig,
   Chart,
 } from './components'
-import { chartData } from './data/chart_data'
+import { chartOptions } from './data/processed'
 
 // document.body.appendChild(ThemeSwitcher(DARK))
 
@@ -13,6 +12,6 @@ import { chartData } from './data/chart_data'
 
 // document.body.appendChild(Chart(createChartConfig(chartData[0])).element)
 
-chartData
-  .map(data => Chart(createChartConfig(data)))
+chartOptions
+  .map(options => Chart(options))
   .forEach(chart => document.body.appendChild(chart.element))

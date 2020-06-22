@@ -9,8 +9,9 @@ import {
 
 import { oncePerFrame } from '../animate'
 
-// observableValue
-export function observable <A> (initialValue: A): Observable<A> & Settable<A> & Gettable<A> {
+export function observable <A> (
+  initialValue: A,
+): Observable<A> & Settable<A> & Gettable<A> {
   let value = initialValue
   const observers: Observer<A>[] = []
 
@@ -26,6 +27,31 @@ export function observable <A> (initialValue: A): Observable<A> & Settable<A> & 
     },
     get () {
       return value
+    },
+    // fire immegiately can solve Gettable dependency
+    observe (observer: Observer<A>) {
+      observers.push(observer)
+
+      return () => {
+        for (let i = 0; i < observers.length; i++) {
+          if (observers[i] === observer) {
+            observers.splice(i, 1)
+            return
+          }
+        }
+      }
+    },
+  }
+}
+
+export function pureObservable <A> (
+  // initialValue: A,
+): Observable<A> & Settable<A> {
+  const observers: Observer<A>[] = []
+
+  return {
+    set (value) {
+      observers.forEach(observer => observer(value))
     },
     // fire immegiately can solve Gettable dependency
     observe (observer: Observer<A>) {
@@ -68,7 +94,7 @@ export function observe (
   }
 
   return () => {
-    unobserves.forEach(Lambda => Lambda())
+    unobserves.forEach(unobserve => unobserve())
   }
 }
 
@@ -107,7 +133,7 @@ export function compute (
 
       return () => {
         ownUnobserve()
-        unobserves.forEach(Lambda => Lambda())
+        unobserves.forEach(unobserve => unobserve())
       }
     },
   }
@@ -176,6 +202,18 @@ export function computeLazy <A> (
   }
 }
 
+// function gettable <A> (observable: Observable<A>): Gettable<A> {
+//   let value: A
+
+//   observable.observe(newValue => value = newValue)
+
+//   function get () {
+//     return value
+//   }
+
+//   return { get }
+// }
+
 export function effect <A> (
   deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>],
   observer: (valueA: A) => void,
@@ -213,6 +251,6 @@ export function effect (
   scheduleNotify()
 
   return () => {
-    unobserves.forEach(Lambda => Lambda())
+    unobserves.forEach(unobserve => unobserve())
   }
 }

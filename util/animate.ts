@@ -125,7 +125,7 @@ export function oncePerFrame (original: () => void, priority = TASK.DOM_WRITE): 
 
 
 export function animationObservable <A> (
-  innerObservable: Observable<A> & Gettable<A> | LazyObservable<A>,
+  innerObservable: (Observable<A> & Gettable<A>) | LazyObservable<A>,
   initialTransition: Transition<A>,
 ): LazyObservable<A> & { setTransition: (transition: Transition<A>) => void } {
   const observers: Lambda[] = []

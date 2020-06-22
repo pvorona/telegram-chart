@@ -1,4 +1,4 @@
-var suffixes: { [key: string]: number } = {
+var suffixes: { readonly [key: string]: number } = {
   'K': 6,
   'M': 9,
   'B': 12,

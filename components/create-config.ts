@@ -14,7 +14,7 @@ export function createChartConfig (chartData: ChartData): ChartOptions {
     .map(column => column[0])
     .filter(graphName => chartData['types'][graphName] === 'line') as string[]
   const domain = (chartData['columns'].find(column => column[0] === 'x') as number[]).slice(1)
-  const data: Data = chartData.columns.reduce((data, column) => ({
+  const data: Data = chartData.columns.filter(c => graphNames.includes(c[0] as string)).reduce((data, column) => ({
     ...data,
     [column[0]]: column.slice(1),
   }), {})
