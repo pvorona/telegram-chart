@@ -140,18 +140,18 @@ export function Chart (options: ChartOptions) {
   // const inertMax = animationObservable(transition(getMaxObservable.get(), FRAME * 6, linear))
   const inertMax = animationObservable(
     getMaxObservable,
-    transition(getMaxObservable.get(), FRAME * 36, easeInOutQuart),
+    transition(getMaxObservable.get(), FRAME * 28, easeInOutQuart),
   )
   const inertTotalMax = animationObservable(
     getTotalMaxObservable,
-    transition(getMaxObservable.get(), FRAME * 36, easeInOutQuart),
+    transition(getMaxObservable.get(), FRAME * 28, easeInOutQuart),
   )
   const inertOpacityState = animationObservable(
     getVisibilityStateSelectorObservable,
     groupTransition(
       options.graphNames.reduce((state, graphName) => ({
         ...state,
-        [graphName]: transition(1, FRAME * 36, easeInOutQuart),
+        [graphName]: transition(1, FRAME * 28, easeInOutQuart),
       }), {} as { [key: string]: Transition<number> })
     ),
   )
@@ -304,8 +304,8 @@ export function Chart (options: ChartOptions) {
         inertMax.setTransition(transition(inertMax.get(), FRAME * 10, linear))
         inertTotalMax.setTransition(transition(inertTotalMax.get(), FRAME * 10, linear))
       } else {
-        inertMax.setTransition(transition(inertMax.get(), FRAME * 36, easeInOutQuart))
-        inertTotalMax.setTransition(transition(inertTotalMax.get(), FRAME * 36, easeInOutQuart))
+        inertMax.setTransition(transition(inertMax.get(), FRAME * 28, easeInOutQuart))
+        inertTotalMax.setTransition(transition(inertTotalMax.get(), FRAME * 28, easeInOutQuart))
       }
     }
   )
