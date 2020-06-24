@@ -1,4 +1,4 @@
-import { observable } from './index'
+import { observable } from './observable'
 
 test('set', () => {
   const o = observable(0)

@@ -16,7 +16,6 @@ export interface Data {
 }
 
 export interface ChartOptions {
-  title: string
   domain: number[]
   graphNames: (string)[]
   width: number

@@ -32,7 +32,6 @@ export function createChartConfig (chartData: ChartData): ChartOptions {
   }
 
   return {
-    title: 'Followers',
     data,
     total,
     domain,

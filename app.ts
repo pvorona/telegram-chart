@@ -8,10 +8,11 @@ import { chartOptions } from './data/processed'
 
 // document.body.appendChild(ThemeSwitcher(DARK))
 
-// 1/3, 1/2, 1/3, 1/3, 1/2
+// const appContainer = document.getElementById('app')!
+const chartContainer = document.getElementById('chart')!
 
-// document.body.appendChild(Chart(createChartConfig(chartData[0])).element)
-
-chartOptions
-  .map(options => Chart(options))
-  .forEach(chart => document.body.appendChild(chart.element))
+chartContainer.appendChild(Chart({
+  ...chartOptions[0],
+  width: chartContainer.offsetWidth,
+  height: chartContainer.offsetHeight,
+}).element)
