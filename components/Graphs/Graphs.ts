@@ -6,8 +6,6 @@ export function renderGraphs ({
   graphNames,
   lineWidth,
   strokeStyles,
-  width,
-  height,
   opacityState,
 }: {
   context: CanvasRenderingContext2D,
@@ -19,7 +17,6 @@ export function renderGraphs ({
   height: number,
   opacityState: { [key: string]: number },
 }) {
-  context.clearRect(0, 0, width * devicePixelRatio, height * devicePixelRatio)
   for (let i = 0; i < graphNames.length; i++) {
     const opacity = opacityState[graphNames[i]]
     if (opacity === 0) continue
