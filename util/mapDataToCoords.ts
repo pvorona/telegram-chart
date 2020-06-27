@@ -16,7 +16,7 @@ export function mapDataToCoords (
   if (!Number.isInteger(startIndex)) {
     coords.push({
       x: 0,
-      y: height - height / max * interpolatePoint(startIndex, data),
+      y: lineWidth + height - height / max * interpolatePoint(startIndex, data),
     })
   }
 
@@ -30,7 +30,7 @@ export function mapDataToCoords (
   if (!Number.isInteger(endIndex)) {
     coords.push({
       x: width,
-      y: height - height / max * interpolatePoint(endIndex, data),
+      y: lineWidth + height - height / max * interpolatePoint(endIndex, data),
     })
   }
   return coords

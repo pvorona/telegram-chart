@@ -16,7 +16,9 @@ export function observable <A> (
   const observers: Observer<A>[] = []
 
   function notify () {
-    observers.forEach(observer => observer(value))
+    for (const observer of observers) {
+      observer(value)
+    }
   }
 
   return {
