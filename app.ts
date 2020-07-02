@@ -12,7 +12,7 @@ import { chartOptions } from './data/processed'
 const chartContainer = document.getElementById('chart')!
 
 chartContainer.appendChild(Chart({
-  ...chartOptions[0],
+  ...chartOptions,
   width: chartContainer.offsetWidth,
   height: chartContainer.offsetHeight,
 }).element)

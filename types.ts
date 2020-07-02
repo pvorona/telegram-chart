@@ -32,4 +32,32 @@ export interface ChartOptions {
     startIndex: number
     endIndex: number
   }
+
+  min: {
+    [key: string]: number
+  }
+  max: {
+    [key: string]: number
+  }
+  median: {
+    [key: string]: number
+  }
+  mean: {
+    [key: string]: number
+  }
+  mode: {
+    [key: string]: number
+  }
+  rootMeanSquare: {
+    [key: string]: number
+  }
+  sampleSkewness: {
+    [key: string]: number
+  }
+  sampleVariance: {
+    [key: string]: number
+  }
+  standardDeviation: {
+    [key: string]: number
+  }
 }

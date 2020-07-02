@@ -244,6 +244,10 @@ export function effect <A, B, C, D, E> (
   deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>, (Observable<B> & Gettable<B>) | LazyObservable<B>, (Observable<C> & Gettable<C>) | LazyObservable<C>, (Observable<D> & Gettable<D>) | LazyObservable<D>, (Observable<E> & Gettable<E>) | LazyObservable<E>],
   observer: (valueA: A, valueB: B, valueC: C, valueD: D, valueE: E) => void,
 ): Lambda
+export function effect <A, B, C, D, E, F> (
+  deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>, (Observable<B> & Gettable<B>) | LazyObservable<B>, (Observable<C> & Gettable<C>) | LazyObservable<C>, (Observable<D> & Gettable<D>) | LazyObservable<D>, (Observable<E> & Gettable<E>) | LazyObservable<E>, (Observable<F> & Gettable<F>) | LazyObservable<F>],
+  observer: (valueA: A, valueB: B, valueC: C, valueD: D, valueE: E, valueF: F) => void,
+): Lambda
 export function effect (
   deps: ((Observable<any> & Gettable<any>) | LazyObservable<any>)[],
   observer: (...args: any[]) => void,

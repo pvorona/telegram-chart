@@ -1,5 +1,7 @@
 import { renderGraphs } from '../Graphs'
 import { Controls } from '../Controls'
+// import { hexToRGB } from '../../util'
+// import { mean } from 'simple-statistics'
 
 import { ChartOptions } from '../../types'
 
@@ -19,6 +21,7 @@ import {
   observe,
   // compute,
   Transition,
+  // recoveredSeries,
 } from '../../util'
 import { MONTHS, DAYS } from '../constants'
 
@@ -286,9 +289,55 @@ export function Chart (options: ChartOptions) {
     }
   )
 
+  // const scalarByGraphName = computeLazy(
+  //   [startIndex, endIndex],
+  //   // function computeInertScalar () {
+  //   function computeScalarByGraphName (startIndex, endIndex) {
+  //     const result: { [key: string]: number } = {}
+  //     for (const graphName of options.graphNames) {
+  //       result[graphName] = options.mean[graphName]
+  //       // result[graphName] =
+  //       mean(recoveredSeries(options.data[graphName], startIndex, endIndex))
+  //     }
+  //     return result
+  //   }
+  // )
+
+  // const inertScalarByGraphName = animationObservable(
+  //   scalarByGraphName,
+  //   groupTransition(
+  //     options.graphNames.reduce((state, graphName) => ({
+  //       ...state,
+  //       [graphName]: transition(scalarByGraphName.get()[graphName], FAST_TRANSITIONS_TIME, linear),
+  //     }), {} as { [key: string]: Transition<number> })
+  //   ),
+  // )
+
+  // Needs to be triggered every time canvas is cleared
+  // Need to account for OVERVIEW_LINE_WIDTH
+  // effect(
+  //   [inertVisibleMax, width, height, inertOpacityStateByGraphName, inertScalarByGraphName],
+  //   function updateMode (inertVisibleMax, width, height, opacityStateByGraphName, inertScalarByGraphName) {
+  //     for (const graphName of options.graphNames) {
+  //       const y = height * devicePixelRatio - (height * devicePixelRatio) / inertVisibleMax * inertScalarByGraphName[graphName]
+  //       const color = `rgba(${hexToRGB(options.colors[graphName])},${opacityStateByGraphName[graphName] / 2})`
+  //       graphs.context.strokeStyle = color
+  //       graphs.context.lineWidth = options.lineWidth * devicePixelRatio
+  //       graphs.context.beginPath()
+  //       graphs.context.lineTo(0, y)
+  //       graphs.context.lineTo(width * devicePixelRatio, y)
+  //       graphs.context.stroke()
+  //     }
+  //   }
+  // )
+
   effect(
-    [mainGraphPoints, inertOpacityStateByGraphName, width, height],
-    function updateMainGraphEffect (points, opacityState, width, height) {
+    [mainGraphPoints, inertOpacityStateByGraphName, width, height,
+    // inertVisibleMax, inertScalarByGraphName
+    ],
+    function updateMainGraphEffect (points, opacityState, width, height,
+      // inertVisibleMax, inertScalarByGraphName
+      ) {
       graphs.canvas.width = width * window.devicePixelRatio // only needs to be run when sizes change
       graphs.canvas.height = height * window.devicePixelRatio // only needs to be run when sizes change
       renderGraphs({
@@ -301,6 +350,17 @@ export function Chart (options: ChartOptions) {
         lineWidth: options.lineWidth,
         strokeStyles: options.colors,
       })
+
+      // for (const graphName of options.graphNames) {
+      //   const y = height * devicePixelRatio - (height * devicePixelRatio) / inertVisibleMax * inertScalarByGraphName[graphName]
+      //   const color = `rgba(${hexToRGB(options.colors[graphName])},${opacityState[graphName] / 2})`
+      //   graphs.context.strokeStyle = color
+      //   graphs.context.lineWidth = options.lineWidth * devicePixelRatio
+      //   graphs.context.beginPath()
+      //   graphs.context.lineTo(0, y)
+      //   graphs.context.lineTo(width * devicePixelRatio, y)
+      //   graphs.context.stroke()
+      // }
     }
   )
 
