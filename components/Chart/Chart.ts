@@ -24,7 +24,7 @@ import { MONTHS, DAYS } from '../constants'
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
 // const resizerWidthPixels = 8
-const minimalPixelsBetweenResizers = 40
+const minimalPixelsBetweenResizers = 80
 
 const enum cursors {
   resize = 'ew-resize',
@@ -36,7 +36,14 @@ const DOT_BORDER_SIZE = 0
 const DOT_SIZE = 10
 const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
 
+const MIN_HEIGHT = 300
+const WHEEL_CLEAR_TIMEOUT = 100
+
 const FRAME = 1000 / 60
+
+const VERY_FAST_TRANSITIONS_TIME = FRAME * 4
+const FAST_TRANSITIONS_TIME = FRAME * 10
+const LONG_TRANSITIONS_TIME = FRAME * 28
 
 interface EnabledGraphNames {
   [key: string]: boolean
@@ -51,7 +58,6 @@ interface Point {
   y: number
 }
 
-const MIN_HEIGHT = 300
 
 export function Chart (options: ChartOptions) {
   const enabledStateByGraphName = observable(options.graphNames.reduce((state, graphName) => ({
@@ -60,6 +66,7 @@ export function Chart (options: ChartOptions) {
     }), {} as EnabledGraphNames)
   )
   const isDragging = observable(false)
+  const isWheeling = observable(false)
   const isHovering = observable(false)
   const mouseX = observable(0)
   const activeCursor = observable(cursors.default)
@@ -70,6 +77,7 @@ export function Chart (options: ChartOptions) {
   const left = observable(startIndex.get() / (options.total - 1) * width.get())
   const right = observable(endIndex.get() / (options.total - 1) * width.get())
 
+  let wheelTimeoutId: number | undefined = undefined
   let cursorResizerDelta = 0
 
   const { element, overview, graphs, tooltip, tooltipLine, tooltipCircles, tooltipValues, tooltipGraphInfo, tooltipDate } = createDOM({
@@ -141,19 +149,19 @@ export function Chart (options: ChartOptions) {
 
   // why lazy
   const isTooltipVisible = computeLazy(
-    [isDragging, isHovering, isAnyGraphEnabled],
-    function isTooltipVisibleCompute (isDragging, isHovering, isAnyGraphEnabled) {
-      return !isDragging && isHovering && isAnyGraphEnabled
+    [isDragging, isHovering, isAnyGraphEnabled, isWheeling],
+    function isTooltipVisibleCompute (isDragging, isHovering, isAnyGraphEnabled, isWheeling) {
+      return !isWheeling && !isDragging && isHovering && isAnyGraphEnabled
     }
   )
 
   const inertStartIndex = animationObservable(
     startIndex,
-    transition(startIndex.get(), FRAME * 4, linear),
+    transition(startIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear),
   )
   const inertEndIndex = animationObservable(
     endIndex,
-    transition(endIndex.get(), FRAME * 4, linear),
+    transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear),
   )
   const visibleMax = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
@@ -164,19 +172,19 @@ export function Chart (options: ChartOptions) {
   )
   const inertVisibleMax = animationObservable(
     visibleMax,
-    transition(visibleMax.get(), FRAME * 28, easeInOutQuart),
+    transition(visibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart),
   )
   // overview logic
   const inertOverallMax = animationObservable(
     overallMax,
-    transition(overallMax.get(), FRAME * 28, easeInOutQuart),
+    transition(overallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart),
   )
   const inertOpacityStateByGraphName = animationObservable(
     opacityStateByGraphName,
     groupTransition(
       options.graphNames.reduce((state, graphName) => ({
         ...state,
-        [graphName]: transition(1, FRAME * 28, easeInOutQuart),
+        [graphName]: transition(1, LONG_TRANSITIONS_TIME, easeInOutQuart),
       }), {} as { [key: string]: Transition<number> })
     ),
   )
@@ -213,7 +221,6 @@ export function Chart (options: ChartOptions) {
     }
   )
 
-  // Calculating points for hidden graphs
   // can use binary search here
   const tooltipIndex = computeLazy(
     [mouseX, mainGraphPoints, isTooltipVisible],
@@ -230,7 +237,6 @@ export function Chart (options: ChartOptions) {
     }
   )
 
-
   effect(
     [isTooltipVisible, enabledGraphNames],
     function updateTooltipVisibilityEffect (visible, enabledGraphNames) {
@@ -246,7 +252,7 @@ export function Chart (options: ChartOptions) {
     }
   )
 
-   effect(
+  effect(
     [isTooltipVisible, mainGraphPoints, enabledGraphNames, tooltipIndex, startIndex],
     // [isTooltipVisible, getMainGraphPointsObservable, enabledGraphNames, getTooltipIndexObservable, inertStartIndex],
     function updateTooltipPositionEffect (isTooltipVisible, points, enabledGraphNames, index, startIndex) {
@@ -326,14 +332,14 @@ export function Chart (options: ChartOptions) {
   )
 
   observe(
-    [isDragging],
-    (isDragging) => {
-      if (isDragging) {
-        inertVisibleMax.setTransition(transition(inertVisibleMax.get(), FRAME * 10, linear))
-        inertOverallMax.setTransition(transition(inertOverallMax.get(), FRAME * 10, linear))
+    [isDragging, isWheeling],
+    (isDragging, isWheeling) => {
+      if (isDragging || isWheeling) {
+        inertVisibleMax.setTransition(transition(inertVisibleMax.get(), FAST_TRANSITIONS_TIME, linear))
+        inertOverallMax.setTransition(transition(inertOverallMax.get(), FAST_TRANSITIONS_TIME, linear))
       } else {
-        inertVisibleMax.setTransition(transition(inertVisibleMax.get(), FRAME * 28, easeInOutQuart))
-        inertOverallMax.setTransition(transition(inertOverallMax.get(), FRAME * 28, easeInOutQuart))
+        inertVisibleMax.setTransition(transition(inertVisibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart))
+        inertOverallMax.setTransition(transition(inertOverallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart))
       }
     }
   )
@@ -354,6 +360,40 @@ export function Chart (options: ChartOptions) {
   }
 
   function initDragListeners () {
+    // - Switch transitions
+    function onWheel (e: WheelEvent) {
+      e.preventDefault()
+      isWheeling.set(true)
+      if (wheelTimeoutId) {
+        clearTimeout(wheelTimeoutId)
+      }
+      wheelTimeoutId = window.setTimeout(function stopWheel () {
+        isWheeling.set(false)
+      }, WHEEL_CLEAR_TIMEOUT)
+      const viewBoxWidth = right.get() - left.get()
+
+      if (e.deltaX !== 0) {
+        left.set(keepInBounds(left.get() + e.deltaX * 1, 0, width.get() - viewBoxWidth))
+        right.set(ensureInOverviewBounds(left.get() + viewBoxWidth))
+      }
+
+      if (e.deltaY !== 0) {
+        if (e.deltaY < 0 && (right.get() - left.get() === minimalPixelsBetweenResizers)) return
+
+        if (e.deltaY < 0 && (right.get() - left.get() - 2 * Math.abs(e.deltaY) < minimalPixelsBetweenResizers)) {
+          const center = (left.get() + right.get()) / 2
+          left.set(ensureInOverviewBounds(center - minimalPixelsBetweenResizers / 2))
+          right.set(ensureInOverviewBounds(center + minimalPixelsBetweenResizers / 2))
+        } else {
+          left.set(ensureInOverviewBounds(left.get() - e.deltaY * 1))
+          right.set(ensureInOverviewBounds(right.get() + e.deltaY * 1))
+        }
+      }
+    }
+
+    graphs.element.addEventListener('wheel', onWheel)
+    overview.element.addEventListener('wheel', onWheel)
+
     graphs.element.addEventListener('mouseenter', function (e) {
       isHovering.set(true)
       mouseX.set(e.clientX - getGraphsBoundingRect().left)
