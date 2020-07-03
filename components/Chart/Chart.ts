@@ -264,7 +264,7 @@ export function Chart (options: ChartOptions) {
       if (!isTooltipVisible) return
 
       const { x } = points[enabledGraphNames[0]][index]
-      tooltipLine.style.transform = `translateX(${(x - 1) / 2}px)`
+      tooltipLine.style.transform = `translateX(${(x - 1) / devicePixelRatio}px)`
       const dataIndex = index + Math.floor(startIndex)
       for (let i = 0; i < enabledGraphNames.length; i++) {
         const { x, y } = points[enabledGraphNames[i]][index]
