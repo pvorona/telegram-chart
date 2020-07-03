@@ -41,11 +41,14 @@ const MIN_HEIGHT = 300
 const WHEEL_CLEAR_TIMEOUT = 50
 const WHEEL_MULTIPLIER = 1
 
+const DEVIATION_FROM_STRAIGT_LINE_DEGREES = 15
+
 const FRAME = 1000 / 60
 
 const VERY_FAST_TRANSITIONS_TIME = FRAME * 4
 const FAST_TRANSITIONS_TIME = FRAME * 10
 const LONG_TRANSITIONS_TIME = FRAME * 28
+
 
 interface EnabledGraphNames {
   [key: string]: boolean
@@ -373,14 +376,21 @@ export function Chart (options: ChartOptions) {
       }, WHEEL_CLEAR_TIMEOUT)
       const viewBoxWidth = right.get() - left.get()
 
-      if (e.deltaX) {
-        left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, width.get() - viewBoxWidth))
-        right.set(ensureInOverviewBounds(left.get() + viewBoxWidth))
+      const angle = Math.atan(e.deltaY / e.deltaX) * 180 / Math.PI
+
+
+      // Noise
+      if (
+        (Math.abs(e.deltaX) === 0 && Math.abs(e.deltaY) === 1)
+        || (Math.abs(e.deltaX) === 1 && Math.abs(e.deltaY) === 0)
+      ) {
+        return
       }
 
-      if (e.deltaY) {
-        if (e.deltaY < 0 && (right.get() - left.get() === minimalPixelsBetweenResizers)) return
-
+      if (
+        (angle < -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle >= -90) // top right, bottom left
+        || (angle > (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle <= 90) // top left, bottom right
+      ) {
         if (e.deltaY < 0 && (right.get() - left.get() - 2 * Math.abs(e.deltaY) < minimalPixelsBetweenResizers)) {
           const center = (left.get() + right.get()) / 2
           left.set(ensureInOverviewBounds(center - minimalPixelsBetweenResizers / 2))
@@ -388,6 +398,25 @@ export function Chart (options: ChartOptions) {
         } else {
           left.set(ensureInOverviewBounds(left.get() - e.deltaY * WHEEL_MULTIPLIER))
           right.set(ensureInOverviewBounds(right.get() + e.deltaY * WHEEL_MULTIPLIER))
+        }
+      } else if (
+        (angle >= -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle <= DEVIATION_FROM_STRAIGT_LINE_DEGREES) // left, right
+      ) {
+        left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, width.get() - viewBoxWidth))
+        right.set(ensureInOverviewBounds(left.get() + viewBoxWidth))
+      } else {
+        if (
+          (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
+          || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
+        ) {
+          if (
+            (e.deltaX <= 0 && e.deltaY <= 0)
+            || (e.deltaX > 0 && e.deltaY > 0)
+          ) {
+            left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, width.get() - viewBoxWidth))
+          } else {
+            right.set(ensureInOverviewBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER))
+          }
         }
       }
     }
