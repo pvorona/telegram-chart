@@ -246,7 +246,7 @@ export function Chart (options: ChartOptions) {
     [isTooltipVisible, enabledGraphNames],
     function updateTooltipVisibilityEffect (visible, enabledGraphNames) {
       tooltipLine.style.visibility = visible ? 'visible' : ''
-      tooltip.style.visibility = visible ? 'visible' : ''
+      tooltip.style.display = visible ? 'block' : ''
       options.graphNames.forEach(graphName =>
         tooltipCircles[graphName].style.visibility = visible && enabledGraphNames.indexOf(graphName) > -1 ? 'visible' : ''
       )
