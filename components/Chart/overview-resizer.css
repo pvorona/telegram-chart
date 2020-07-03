@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 8px;
+  width: 4px;
   transition: background-color .3s ease-in-out;
   cursor: ew-resize;
 }

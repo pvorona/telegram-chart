@@ -161,6 +161,10 @@ export function computeLazy <A, B, C, D, E, V> (
   deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>, (Observable<B> & Gettable<B>) | LazyObservable<B>, (Observable<C> & Gettable<C>) | LazyObservable<C>, (Observable<D> & Gettable<D>) | LazyObservable<D>, (Observable<E> & Gettable<E>) | LazyObservable<E>],
   compute: (valueA: A, valueB: B, valueC: C, valueD: D, valueE: E) => V,
 ): LazyObservable<V>
+export function computeLazy <A, B, C, D, E, F, V> (
+  deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>, (Observable<B> & Gettable<B>) | LazyObservable<B>, (Observable<C> & Gettable<C>) | LazyObservable<C>, (Observable<D> & Gettable<D>) | LazyObservable<D>, (Observable<E> & Gettable<E>) | LazyObservable<E>, (Observable<F> & Gettable<F>) | LazyObservable<F>],
+  compute: (valueA: A, valueB: B, valueC: C, valueD: D, valueE: E, valueF: F) => V,
+): LazyObservable<V>
 export function computeLazy <A> (
   deps: ((Observable<any> & Gettable<any>) | LazyObservable<any>)[],
   compute: (...args: any[]) => any,
