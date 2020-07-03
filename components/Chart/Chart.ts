@@ -41,7 +41,7 @@ const MIN_HEIGHT = 300
 const WHEEL_CLEAR_TIMEOUT = 50
 const WHEEL_MULTIPLIER = 1
 
-const DEVIATION_FROM_STRAIGT_LINE_DEGREES = 15
+const DEVIATION_FROM_STRAIGT_LINE_DEGREES = 45
 
 const FRAME = 1000 / 60
 
@@ -391,13 +391,15 @@ export function Chart (options: ChartOptions) {
         (angle < -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle >= -90) // top right, bottom left
         || (angle > (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle <= 90) // top left, bottom right
       ) {
-        if (e.deltaY < 0 && (right.get() - left.get() - 2 * Math.abs(e.deltaY) < minimalPixelsBetweenResizers)) {
+        const deltaY = e.deltaY
+
+        if (deltaY < 0 && (right.get() - left.get() - 2 * Math.abs(deltaY) < minimalPixelsBetweenResizers)) {
           const center = (left.get() + right.get()) / 2
           left.set(ensureInOverviewBounds(center - minimalPixelsBetweenResizers / 2))
           right.set(ensureInOverviewBounds(center + minimalPixelsBetweenResizers / 2))
         } else {
-          left.set(ensureInOverviewBounds(left.get() - e.deltaY * WHEEL_MULTIPLIER))
-          right.set(ensureInOverviewBounds(right.get() + e.deltaY * WHEEL_MULTIPLIER))
+          left.set(ensureInOverviewBounds(left.get() - deltaY * WHEEL_MULTIPLIER))
+          right.set(ensureInOverviewBounds(right.get() + deltaY * WHEEL_MULTIPLIER))
         }
       } else if (
         (angle >= -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle <= DEVIATION_FROM_STRAIGT_LINE_DEGREES) // left, right
@@ -413,9 +415,9 @@ export function Chart (options: ChartOptions) {
             (e.deltaX <= 0 && e.deltaY <= 0)
             || (e.deltaX > 0 && e.deltaY > 0)
           ) {
-            left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, width.get() - viewBoxWidth))
+            left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
           } else {
-            right.set(ensureInOverviewBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER))
+            right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
           }
         }
       }
