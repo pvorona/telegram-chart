@@ -7,9 +7,10 @@ import { easeInOutQuart, linear } from '../../easings'
 import {
   handleDrag,
   memoizeOne,
-  getShortNumber,
+  // getShortNumber,
   mapDataToCoords,
   getMaxValue,
+  getMinValue,
   transition,
   groupTransition,
   animationObservable,
@@ -20,17 +21,18 @@ import {
   // compute,
   Transition,
 } from '../../util'
-import { MONTHS, DAYS } from '../constants'
+import { MONTHS } from '../constants'
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4
-// const resizerWidthPixels = 8
-const minimalPixelsBetweenResizers = 80
+const minimalPixelsBetweenResizers = 10
 
 const enum cursors {
   resize = 'ew-resize',
   grabbing = 'grabbing',
   default = '',
 }
+
+const MIN_VIEWBOX = 120
 
 const DOT_BORDER_SIZE = 0
 const DOT_SIZE = 10
@@ -39,7 +41,7 @@ const CENTER_OFFSET = - DOT_SIZE / 2 - DOT_BORDER_SIZE
 const MIN_HEIGHT = 300
 
 const WHEEL_CLEAR_TIMEOUT = 50
-const WHEEL_MULTIPLIER = 1
+const WHEEL_MULTIPLIER = 3 / 16
 
 const DEVIATION_FROM_STRAIGT_LINE_DEGREES = 45
 
@@ -133,6 +135,14 @@ export function Chart (options: ChartOptions) {
     }
   )
 
+  const overallMin = computeLazy(
+    [enabledGraphNames],
+    function getTotalMinCompute (enabledGraphNames) {
+      // can remove unnecessary abstraction
+      return getMinValueInRange(0, options.total - 1, enabledGraphNames)
+    }
+  )
+
   // why lazy
   const opacityStateByGraphName = computeLazy(
     [enabledStateByGraphName],
@@ -179,10 +189,25 @@ export function Chart (options: ChartOptions) {
     visibleMax,
     transition(visibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart),
   )
+  const visibleMin = computeLazy(
+    [startIndex, endIndex, enabledGraphNames],
+    function getMinCompute (startIndex, endIndex, enabledGraphNames) {
+      return getMinValueInRange(startIndex, endIndex, enabledGraphNames)
+    }
+    // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
+  )
+  const inertVisibleMin = animationObservable(
+    visibleMin,
+    transition(visibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart),
+  )
   // overview logic
   const inertOverallMax = animationObservable(
     overallMax,
     transition(overallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart),
+  )
+  const inertOverallMin = animationObservable(
+    overallMin,
+    transition(overallMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart),
   )
   const inertOpacityStateByGraphName = animationObservable(
     opacityStateByGraphName,
@@ -195,29 +220,32 @@ export function Chart (options: ChartOptions) {
   )
 
   const mainGraphPoints = computeLazy(
-    [inertStartIndex, inertEndIndex, inertVisibleMax, width, height],
-    function mainGraphPointsCompute (startIndex, endIndex, max, width, height) {
+    [inertStartIndex, inertEndIndex, inertVisibleMax, inertVisibleMin, width, height],
+    function mainGraphPointsCompute (startIndex, endIndex, max, min, width, height) {
       return options.graphNames.reduce((points, graphName) => ({
         ...points,
         [graphName]: mapDataToCoords(
           options.data[graphName],
           max,
+          min,
           { width: width * devicePixelRatio, height: height * devicePixelRatio },
           { startIndex, endIndex },
           options.lineWidth * devicePixelRatio,
+          50,
         )
       }), {} as { [key: string]: Point[] })
     }
   )
 
   const overviewGraphPoints = computeLazy(
-    [inertOverallMax, width],
-    function overviewGraphPointsCompute (inertOverallMax, width) {
+    [inertOverallMax, inertOverallMin, width],
+    function overviewGraphPointsCompute (inertOverallMax, inertOverallMin, width) {
       return options.graphNames.reduce((points, graphName) => ({
         ...points,
         [graphName]: mapDataToCoords(
           options.data[graphName],
           inertOverallMax,
+          inertOverallMin,
           { width: width * devicePixelRatio, height: (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) * devicePixelRatio },
           { startIndex: 0, endIndex: options.total - 1 },
           options.lineWidth * devicePixelRatio,
@@ -260,7 +288,7 @@ export function Chart (options: ChartOptions) {
   effect(
     [isTooltipVisible, mainGraphPoints, enabledGraphNames, tooltipIndex, startIndex],
     // [isTooltipVisible, getMainGraphPointsObservable, enabledGraphNames, getTooltipIndexObservable, inertStartIndex],
-    function updateTooltipPositionEffect (isTooltipVisible, points, enabledGraphNames, index, startIndex) {
+    function updateTooltipPositionAndTextEffect (isTooltipVisible, points, enabledGraphNames, index, startIndex) {
       if (!isTooltipVisible) return
 
       const { x } = points[enabledGraphNames[0]][index]
@@ -269,7 +297,8 @@ export function Chart (options: ChartOptions) {
       for (let i = 0; i < enabledGraphNames.length; i++) {
         const { x, y } = points[enabledGraphNames[i]][index]
         tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${x / devicePixelRatio + CENTER_OFFSET}px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`
-        tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
+        tooltipValues[enabledGraphNames[i]].innerText = String(options.data[enabledGraphNames[i]][dataIndex])
+        // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
       }
       tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex])
       // TODO: Force reflow
@@ -341,10 +370,14 @@ export function Chart (options: ChartOptions) {
     (isDragging, isWheeling) => {
       if (isDragging || isWheeling) {
         inertVisibleMax.setTransition(transition(inertVisibleMax.get(), FAST_TRANSITIONS_TIME, linear))
+        inertVisibleMin.setTransition(transition(inertVisibleMin.get(), FAST_TRANSITIONS_TIME, linear))
         inertOverallMax.setTransition(transition(inertOverallMax.get(), FAST_TRANSITIONS_TIME, linear))
+        inertOverallMin.setTransition(transition(inertOverallMin.get(), FAST_TRANSITIONS_TIME, linear))
       } else {
         inertVisibleMax.setTransition(transition(inertVisibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart))
+        inertVisibleMin.setTransition(transition(inertVisibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart))
         inertOverallMax.setTransition(transition(inertOverallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart))
+        inertOverallMin.setTransition(transition(inertOverallMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart))
       }
     }
   )
@@ -374,7 +407,7 @@ export function Chart (options: ChartOptions) {
       wheelTimeoutId = window.setTimeout(function stopWheel () {
         isWheeling.set(false)
       }, WHEEL_CLEAR_TIMEOUT)
-      const viewBoxWidth = right.get() - left.get()
+      // const viewBoxWidth = right.get() - left.get()
 
       const angle = Math.atan(e.deltaY / e.deltaX) * 180 / Math.PI
 
@@ -387,39 +420,51 @@ export function Chart (options: ChartOptions) {
         return
       }
 
+      const viewBoxWidth = endIndex.get() - startIndex.get()
+      const dynamicFactor = viewBoxWidth / MIN_VIEWBOX * WHEEL_MULTIPLIER
+
       if (
         (angle < -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle >= -90) // top right, bottom left
         || (angle > (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle <= 90) // top left, bottom right
       ) {
         const deltaY = e.deltaY
 
-        if (deltaY < 0 && (right.get() - left.get() - 2 * Math.abs(deltaY) < minimalPixelsBetweenResizers)) {
-          const center = (left.get() + right.get()) / 2
-          left.set(ensureInOverviewBounds(center - minimalPixelsBetweenResizers / 2))
-          right.set(ensureInOverviewBounds(center + minimalPixelsBetweenResizers / 2))
+        if (deltaY < 0 && ((endIndex.get() - startIndex.get() - 2 * Math.abs(deltaY * dynamicFactor)) < MIN_VIEWBOX)) {
+          const center = (endIndex.get() + startIndex.get()) / 2
+          startIndex.set(keepInBounds(center - MIN_VIEWBOX / 2, 0, options.total - 1 - MIN_VIEWBOX))
+          endIndex.set(keepInBounds(center + MIN_VIEWBOX / 2, MIN_VIEWBOX, options.total - 1))
+          left.set(startIndex.get() / (options.total - 1) * width.get())
+          right.set(endIndex.get() / (options.total - 1) * width.get())
+
         } else {
-          left.set(ensureInOverviewBounds(left.get() - deltaY * WHEEL_MULTIPLIER))
-          right.set(ensureInOverviewBounds(right.get() + deltaY * WHEEL_MULTIPLIER))
+          startIndex.set(keepInBounds(startIndex.get() - deltaY * dynamicFactor, 0, options.total - 1 - MIN_VIEWBOX))
+          endIndex.set(keepInBounds(endIndex.get() + deltaY * dynamicFactor, startIndex.get() + MIN_VIEWBOX, options.total - 1))
+          left.set(startIndex.get() / (options.total - 1) * width.get())
+          right.set(endIndex.get() / (options.total - 1) * width.get())
+
         }
       } else if (
         (angle >= -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle <= DEVIATION_FROM_STRAIGT_LINE_DEGREES) // left, right
       ) {
-        left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, width.get() - viewBoxWidth))
-        right.set(ensureInOverviewBounds(left.get() + viewBoxWidth))
+        startIndex.set(keepInBounds(startIndex.get() + e.deltaX * dynamicFactor, 0, options.total - 1 - viewBoxWidth))
+        endIndex.set(keepInBounds(startIndex.get() + viewBoxWidth, MIN_VIEWBOX, options.total - 1))
+        left.set(startIndex.get() / (options.total - 1) * width.get())
+        right.set(endIndex.get() / (options.total - 1) * width.get())
+
       } else {
-        if (
-          (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
-          || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
-        ) {
-          if (
-            (e.deltaX <= 0 && e.deltaY <= 0)
-            || (e.deltaX > 0 && e.deltaY > 0)
-          ) {
-            left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
-          } else {
-            right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
-          }
-        }
+        // if (
+        //   (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
+        //   || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
+        // ) {
+        //   if (
+        //     (e.deltaX <= 0 && e.deltaY <= 0)
+        //     || (e.deltaX > 0 && e.deltaY > 0)
+        //   ) {
+        //     left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
+        //   } else {
+        //     right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
+        //   }
+        // }
       }
     }
 
@@ -455,6 +500,13 @@ export function Chart (options: ChartOptions) {
 
   function getMaxValueInRange (startIndex: number, endIndex: number, graphNames: string[]) {
     return getMaxValue(
+      { startIndex, endIndex },
+      getValues(graphNames),
+    )
+  }
+
+  function getMinValueInRange (startIndex: number, endIndex: number, graphNames: string[]) {
+    return getMinValue(
       { startIndex, endIndex },
       getValues(graphNames),
     )
@@ -647,5 +699,5 @@ function keepInBounds (value: number, min: number, max: number) {
 
 function getTooltipDateText (timestamp: number) {
   const date = new Date(timestamp)
-  return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
+  return `${MONTHS[date.getMonth()]} ${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
 }

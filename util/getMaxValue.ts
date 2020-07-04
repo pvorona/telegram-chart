@@ -20,7 +20,7 @@ export function beautifyNumber (number: number): number {
   return number + ((magnitude / 2) - number % (magnitude / 2))
 }
 
-export function getMinValue ({ startIndex, endIndex }: { startIndex: number, endIndex: number}, values: number[][]) {
+export function getMinValue ({ startIndex, endIndex }: { startIndex: number, endIndex: number}, values: number[][]): number {
   let minValue = values[0][ceil(startIndex)]
   for (let j = 0; j < values.length; j++) {
     minValue = min(minValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
@@ -28,5 +28,5 @@ export function getMinValue ({ startIndex, endIndex }: { startIndex: number, end
       minValue = min(values[j][i], minValue)
     }
   }
-  return beautifyNumber(minValue)
+  return minValue
 }
