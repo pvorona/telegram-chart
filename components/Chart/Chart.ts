@@ -226,6 +226,7 @@ export function Chart (options: ChartOptions) {
         ...points,
         [graphName]: mapDataToCoords(
           options.data[graphName],
+          options.domain,
           max,
           min,
           { width: width * devicePixelRatio, height: height * devicePixelRatio },
@@ -244,6 +245,7 @@ export function Chart (options: ChartOptions) {
         ...points,
         [graphName]: mapDataToCoords(
           options.data[graphName],
+          options.domain,
           inertOverallMax,
           inertOverallMin,
           { width: width * devicePixelRatio, height: (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) * devicePixelRatio },

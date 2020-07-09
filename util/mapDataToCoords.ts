@@ -5,6 +5,7 @@ import { ceil, floor } from './math'
 // O(n)
 export function mapDataToCoords (
   data: number[],
+  domain: number[],
   max: number,
   min: number,
   { width, height: availableHeight }: { width: number, height: number },
@@ -13,7 +14,6 @@ export function mapDataToCoords (
   offsetBottom: number | undefined = 0,
 ): { x: number, y: number }[] {
   const height = availableHeight - lineWidth * 2
-  // const valueRange = max - min
   const coords = []
 
   if (!Number.isInteger(startIndex)) {
@@ -27,7 +27,7 @@ export function mapDataToCoords (
   for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     const value = (height - offsetBottom) / (max - min) * (data[i] - min)
     coords.push({
-      x: width / (endIndex - startIndex) * (i - startIndex),
+      x: width / (getTime(domain, endIndex) - getTime(domain, startIndex)) * (getTime(domain, i) - getTime(domain, startIndex)),
       y: lineWidth + height - offsetBottom - value,
     })
   }
@@ -40,4 +40,12 @@ export function mapDataToCoords (
     })
   }
   return coords
+}
+
+function getTime (domain: number[], index: number): number {
+  if (Number.isInteger(index)) {
+    return domain[index]
+  }
+
+  return (domain[Math.ceil(index)] - domain[Math.floor(index)]) * (index % 1) + domain[Math.floor(index)]
 }
