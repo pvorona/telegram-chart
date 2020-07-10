@@ -10,7 +10,7 @@
 }
 
 .theme-dark .tooltip__dot {
-  background-color: #242F3F;
+  background-color: var(--background-cl);
 }
 
 .tooltip {
@@ -29,7 +29,7 @@
 }
 
 .theme-dark .tooltip {
-  background-color: hsla(240, 5%, 24%, 0.5);
+  background-color: var(--overview-edges-cl);
   color: white;
 }
 

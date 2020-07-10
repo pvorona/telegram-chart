@@ -14,4 +14,5 @@
 
 .theme-dark .tooltip-line {
   background-color: #3A4A5B;
+  background-color: var(--tooltip-line-cl);
 }

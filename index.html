@@ -26,11 +26,19 @@
       }
 
       body.theme-dark {
-        background-color: hsla(216, 15%, 15%, 1);
-        background-color: hsla(300, 5%, 17%, 1);
-        background-color: hsla(240, 5%, 17%, 1);
-        background-color: hsla(202, 7%, 16%, 1);
-        background-color: hsla(168, 5%, 18%, 1);
+        /*background-color: hsla(216, 15%, 15%, 1);*/
+        /*background-color: hsla(300, 5%, 17%, 1);*/
+        /*background-color: hsla(240, 5%, 17%, 1);*/
+        /*background-color: hsla(202, 7%, 16%, 1);*/
+        /*background-color: hsla(168, 1%, 18%, 1);*/
+
+        --background-cl: hsla(210, 5%, 18%, 1);
+        --overview-backdrop-cl: hsla(210, 5%, 10%, 0.75);
+        --overview-edges-cl: hsla(210, 5%, 30%, 0.5);
+
+        --tooltip-line-cl: hsla(210, 5%, 35%);
+
+        background-color: var(--background-cl);
       }
   </style>
   <link rel="stylesheet" href="./dist/bundle.css">
