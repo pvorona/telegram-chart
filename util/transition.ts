@@ -4,6 +4,7 @@ import { values } from './values'
 export interface Transition <A> {
   getState: () => A
   setTarget: (target: A) => void
+  setImmediate: (t: A) => void
   getTarget: () => A
   isFinished: () => boolean
 }
@@ -46,11 +47,17 @@ export function transition (
     return targetValue
   }
 
+  function setImmediate (t: number) {
+    targetValue = t
+    finished = true
+  }
+
   return {
     getState,
     isFinished,
     setTarget,
     getTarget,
+    setImmediate,
   }
 }
 
@@ -95,7 +102,10 @@ export function groupTransition (
     return result
   }
 
+  function setImmediate () {}
+
   return {
+    setImmediate,
     setTarget,
     isFinished,
     getState,
