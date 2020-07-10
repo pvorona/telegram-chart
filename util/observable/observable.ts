@@ -6,8 +6,17 @@ import {
   Gettable,
   LazyObservable,
 } from './types'
+import { GlobalState } from './globalState'
 
 import { oncePerFrame } from '../animate'
+
+// // Pass all notifications to executor
+// // Executor checks current batch state
+// // if batching, delay notifications to after batch is completed
+// // else execute immediately
+
+// // Concept of observed value
+// // and not available to observe yet
 
 export function observable <A> (
   initialValue: A,
@@ -15,17 +24,20 @@ export function observable <A> (
   let value = initialValue
   const observers: Observer<A>[] = []
 
-  function notify () {
+  function notify (oldValue: A) {
     for (const observer of observers) {
-      observer(value)
+      GlobalState.enqueueTask(() => {
+        observer(value, oldValue)
+      })
     }
   }
 
   return {
     set (newValue) {
       if (newValue === value) return
+      const oldValue = value
       value = newValue
-      notify()
+      notify(oldValue)
     },
     get () {
       return value
@@ -46,30 +58,30 @@ export function observable <A> (
   }
 }
 
-export function pureObservable <A> (
-  // initialValue: A,
-): Observable<A> & Settable<A> {
-  const observers: Observer<A>[] = []
+// export function pureObservable <A> (
+//   // initialValue: A,
+// ): Observable<A> & Settable<A> {
+//   const observers: Observer<A>[] = []
 
-  return {
-    set (value) {
-      observers.forEach(observer => observer(value))
-    },
-    // fire immegiately can solve Gettable dependency
-    observe (observer: Observer<A>) {
-      observers.push(observer)
+//   return {
+//     set (value) {
+//       observers.forEach(observer => observer(value))
+//     },
+//     // fire immegiately can solve Gettable dependency
+//     observe (observer: Observer<A>) {
+//       observers.push(observer)
 
-      return () => {
-        for (let i = 0; i < observers.length; i++) {
-          if (observers[i] === observer) {
-            observers.splice(i, 1)
-            return
-          }
-        }
-      }
-    },
-  }
-}
+//       return () => {
+//         for (let i = 0; i < observers.length; i++) {
+//           if (observers[i] === observer) {
+//             observers.splice(i, 1)
+//             return
+//           }
+//         }
+//       }
+//     },
+//   }
+// }
 
 export function observe <A> (
   deps: [Observable<A> & Gettable<A>],
@@ -165,6 +177,10 @@ export function computeLazy <A, B, C, D, E, F, V> (
   deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>, (Observable<B> & Gettable<B>) | LazyObservable<B>, (Observable<C> & Gettable<C>) | LazyObservable<C>, (Observable<D> & Gettable<D>) | LazyObservable<D>, (Observable<E> & Gettable<E>) | LazyObservable<E>, (Observable<F> & Gettable<F>) | LazyObservable<F>],
   compute: (valueA: A, valueB: B, valueC: C, valueD: D, valueE: E, valueF: F) => V,
 ): LazyObservable<V>
+export function computeLazy <A, B, C, D, E, F, G, V> (
+  deps: [(Observable<A> & Gettable<A>) | LazyObservable<A>, (Observable<B> & Gettable<B>) | LazyObservable<B>, (Observable<C> & Gettable<C>) | LazyObservable<C>, (Observable<D> & Gettable<D>) | LazyObservable<D>, (Observable<E> & Gettable<E>) | LazyObservable<E>, (Observable<F> & Gettable<F>) | LazyObservable<F>, (Observable<G> & Gettable<G>) | LazyObservable<G>],
+  compute: (valueA: A, valueB: B, valueC: C, valueD: D, valueE: E, valueF: F, valueG: G) => V,
+): LazyObservable<V>
 export function computeLazy <A> (
   deps: ((Observable<any> & Gettable<any>) | LazyObservable<any>)[],
   compute: (...args: any[]) => any,
@@ -180,7 +196,8 @@ export function computeLazy <A> (
   function markDirty () {
     dirty = true
     for (const observer of observers) {
-      observer()
+      GlobalState.enqueueTask(observer)
+      // observer()
     }
   }
 
@@ -196,6 +213,7 @@ export function computeLazy <A> (
   return {
     get () {
       if (dirty) {
+        // if ('getMinCompute' === compute.name) { debugger}
         value = recompute()
         dirty = false
       }

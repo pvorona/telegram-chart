@@ -1,6 +1,7 @@
 import { Lambda } from '../types'
 import { Observable, LazyObservable, Gettable } from './observable/types'
 import { Transition } from './transition'
+import { GlobalState } from './observable/globalState'
 
 // import { shallowEqual } from './shallowEqual'
 
@@ -127,7 +128,10 @@ export function oncePerFrame (original: () => void, priority = TASK.DOM_WRITE): 
 export function animationObservable <A> (
   innerObservable: (Observable<A> & Gettable<A>) | LazyObservable<A>,
   initialTransition: Transition<A>,
-): LazyObservable<A> & { setTransition: (transition: Transition<A>) => void } {
+): LazyObservable<A> & {
+  setTransition: (transition: Transition<A>) => void
+  setImmediate(t: A): void
+} {
   const observers: Lambda[] = []
   let futureTask: Task | undefined = undefined
   let transition = initialTransition
@@ -168,8 +172,15 @@ export function animationObservable <A> (
     transition.setTarget(target)
 
     if (!transition.isFinished()) {
+      // GlobalState.enqueueTask(notify)
       notify()
     }
+  }
+
+  const setImmediate = (t: A) => {
+    transition.setImmediate(t)
+
+    GlobalState.enqueueTask(notify)
   }
 
   innerObservable.observe(set)
@@ -192,6 +203,7 @@ export function animationObservable <A> (
       newTransition.setTarget(transition.getTarget())
       transition = newTransition
     },
+    setImmediate,
   }
 }
 

@@ -20,6 +20,7 @@ import {
   observe,
   // compute,
   Transition,
+  batch,
 } from '../../util'
 import { MONTHS } from '../constants'
 
@@ -81,8 +82,54 @@ export function Chart (options: ChartOptions) {
   const height = observable(options.height - options.overviewHeight)
   const startIndex = observable(options.viewBox.startIndex)
   const endIndex = observable(options.viewBox.endIndex)
-  const left = observable(startIndex.get() / (options.total - 1) * width.get())
-  const right = observable(endIndex.get() / (options.total - 1) * width.get())
+
+  const depth = observable(0)
+;(window as any).depth = depth
+  const left = observable(startIndex.get() / (options.total[depth.get()] - 1) * width.get())
+  const right = observable(endIndex.get() / (options.total[depth.get()] - 1) * width.get())
+
+  depth.observe((depthValue, prevDepth) => {
+    const newStartIndex = keepInBounds(
+      startIndex.get() * Math.pow(2, prevDepth - depthValue),
+      0,
+      options.total[depthValue] - 1 - MIN_VIEWBOX,
+    )
+    const newEndIndex = keepInBounds(
+      endIndex.get() * Math.pow(2, prevDepth - depthValue),
+      MIN_VIEWBOX + 1,
+      options.total[depthValue] - 1,
+    )
+    // console.log({newStartIndex,newEndIndex, startIndex: startIndex.get(), endIndex: endIndex.get(), total: options.total[depthValue]})
+    batch(() => {
+      inertStartIndex.setImmediate(newStartIndex)
+      startIndex.set(newStartIndex)
+      inertEndIndex.setImmediate(newEndIndex)
+      endIndex.set(newEndIndex)
+    })
+  })
+
+  // observe(
+  //   [startIndex, endIndex],
+  //   function updateDepth (startIndexV, endIndexV) {
+  //     const MAX_DEPTH = 4
+  //     console.log({startIndexV, endIndexV})
+  //     if (endIndexV - startIndexV > options.total[depth.get()] / 2) {
+  //       depth.set(keepInBounds(depth.get() + 1, 0, MAX_DEPTH))
+  //       if (depth.get() !== MAX_DEPTH) {
+  //         startIndex.set(startIndex.get() / 2)
+  //         endIndex.set(endIndex.get() / 2)
+  //       }
+  //     }
+  //     if (endIndexV - startIndexV < options.total[depth.get()] / 4) {
+  //       depth.set(keepInBounds(depth.get() - 1, 0, MAX_DEPTH))
+  //       if (depth.get() !== 0) {
+  //         startIndex.set(startIndex.get() * 2)
+  //         endIndex.set(endIndex.get() * 2)
+  //       }
+  //     }
+  //     console.log(depth.get())
+  //   }
+  // )
 
   let wheelTimeoutId: number | undefined = undefined
   let cursorResizerDelta = 0
@@ -106,15 +153,15 @@ export function Chart (options: ChartOptions) {
 
     // can be extracted to observe width
     // overview logic
-    left.set(startIndex.get() / (options.total - 1) * width.get())
-    right.set(endIndex.get() / (options.total - 1) * width.get())
+    left.set(startIndex.get() / (options.total[depth.get()] - 1) * width.get())
+    right.set(endIndex.get() / (options.total[depth.get()] - 1) * width.get())
   })
 
   // overview logic
   observe(
     [left],
     function computeStartIndex (left) {
-      startIndex.set(left / width.get() * (options.total - 1))
+      startIndex.set(left / width.get() * (options.total[depth.get()] - 1))
     }
   )
 
@@ -122,7 +169,7 @@ export function Chart (options: ChartOptions) {
   observe(
     [right],
     function computeEndIndex (right) {
-      endIndex.set(Math.min(right / width.get() * (options.total - 1), options.total - 1))
+      endIndex.set(Math.min(right / width.get() * (options.total[depth.get()] - 1), options.total[depth.get()] - 1))
     }
   )
 
@@ -131,7 +178,7 @@ export function Chart (options: ChartOptions) {
     [enabledGraphNames],
     function getTotalMaxCompute (enabledGraphNames) {
       // can remove unnecessary abstraction
-      return getMaxValueInRange(0, options.total - 1, enabledGraphNames)
+      return getMaxValueInRange(0, options.total[depth.get()] - 1, enabledGraphNames)
     }
   )
 
@@ -139,7 +186,7 @@ export function Chart (options: ChartOptions) {
     [enabledGraphNames],
     function getTotalMinCompute (enabledGraphNames) {
       // can remove unnecessary abstraction
-      return getMinValueInRange(0, options.total - 1, enabledGraphNames)
+      return getMinValueInRange(0, options.total[depth.get()] - 1, enabledGraphNames)
     }
   )
 
@@ -192,6 +239,7 @@ export function Chart (options: ChartOptions) {
   const visibleMin = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
     function getMinCompute (startIndex, endIndex, enabledGraphNames) {
+      console.log({startIndex, endIndex})
       return getMinValueInRange(startIndex, endIndex, enabledGraphNames)
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
@@ -220,13 +268,14 @@ export function Chart (options: ChartOptions) {
   )
 
   const mainGraphPoints = computeLazy(
-    [inertStartIndex, inertEndIndex, inertVisibleMax, inertVisibleMin, width, height],
-    function mainGraphPointsCompute (startIndex, endIndex, max, min, width, height) {
+    [inertStartIndex, inertEndIndex, inertVisibleMax, inertVisibleMin, width, height, depth],
+    function mainGraphPointsCompute (startIndex, endIndex, max, min, width, height, depth) {
+      console.log('mainGraphPointsCompute', min)
       return options.graphNames.reduce((points, graphName) => ({
         ...points,
         [graphName]: mapDataToCoords(
-          options.data[graphName],
-          options.domain,
+          options.data[graphName][depth],
+          options.domain[depth],
           max,
           min,
           { width: width * devicePixelRatio, height: height * devicePixelRatio },
@@ -244,12 +293,12 @@ export function Chart (options: ChartOptions) {
       return options.graphNames.reduce((points, graphName) => ({
         ...points,
         [graphName]: mapDataToCoords(
-          options.data[graphName],
-          options.domain,
+          options.data[graphName][0],
+          options.domain[0],
           inertOverallMax,
           inertOverallMin,
           { width: width * devicePixelRatio, height: (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) * devicePixelRatio },
-          { startIndex: 0, endIndex: options.total - 1 },
+          { startIndex: 0, endIndex: options.total[0] - 1 },
           options.lineWidth * devicePixelRatio,
         )
       }), {} as { [key: string]: Point[] })
@@ -302,7 +351,7 @@ export function Chart (options: ChartOptions) {
         tooltipValues[enabledGraphNames[i]].innerText = String(options.data[enabledGraphNames[i]][dataIndex])
         // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
       }
-      tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex])
+      tooltipDate.innerText = getTooltipDateText(options.domain[depth.get()][dataIndex])
       // TODO: Force reflow
       tooltip.style.transform = `translateX(${x / devicePixelRatio - tooltip.offsetWidth / 2}px)`
     }
@@ -433,25 +482,25 @@ export function Chart (options: ChartOptions) {
 
         if (deltaY < 0 && ((endIndex.get() - startIndex.get() - 2 * Math.abs(deltaY * dynamicFactor)) < MIN_VIEWBOX)) {
           const center = (endIndex.get() + startIndex.get()) / 2
-          startIndex.set(keepInBounds(center - MIN_VIEWBOX / 2, 0, options.total - 1 - MIN_VIEWBOX))
-          endIndex.set(keepInBounds(center + MIN_VIEWBOX / 2, MIN_VIEWBOX, options.total - 1))
-          left.set(startIndex.get() / (options.total - 1) * width.get())
-          right.set(endIndex.get() / (options.total - 1) * width.get())
+          startIndex.set(keepInBounds(center - MIN_VIEWBOX / 2, 0, options.total[depth.get()] - 1 - MIN_VIEWBOX))
+          endIndex.set(keepInBounds(center + MIN_VIEWBOX / 2, MIN_VIEWBOX, options.total[depth.get()] - 1))
+          left.set(startIndex.get() / (options.total[depth.get()] - 1) * width.get())
+          right.set(endIndex.get() / (options.total[depth.get()] - 1) * width.get())
 
         } else {
-          startIndex.set(keepInBounds(startIndex.get() - deltaY * dynamicFactor, 0, options.total - 1 - MIN_VIEWBOX))
-          endIndex.set(keepInBounds(endIndex.get() + deltaY * dynamicFactor, startIndex.get() + MIN_VIEWBOX, options.total - 1))
-          left.set(startIndex.get() / (options.total - 1) * width.get())
-          right.set(endIndex.get() / (options.total - 1) * width.get())
+          startIndex.set(keepInBounds(startIndex.get() - deltaY * dynamicFactor, 0, options.total[depth.get()] - 1 - MIN_VIEWBOX))
+          endIndex.set(keepInBounds(endIndex.get() + deltaY * dynamicFactor, startIndex.get() + MIN_VIEWBOX, options.total[depth.get()] - 1))
+          left.set(startIndex.get() / (options.total[depth.get()] - 1) * width.get())
+          right.set(endIndex.get() / (options.total[depth.get()] - 1) * width.get())
 
         }
       } else if (
         (angle >= -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle <= DEVIATION_FROM_STRAIGT_LINE_DEGREES) // left, right
       ) {
-        startIndex.set(keepInBounds(startIndex.get() + e.deltaX * dynamicFactor, 0, options.total - 1 - viewBoxWidth))
-        endIndex.set(keepInBounds(startIndex.get() + viewBoxWidth, MIN_VIEWBOX, options.total - 1))
-        left.set(startIndex.get() / (options.total - 1) * width.get())
-        right.set(endIndex.get() / (options.total - 1) * width.get())
+        startIndex.set(keepInBounds(startIndex.get() + e.deltaX * dynamicFactor, 0, options.total[depth.get()] - 1 - viewBoxWidth))
+        endIndex.set(keepInBounds(startIndex.get() + viewBoxWidth, MIN_VIEWBOX, options.total[depth.get()] - 1))
+        left.set(startIndex.get() / (options.total[depth.get()] - 1) * width.get())
+        right.set(endIndex.get() / (options.total[depth.get()] - 1) * width.get())
 
       } else {
         // if (
@@ -515,7 +564,7 @@ export function Chart (options: ChartOptions) {
   }
 
   function getValues (graphNames: string[]) {
-    return graphNames.map(graphName => options.data[graphName])
+    return graphNames.map(graphName => options.data[graphName][depth.get()])
   }
 
   function onLeftResizerMouseDown (e: MouseEvent) {

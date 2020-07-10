@@ -26,6 +26,7 @@ export function mapDataToCoords (
 
   for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     const value = (height - offsetBottom) / (max - min) * (data[i] - min)
+    if (Number.isNaN(value)) {debugger }
     coords.push({
       x: width / (getTime(domain, endIndex) - getTime(domain, startIndex)) * (getTime(domain, i) - getTime(domain, startIndex)),
       y: lineWidth + height - offsetBottom - value,

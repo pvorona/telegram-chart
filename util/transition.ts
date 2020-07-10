@@ -4,8 +4,11 @@ import { values } from './values'
 export interface Transition <A> {
   getState: () => A
   setTarget: (target: A) => void
+  setImmediate: (t: A) => void
   getTarget: () => A
   isFinished: () => boolean
+  resetStartTime: () => void
+  setOnlyValue: (t: A) => void
 }
 
 export type Easing = (progress: number) => number
@@ -46,11 +49,33 @@ export function transition (
     return targetValue
   }
 
+  function setImmediate (t: number) {
+    targetValue = t
+    finished = true
+  }
+
+  function resetStartTime () {
+    startTime = performance.now() + performance.timing.navigationStart
+    finished = false
+  }
+
+  function setOnlyValue (target: number) {
+    if (target === targetValue) {
+      return
+    }
+
+    targetValue = target
+    startValue = getState()
+  }
+
   return {
     getState,
     isFinished,
     setTarget,
     getTarget,
+    setImmediate,
+    resetStartTime,
+    setOnlyValue,
   }
 }
 
@@ -95,10 +120,19 @@ export function groupTransition (
     return result
   }
 
+  function setImmediate () {}
+
+  function setOnlyValue () {}
+
+  function resetStartTime () {}
+
   return {
+    setImmediate,
     setTarget,
     isFinished,
     getState,
     getTarget,
+    setOnlyValue,
+    resetStartTime,
   }
 }

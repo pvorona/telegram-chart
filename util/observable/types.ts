@@ -1,6 +1,6 @@
 import { Lambda } from '../../types'
 
-export type Observer<A> = (value: A) => void
+export type Observer<A> = (value: A, oldValue: A) => void
 
 export interface Observable <A> {
   observe: (observer: Observer<A>) => Lambda
