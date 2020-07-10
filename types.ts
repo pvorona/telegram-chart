@@ -11,12 +11,20 @@ export interface VisibilityState {
   [key: string]: boolean
 }
 
+// export interface Data {
+//   [key: string]: number[]
+// }
 export interface Data {
-  [key: string]: number[]
+  [key: string]: {
+    [depth: number]: number[]
+  }
 }
 
 export interface ChartOptions {
-  domain: number[]
+  // domain: number[]
+  domain: {
+    [depth: number]: number[]
+  }
   graphNames: (string)[]
   width: number
   height: number
@@ -26,7 +34,10 @@ export interface ChartOptions {
   OVERVIEW_LINE_WIDTH: number
   colors: { [key: string]: string }
   data: Data
-  total: number
+  // total: number
+  total: {
+    [depth: number]: number
+  }
   visibilityState: VisibilityState
   viewBox: {
     startIndex: number

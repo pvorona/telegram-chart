@@ -127,7 +127,10 @@ export function oncePerFrame (original: () => void, priority = TASK.DOM_WRITE): 
 export function animationObservable <A> (
   innerObservable: (Observable<A> & Gettable<A>) | LazyObservable<A>,
   initialTransition: Transition<A>,
-): LazyObservable<A> & { setTransition: (transition: Transition<A>) => void } {
+): LazyObservable<A> & {
+  setTransition: (transition: Transition<A>) => void
+  setImmediate(t: A): void
+} {
   const observers: Lambda[] = []
   let futureTask: Task | undefined = undefined
   let transition = initialTransition
@@ -172,6 +175,15 @@ export function animationObservable <A> (
     }
   }
 
+  const setImmediate = (t: A) => {
+    // if ()
+
+    transition.setImmediate(t)
+    // if ('set' in innerObservable) innerObservable.set(t)
+
+    notify()
+  }
+
   innerObservable.observe(set)
 
   return {
@@ -192,6 +204,7 @@ export function animationObservable <A> (
       newTransition.setTarget(transition.getTarget())
       transition = newTransition
     },
+    setImmediate,
   }
 }
 
