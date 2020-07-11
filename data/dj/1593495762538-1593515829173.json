@@ -1,4 +1,4 @@
-export const data = [{"timestamp":1593495762538,"value":25601,"ticker":"Dow Jones 30","type":"Buy"},
+[{"timestamp":1593495762538,"value":25601,"ticker":"Dow Jones 30","type":"Buy"},
 {"timestamp":1593495763447,"value":25603,"ticker":"Dow Jones 30","type":"Buy"},
 {"timestamp":1593495764248,"value":25604,"ticker":"Dow Jones 30","type":"Buy"},
 {"timestamp":1593495765150,"value":25604,"ticker":"Dow Jones 30","type":"Buy"},
