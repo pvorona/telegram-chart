@@ -1,12 +1,12 @@
 import { ChartOptions } from '../types'
 // import data from './dj/1593428647696-1593429881599.json' // small
 // import data from './dj/1593429959873-1593431176669.json' // small
-import data from './dj/1593431530561-1593439634946.json'
+// import data from './dj/1593431530561-1593439634946.json'
 // import data from './dj/1593439844906-1593442604081.json' // small
 // import data from './dj/1593442797964-1593443061303.json' // small
 // import data from './dj/1593451891989-1593455062736.json' // small
 // import data from './dj/1593461499573-1593461700192.json' // small
-// import data from './dj/1593495762538-1593515829173.json' // good good
+import data from './dj/1593495762538-1593515829173.json' // good good
 // import data from './dj/1593520483683-1593533756968.json' // good good
 // import data from './dj/1593539872402-1593541924425.json' // something is wrong
 // import data from './dj/1593588503848-1593605244831.json' // good good

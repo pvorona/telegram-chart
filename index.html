@@ -32,11 +32,13 @@
         /*background-color: hsla(202, 7%, 16%, 1);*/
         /*background-color: hsla(168, 1%, 18%, 1);*/
 
-        --background-cl: hsla(210, 5%, 18%, 1);
-        --overview-backdrop-cl: hsla(210, 5%, 10%, 0.75);
-        --overview-edges-cl: hsla(210, 5%, 30%, 0.5);
+        --primary-hue: 168;
 
-        --tooltip-line-cl: hsla(210, 5%, 35%);
+        --background-cl: hsla(var(--primary-hue), 5%, 18%, 1);
+        --overview-backdrop-cl: hsla(var(--primary-hue), 5%, 10%, 0.75);
+        --overview-edges-cl: hsla(var(--primary-hue), 5%, 30%, 0.5);
+
+        --tooltip-line-cl: hsla(var(--primary-hue), 5%, 35%);
 
         background-color: var(--background-cl);
       }
