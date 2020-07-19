@@ -1,4 +1,5 @@
-import { observe, observable } from './observable'
+import { observe } from '../observe'
+import { observable } from '../observable'
 
 test('fires immediately', () => {
   const o1 = observable(1)

@@ -1,4 +1,4 @@
-import { observable } from './observable'
+import { observable } from '../observable'
 
 describe('init value', () => {
   test('init with number', () => {
