@@ -1,5 +1,18 @@
 import { observable } from './observable'
 
+describe('init value', () => {
+  test('init with number', () => {
+    const o = observable(0)
+    expect(o.get()).toStrictEqual(0)
+  })
+
+  test('init with object', () => {
+    const object = { a: 1 }
+    const o = observable(object)
+    expect(o.get()).toStrictEqual(object)
+  })
+})
+
 test('set', () => {
   const o = observable(0)
   expect(o.get()).toStrictEqual(0)

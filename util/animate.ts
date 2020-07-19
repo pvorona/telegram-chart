@@ -202,7 +202,7 @@ function scheduleRender () {
   renderFrameId = requestAnimationFrame(render)
 }
 
-const enum TASK {
+enum TASK {
   DOM_READ = 'DOM_READ',
   COMPUTATION = 'COMPUTATION',
   DOM_WRITE = 'DOM_WRITE',
