@@ -93,10 +93,10 @@ const queue = {
   phase: INTERACTING
 }
 
-export function oncePerFrame (original: () => void, priority = TASK.DOM_WRITE): () => void {
+export function performEffect (original: () => void, priority = TASK.DOM_WRITE): () => void {
   let task: Task
 
-  return function wrapperEffect () {
+  return function wrappedEffect () {
     if (task === undefined || task.completed || task.cancelled) {
       task = scheduleTask(original, priority)
     }
