@@ -4,8 +4,8 @@ import {
   // ThemeSwitcher,
   Chart,
 } from './components'
-// import { chartOptions } from './data/dj'
-import { chartOptions } from './data/processed'
+import { chartOptions } from './data/dj'
+// import { chartOptions } from './data/processed'
 
 // document.body.appendChild(ThemeSwitcher(DARK))
 
