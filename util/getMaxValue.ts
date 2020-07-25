@@ -3,6 +3,7 @@ import { interpolatePoint } from './interpolatePoint'
 import { calculateOrderOfMagnitude } from './calculateOrderOfMagnitude'
 
 export function getMaxValue ({ startIndex, endIndex }: { startIndex: number, endIndex: number}, values: number[][]): number {
+  // console.time('getMaxValue')
   let maxValue = values[0][ceil(startIndex)]
   for (let j = 0; j < values.length; j++) {
     maxValue = max(maxValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
@@ -10,6 +11,7 @@ export function getMaxValue ({ startIndex, endIndex }: { startIndex: number, end
       maxValue = max(values[j][i], maxValue)
     }
   }
+  // console.timeEnd('getMaxValue')
   return maxValue
 }
 
@@ -21,6 +23,7 @@ export function beautifyNumber (number: number): number {
 }
 
 export function getMinValue ({ startIndex, endIndex }: { startIndex: number, endIndex: number}, values: number[][]): number {
+  // console.time('getMinValue')
   let minValue = values[0][ceil(startIndex)]
   for (let j = 0; j < values.length; j++) {
     minValue = min(minValue, interpolatePoint(startIndex, values[j]), interpolatePoint(endIndex, values[j]))
@@ -28,5 +31,6 @@ export function getMinValue ({ startIndex, endIndex }: { startIndex: number, end
       minValue = min(values[j][i], minValue)
     }
   }
+  // console.timeEnd('getMinValue')
   return minValue
 }

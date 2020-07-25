@@ -10,7 +10,7 @@ import {
   // getShortNumber,
   mapDataToCoords,
   getMaxValue,
-  getMinValue,
+  // getMinValue,
   transition,
   groupTransition,
   animationObservable,
@@ -20,6 +20,9 @@ import {
   observe,
   // compute,
   Transition,
+  createMinArraySegmentTree,
+  SegmentTree,
+  interpolatePoint,
 } from '../../util'
 import { MONTHS } from '../constants'
 
@@ -65,11 +68,10 @@ interface Point {
   y: number
 }
 
-
 export function Chart (options: ChartOptions) {
   const enabledStateByGraphName = observable(options.graphNames.reduce((state, graphName) => ({
       ...state,
-      [graphName]: true,
+      [graphName]: options.visibilityState[graphName],
     }), {} as EnabledGraphNames)
   )
   const isDragging = observable(false)
@@ -92,6 +94,16 @@ export function Chart (options: ChartOptions) {
     left: left.get(),
   })
   const boundingRect = overview.element.getBoundingClientRect()
+
+  const minTrees = options.graphNames.reduce((all, graphName) => ({
+    ...all,
+    [graphName]: createMinArraySegmentTree(options.data[graphName], (a: number, b: number) => Math.min(a, b), Infinity)
+  }), {} as { [key: string]: SegmentTree<number> })
+
+  const maxTrees = options.graphNames.reduce((all, graphName) => ({
+    ...all,
+    [graphName]: createMinArraySegmentTree(options.data[graphName], (a: number, b: number) => Math.max(a, b), -Infinity)
+  }), {} as { [key: string]: SegmentTree<number> })
 
   const enabledGraphNames = computeLazy(
     [enabledStateByGraphName],
@@ -130,16 +142,22 @@ export function Chart (options: ChartOptions) {
   const overallMax = computeLazy(
     [enabledGraphNames],
     function getTotalMaxCompute (enabledGraphNames) {
+      return Math.max(...enabledGraphNames.map(
+        (graphName) => maxTrees[graphName].get(0, options.total - 1)
+      ))
       // can remove unnecessary abstraction
-      return getMaxValueInRange(0, options.total - 1, enabledGraphNames)
+      // return getMaxValueInRange(0, options.total - 1, enabledGraphNames)
     }
   )
 
   const overallMin = computeLazy(
     [enabledGraphNames],
     function getTotalMinCompute (enabledGraphNames) {
+      return Math.max(...enabledGraphNames.map(
+        (graphName) => minTrees[graphName].get(0, options.total - 1)
+      ))
       // can remove unnecessary abstraction
-      return getMinValueInRange(0, options.total - 1, enabledGraphNames)
+      // return getMinValueInRange(0, options.total - 1, enabledGraphNames)
     }
   )
 
@@ -180,8 +198,25 @@ export function Chart (options: ChartOptions) {
   )
   const visibleMax = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
-    function getMaxCompute (startIndex, endIndex, enabledGraphNames) {
-      return getMaxValueInRange(startIndex, endIndex, enabledGraphNames)
+    function getVisibleMaxCompute (startIndex, endIndex, enabledGraphNames) {
+      performance.mark('getVisibleMaxCompute Start')
+
+      // const max = Math.max(...enabledGraphNames.map(
+      //   graphName => Math.max(
+      //     maxTrees[graphName].get(
+      //       Math.ceil(startIndex),
+      //       Math.floor(endIndex),
+      //     ),
+      //     interpolatePoint(startIndex, options.data[graphName]),
+      //     interpolatePoint(endIndex, options.data[graphName]),
+      //   )
+      // ))
+      const max = getMaxValueInRange(startIndex, endIndex, enabledGraphNames)
+
+      performance.mark('getVisibleMaxCompute End')
+
+
+      return max
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   )
@@ -191,8 +226,29 @@ export function Chart (options: ChartOptions) {
   )
   const visibleMin = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
-    function getMinCompute (startIndex, endIndex, enabledGraphNames) {
-      return getMinValueInRange(startIndex, endIndex, enabledGraphNames)
+    function getVisibleMinCompute (startIndex, endIndex, enabledGraphNames) {
+      // console.time('min')
+      // const oldmin = getMinValueInRange(startIndex, endIndex, enabledGraphNames)
+
+      performance.mark('getVisibleMinCompute Start')
+      const min = Math.min(...enabledGraphNames.map(
+        graphName => Math.min(
+          minTrees[graphName].get(
+            Math.ceil(startIndex),
+            Math.floor(endIndex),
+          ),
+          interpolatePoint(startIndex, options.data[graphName]),
+          interpolatePoint(endIndex, options.data[graphName]),
+        )
+      ))
+      performance.mark('getVisibleMinCompute End')
+
+      // if (min !== oldmin) {
+      //   debugger
+      // }
+      // console.timeEnd('min')
+      return min
+      // return getMinValueInRange(startIndex, endIndex, enabledGraphNames)
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   )
@@ -325,6 +381,12 @@ export function Chart (options: ChartOptions) {
   effect(
     [mainGraphPoints, inertOpacityStateByGraphName, width, height],
     function updateMainGraphEffect (points, opacityState, width, height) {
+      performance.measure(
+        'getVisibleMaxCompute',
+        'getVisibleMaxCompute Start',
+        'getVisibleMaxCompute End',
+      )
+
       graphs.canvas.width = width * window.devicePixelRatio // only needs to be run when sizes change
       graphs.canvas.height = height * window.devicePixelRatio // only needs to be run when sizes change
       renderGraphs({
@@ -454,7 +516,6 @@ export function Chart (options: ChartOptions) {
         right.set(endIndex.get() / (options.total - 1) * width.get())
 
       } else {
-        // if (
         //   (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
         //   || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
         // ) {
@@ -507,12 +568,12 @@ export function Chart (options: ChartOptions) {
     )
   }
 
-  function getMinValueInRange (startIndex: number, endIndex: number, graphNames: string[]) {
-    return getMinValue(
-      { startIndex, endIndex },
-      getValues(graphNames),
-    )
-  }
+  // function getMinValueInRange (startIndex: number, endIndex: number, graphNames: string[]) {
+  //   return getMinValue(
+  //     { startIndex, endIndex },
+  //     getValues(graphNames),
+  //   )
+  // }
 
   function getValues (graphNames: string[]) {
     return graphNames.map(graphName => options.data[graphName])
