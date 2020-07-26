@@ -6,11 +6,11 @@ const queue = {
   phase: INTERACTING
 }
 
-export function performEffect (original: Lambda): Lambda {
+export function createScheduleEffect (original: Lambda): Lambda {
 // export function performEffect (original: Lambda, priority = TASK.DOM_WRITE): Lambda {
   let task: Task
 
-  return function wrappedEffect () {
+  return function scheduleEffectIfNeeded () {
     if (task === undefined || task.completed || task.cancelled) {
       task = scheduleTask(original)
       // task = scheduleTask(original, priority)

@@ -80,14 +80,9 @@ test('compute is not called after unobserve is called', () => {
   const unobserve = c.observe(() => calls += 1)
 
   expect(calls).toStrictEqual(0)
-
   o1.set(3)
-
   expect(calls).toStrictEqual(1)
-
   unobserve()
-
   o2.set(4)
-
   expect(calls).toStrictEqual(1)
 })
