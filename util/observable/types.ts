@@ -17,3 +17,5 @@ export interface Gettable <A> {
 export interface LazyObservable <A> extends Gettable <A> {
   observe: (observer: Lambda) => Lambda
 }
+
+export type ObservableValue <T> = Observable<T> & Gettable<T> & Settable<T>
