@@ -61,13 +61,28 @@ export const Overview: Component<Props, ChartContext> = (
   );
 
   const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
+    if (enabledGraphNames.length === 0) return prevOverallMax.get();
+
     // can remove unnecessary abstraction
     return getMaxValueInRange(0, options.total - 1, enabledGraphNames);
   });
 
+  const prevOverallMax = observable(Infinity);
+
+  effect([overallMax], (overallMax) => {
+    prevOverallMax.set(overallMax);
+  });
+
   const overallMin = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    // can remove unnecessary abstraction
+    if (enabledGraphNames.length === 0) return prevOverallMin.get();
+
     return getMinValueInRange(0, options.total - 1, enabledGraphNames);
+  });
+
+  const prevOverallMin = observable(-Infinity);
+
+  effect([overallMin], (overallMin) => {
+    prevOverallMin.set(overallMin);
   });
 
   const inertOverallMax = animationObservable(

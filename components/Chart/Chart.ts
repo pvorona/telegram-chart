@@ -87,10 +87,9 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     }
   );
 
-  // why lazy
   const isAnyGraphEnabled = computeLazy(
     [enabledGraphNames],
-    function isAnyGraphEnabledCompute(enabledGraphNames) {
+    (enabledGraphNames) => {
       return Boolean(enabledGraphNames.length);
     }
   );
@@ -123,24 +122,44 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     endIndex,
     transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
   );
+
   const visibleMax = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
-    function getMaxCompute(startIndex, endIndex, enabledGraphNames) {
+    (startIndex, endIndex, enabledGraphNames) => {
+      if (enabledGraphNames.length === 0) return prevVisibleMax.get();
+
       return getMaxValueInRange(startIndex, endIndex, enabledGraphNames);
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   );
+
+  const prevVisibleMax = observable(+Infinity);
+
+  effect([visibleMax], (visibleMax) => {
+    prevVisibleMax.set(visibleMax);
+  });
+
   const inertVisibleMax = animationObservable(
     visibleMax,
     transition(visibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
+
   const visibleMin = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
-    function getMinCompute(startIndex, endIndex, enabledGraphNames) {
+    (startIndex, endIndex, enabledGraphNames) => {
+      if (enabledGraphNames.length === 0) return prevVisibleMin.get();
+
       return getMinValueInRange(startIndex, endIndex, enabledGraphNames);
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   );
+  
+  const prevVisibleMin = observable(-Infinity);
+
+  effect([visibleMin], (visibleMin) => {
+    prevVisibleMin.set(visibleMin);
+  });
+
   const inertVisibleMin = animationObservable(
     visibleMin,
     transition(visibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
@@ -413,7 +432,11 @@ export const Chart: Component<ChartOptions, ChartContext> = (
           )
         );
         endIndex.set(
-          ensureInBounds(center + MIN_VIEWBOX / 2, MIN_VIEWBOX, options.total - 1)
+          ensureInBounds(
+            center + MIN_VIEWBOX / 2,
+            MIN_VIEWBOX,
+            options.total - 1
+          )
         );
       } else {
         startIndex.set(
@@ -496,7 +519,11 @@ export const Chart: Component<ChartOptions, ChartContext> = (
         ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
       );
       endIndex.set(
-        ensureInBounds(startIndex.get() + visibleIndexRange, 0, options.total - 1)
+        ensureInBounds(
+          startIndex.get() + visibleIndexRange,
+          0,
+          options.total - 1
+        )
       );
 
       prevMouseX = getX(e);
