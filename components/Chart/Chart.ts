@@ -1,6 +1,6 @@
 import { renderGraphs } from "../Graphs";
 import { Controls } from "../Controls";
-import { ChartOptions } from "../../types";
+import { ChartContext, ChartOptions } from "../../types";
 import { easeInOutQuart, linear } from "../../easings";
 import {
   memoizeOne,
@@ -17,28 +17,35 @@ import {
   observe,
   // compute,
   Transition,
-  keepInBounds,
+  ensureInBounds,
   getTooltipDateText,
+  handleDrag,
 } from "../../util";
 import {
-  // cursors,
   MIN_VIEWBOX,
   DOT_SIZE,
   CENTER_OFFSET,
   MIN_HEIGHT,
   WHEEL_CLEAR_TIMEOUT,
   WHEEL_MULTIPLIER,
-  DEVIATION_FROM_STRAIGT_LINE_DEGREES,
+  DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
+  INSTANT_TRANSITION,
   VERY_FAST_TRANSITIONS_TIME,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
+  cursors,
 } from "./constants";
-import { EnabledGraphNames, OpacityState, Point } from "./types";
+import { EnabledGraphNames, OpacityState, Point, Component } from "./types";
 import { createGraphs } from "./createGraphs";
 import { Overview } from "./Overview";
-import { ObservableValue } from "../../util/observable/types";
+import { interpolate } from "../../util/interpolatePoint";
 
-export function Chart(options: ChartOptions) {
+export const Chart: Component<ChartOptions, ChartContext> = (
+  options,
+  context
+) => {
+  const { isDragging, isWheeling, isGrabbingGraphs, activeCursor } = context;
+
   const enabledStateByGraphName = observable(
     options.graphNames.reduce(
       (state, graphName) => ({
@@ -48,11 +55,8 @@ export function Chart(options: ChartOptions) {
       {} as EnabledGraphNames
     )
   );
-  const isDragging = observable(false);
-  const isWheeling = observable(false);
   const isHovering = observable(false);
   const mouseX = observable(0);
-  // const activeCursor = observable(cursors.default);
   const width = observable(options.width);
   const height = observable(options.height - options.overviewHeight);
   const startIndex = observable(options.viewBox.startIndex);
@@ -93,14 +97,21 @@ export function Chart(options: ChartOptions) {
 
   // why lazy
   const isTooltipVisible = computeLazy(
-    [isDragging, isHovering, isAnyGraphEnabled, isWheeling],
+    [isDragging, isHovering, isWheeling, isGrabbingGraphs, isAnyGraphEnabled],
     function isTooltipVisibleCompute(
       isDragging,
       isHovering,
-      isAnyGraphEnabled,
-      isWheeling
+      isWheeling,
+      isGrabbingGraphs,
+      isAnyGraphEnabled
     ) {
-      return !isWheeling && !isDragging && isHovering && isAnyGraphEnabled;
+      return (
+        !isWheeling &&
+        !isDragging &&
+        isHovering &&
+        !isGrabbingGraphs &&
+        isAnyGraphEnabled
+      );
     }
   );
 
@@ -208,23 +219,41 @@ export function Chart(options: ChartOptions) {
     }
   );
 
-  observe([isDragging, isWheeling], (isDragging, isWheeling) => {
-    if (isDragging || isWheeling) {
-      inertVisibleMax.setTransition(
-        transition(inertVisibleMax.get(), FAST_TRANSITIONS_TIME, linear)
-      );
-      inertVisibleMin.setTransition(
-        transition(inertVisibleMin.get(), FAST_TRANSITIONS_TIME, linear)
-      );
-    } else {
-      inertVisibleMax.setTransition(
-        transition(inertVisibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
-      );
-      inertVisibleMin.setTransition(
-        transition(inertVisibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
-      );
+  observe(
+    [isDragging, isWheeling, isGrabbingGraphs],
+    (isDragging, isWheeling, isGrabbingGraphs) => {
+      if (isGrabbingGraphs) {
+        inertVisibleMax.setTransition(
+          transition(inertVisibleMax.get(), INSTANT_TRANSITION, linear)
+        );
+        inertVisibleMin.setTransition(
+          transition(inertVisibleMin.get(), INSTANT_TRANSITION, linear)
+        );
+      } else if (isDragging || isWheeling) {
+        inertVisibleMax.setTransition(
+          transition(inertVisibleMax.get(), FAST_TRANSITIONS_TIME, linear)
+        );
+        inertVisibleMin.setTransition(
+          transition(inertVisibleMin.get(), FAST_TRANSITIONS_TIME, linear)
+        );
+      } else {
+        inertVisibleMax.setTransition(
+          transition(
+            inertVisibleMax.get(),
+            LONG_TRANSITIONS_TIME,
+            easeInOutQuart
+          )
+        );
+        inertVisibleMin.setTransition(
+          transition(
+            inertVisibleMin.get(),
+            LONG_TRANSITIONS_TIME,
+            easeInOutQuart
+          )
+        );
+      }
     }
-  });
+  );
 
   const {
     element,
@@ -235,9 +264,7 @@ export function Chart(options: ChartOptions) {
     tooltipValues,
     tooltipGraphInfo,
     tooltipDate,
-  } = createDOM({
-    width,
-  });
+  } = createDOM();
 
   window.addEventListener("resize", function resizeListener() {
     width.set(element.offsetWidth);
@@ -326,15 +353,6 @@ export function Chart(options: ChartOptions) {
     }
   );
 
-  // effect([activeCursor], function updateCursorEffect(cursor) {
-  //   [
-  //     document.body,
-  //     overview.viewBoxElement,
-  //     overview.resizerLeft,
-  //     overview.resizerRight,
-  //   ].forEach((element) => (element.style.cursor = cursor));
-  // });
-
   const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect() {
     return graphs.element.getBoundingClientRect();
   });
@@ -374,8 +392,8 @@ export function Chart(options: ChartOptions) {
     const dynamicFactor = (viewBoxWidth / MIN_VIEWBOX) * WHEEL_MULTIPLIER;
 
     if (
-      (angle < -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES) && angle >= -90) || // top right, bottom left
-      (angle > 90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle <= 90) // top left, bottom right
+      (angle < -(90 - DEVIATION_FROM_STRAIGHT_LINE_DEGREES) && angle >= -90) || // top right, bottom left
+      (angle > 90 - DEVIATION_FROM_STRAIGHT_LINE_DEGREES && angle <= 90) // top left, bottom right
     ) {
       const deltaY = e.deltaY;
 
@@ -388,25 +406,25 @@ export function Chart(options: ChartOptions) {
       ) {
         const center = (endIndex.get() + startIndex.get()) / 2;
         startIndex.set(
-          keepInBounds(
+          ensureInBounds(
             center - MIN_VIEWBOX / 2,
             0,
             options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
-          keepInBounds(center + MIN_VIEWBOX / 2, MIN_VIEWBOX, options.total - 1)
+          ensureInBounds(center + MIN_VIEWBOX / 2, MIN_VIEWBOX, options.total - 1)
         );
       } else {
         startIndex.set(
-          keepInBounds(
+          ensureInBounds(
             startIndex.get() - deltaY * dynamicFactor,
             0,
             options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
-          keepInBounds(
+          ensureInBounds(
             endIndex.get() + deltaY * dynamicFactor,
             startIndex.get() + MIN_VIEWBOX,
             options.total - 1
@@ -414,18 +432,18 @@ export function Chart(options: ChartOptions) {
         );
       }
     } else if (
-      angle >= -DEVIATION_FROM_STRAIGT_LINE_DEGREES &&
-      angle <= DEVIATION_FROM_STRAIGT_LINE_DEGREES // left, right
+      angle >= -DEVIATION_FROM_STRAIGHT_LINE_DEGREES &&
+      angle <= DEVIATION_FROM_STRAIGHT_LINE_DEGREES // left, right
     ) {
       startIndex.set(
-        keepInBounds(
+        ensureInBounds(
           startIndex.get() + e.deltaX * dynamicFactor,
           0,
           options.total - 1 - viewBoxWidth
         )
       );
       endIndex.set(
-        keepInBounds(
+        ensureInBounds(
           startIndex.get() + viewBoxWidth,
           MIN_VIEWBOX,
           options.total - 1
@@ -460,6 +478,44 @@ export function Chart(options: ChartOptions) {
     });
     graphs.element.addEventListener("mousemove", function (e) {
       mouseX.set(e.clientX - getGraphsBoundingRect().left);
+    });
+
+    let prevMouseX = 0;
+
+    const onGraphsDrag = (e: MouseEvent) => {
+      const visibleIndexRange = endIndex.get() - startIndex.get();
+      const newStartIndex = interpolate(
+        0,
+        width.get(),
+        startIndex.get(),
+        endIndex.get(),
+        prevMouseX - getX(e)
+      );
+
+      startIndex.set(
+        ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
+      );
+      endIndex.set(
+        ensureInBounds(startIndex.get() + visibleIndexRange, 0, options.total - 1)
+      );
+
+      prevMouseX = getX(e);
+    };
+
+    handleDrag(graphs.element, {
+      onDragStart: (e: MouseEvent) => {
+        isGrabbingGraphs.set(true);
+        activeCursor.set(cursors.grabbing);
+
+        prevMouseX = getX(e);
+      },
+      onDragEnd: () => {
+        isGrabbingGraphs.set(false);
+        activeCursor.set(cursors.default);
+
+        prevMouseX = 0;
+      },
+      onDragMove: onGraphsDrag,
     });
   }
 
@@ -517,7 +573,7 @@ export function Chart(options: ChartOptions) {
     return { tooltip, tooltipValues, graphInfos, tooltipDate };
   }
 
-  function createDOM({ width }: { width: ObservableValue<number> }) {
+  function createDOM() {
     const element = document.createElement("div");
     element.style.height = "100%";
     const graphs = createGraphs({
@@ -526,16 +582,18 @@ export function Chart(options: ChartOptions) {
       containerHeight: `calc(100% - ${options.overviewHeight}px)`,
       containerMinHeight: MIN_HEIGHT,
     });
-    const overview = Overview({
-      startIndex,
-      endIndex,
-      width,
-      isDragging,
-      isWheeling,
-      options,
-      enabledGraphNames,
-      inertOpacityStateByGraphName,
-    });
+    const overview = Overview(
+      {
+        startIndex,
+        endIndex,
+        width,
+        isWheeling,
+        options,
+        enabledGraphNames,
+        inertOpacityStateByGraphName,
+      },
+      context
+    );
     const controls = Controls(options, onButtonClick);
 
     const tooltipContainer = document.createElement("div");
@@ -580,4 +638,8 @@ export function Chart(options: ChartOptions) {
       tooltipDate,
     };
   }
-}
+
+  function getX(event: MouseEvent) {
+    return event.clientX;
+  }
+};

@@ -1,6 +1,6 @@
-import { renderGraphs } from "../Graphs";
-import { ChartOptions } from "../../types";
-import { easeInOutQuart, linear } from "../../easings";
+import { renderGraphs } from "../../Graphs";
+import { ChartContext, ChartOptions } from "../../../types";
+import { easeInOutQuart, linear } from "../../../easings";
 import {
   handleDrag,
   mapDataToCoords,
@@ -12,91 +12,63 @@ import {
   observe,
   getMaxValue,
   getMinValue,
-  keepInBounds,
-} from "../../util";
-import { LazyObservable, ObservableValue } from "../../util/observable/types";
+  ensureInBounds,
+} from "../../../util";
 import {
-  // cursors,
+  Gettable,
+  LazyObservable,
+  Observable,
+  Settable,
+} from "@pvorona/observable";
+import {
+  cursors,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
-} from "./constants";
-import { Point } from "./types";
-import { createGraphs } from "./createGraphs";
+} from "../constants";
+import { Point, Component } from "../types";
+import { createGraphs } from "../createGraphs";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 const minimalPixelsBetweenResizers = 10;
 
-// type Component <Props> = (p: Props) => { element: HTMLElement }
-
-export function Overview({
-  startIndex,
-  endIndex,
-  width,
-  isDragging,
-  isWheeling,
-  options,
-  enabledGraphNames,
-  inertOpacityStateByGraphName,
-}: {
-  startIndex: ObservableValue<number>;
-  endIndex: ObservableValue<number>;
-  width: ObservableValue<number>;
-  isDragging: ObservableValue<boolean>;
-  isWheeling: ObservableValue<boolean>;
+export type Props = {
+  startIndex: Observable<number> & Gettable<number> & Settable<number>;
+  endIndex: Observable<number> & Gettable<number> & Settable<number>;
+  width: Observable<number> & Gettable<number> & Settable<number>;
+  isWheeling: Observable<boolean> & Gettable<boolean> & Settable<boolean>;
   options: ChartOptions;
   enabledGraphNames: LazyObservable<string[]>;
   inertOpacityStateByGraphName: LazyObservable<{ [key: string]: number }>;
-}) {
+};
+
+export const Overview: Component<Props, ChartContext> = (
+  {
+    startIndex,
+    endIndex,
+    width,
+    options,
+    enabledGraphNames,
+    inertOpacityStateByGraphName,
+  },
+  { isDragging, isWheeling, activeCursor }
+) => {
   const left = observable(
     (startIndex.get() / (options.total - 1)) * width.get()
   );
+
   const right = observable(
     (endIndex.get() / (options.total - 1)) * width.get()
   );
 
-  const { element, resizerLeft, resizerRight, viewBoxElement, graphs } =
-    createOverview({
-      width: width.get(),
-      left: left.get(),
-    });
-
-  const boundingRect = element.getBoundingClientRect();
-
-  let cursorResizerDelta = 0;
-
-  observe([startIndex, width], function observeStartIndexAndWidth (startIndex, width) {
-    left.set((startIndex / (options.total - 1)) * width);
-  })
-  
-  observe([endIndex, width], function observeEndIndexAndWidth (endIndex, width) {
-    right.set((endIndex / (options.total - 1)) * width);
-  })
-  
-  observe([left], function computeStartIndex(left) {
-    startIndex.set((left / width.get()) * (options.total - 1));
+  const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
+    // can remove unnecessary abstraction
+    return getMaxValueInRange(0, options.total - 1, enabledGraphNames);
   });
 
-  observe([right], function computeEndIndex(right) {
-    endIndex.set(
-      Math.min((right / width.get()) * (options.total - 1), options.total - 1)
-    );
+  const overallMin = computeLazy([enabledGraphNames], (enabledGraphNames) => {
+    // can remove unnecessary abstraction
+    return getMinValueInRange(0, options.total - 1, enabledGraphNames);
   });
-
-  const overallMax = computeLazy(
-    [enabledGraphNames],
-    function getTotalMaxCompute(enabledGraphNames) {
-      // can remove unnecessary abstraction
-      return getMaxValueInRange(0, options.total - 1, enabledGraphNames);
-    }
-  );
-
-  const overallMin = computeLazy(
-    [enabledGraphNames],
-    function getTotalMinCompute(enabledGraphNames) {
-      // can remove unnecessary abstraction
-      return getMinValueInRange(0, options.total - 1, enabledGraphNames);
-    }
-  );
 
   const inertOverallMax = animationObservable(
     overallMax,
@@ -109,11 +81,7 @@ export function Overview({
 
   const overviewGraphPoints = computeLazy(
     [inertOverallMax, inertOverallMin, width],
-    function overviewGraphPointsCompute(
-      inertOverallMax,
-      inertOverallMin,
-      width
-    ) {
+    (inertOverallMax, inertOverallMin, width) => {
       return options.graphNames.reduce(
         (points, graphName) => ({
           ...points,
@@ -137,6 +105,24 @@ export function Overview({
     }
   );
 
+  observe([startIndex, width], (startIndex, width) => {
+    left.set((startIndex / (options.total - 1)) * width);
+  });
+
+  observe([endIndex, width], (endIndex, width) => {
+    right.set((endIndex / (options.total - 1)) * width);
+  });
+
+  observe([left], (left) => {
+    startIndex.set((left / width.get()) * (options.total - 1));
+  });
+
+  observe([right], (right) => {
+    endIndex.set(
+      Math.min((right / width.get()) * (options.total - 1), options.total - 1)
+    );
+  });
+
   observe([isDragging, isWheeling], (isDragging, isWheeling) => {
     if (isDragging || isWheeling) {
       inertOverallMax.setTransition(
@@ -155,22 +141,28 @@ export function Overview({
     }
   });
 
-  effect([left], function updateViewBoxLeftEffect(left) {
+  const { element, resizerLeft, resizerRight, viewBoxElement, graphs } =
+    createDom({
+      width: width.get(),
+      height: options.overviewHeight,
+    });
+
+  effect([left], (left) => {
     viewBoxElement.style.left = `${left}px`;
   });
 
-  effect([right, width], function updateViewBoxRightEffect(right, width) {
+  effect([right, width], (right, width) => {
     viewBoxElement.style.right = `${width - right}px`;
   });
 
   effect(
     [inertOpacityStateByGraphName, overviewGraphPoints, width],
-    function updateOverviewGraphEffect(opacityState, points, width) {
+    (inertOpacityStateByGraphName, overviewGraphPoints, width) => {
       graphs.canvas.width = width * window.devicePixelRatio; // only needs to be run when sizes change
       graphs.canvas.height = options.overviewHeight * window.devicePixelRatio; // only needs to be run when sizes change
       renderGraphs({
-        opacityState,
-        points,
+        opacityState: inertOpacityStateByGraphName,
+        points: overviewGraphPoints,
         width,
         context: graphs.context,
         height: options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
@@ -180,6 +172,10 @@ export function Overview({
       });
     }
   );
+
+  const boundingRect = element.getBoundingClientRect();
+
+  let cursorResizerDelta = 0;
 
   handleDrag(resizerLeft, {
     onDragStart: onLeftResizerMouseDown,
@@ -199,52 +195,52 @@ export function Overview({
 
   function onLeftResizerMouseDown(e: MouseEvent) {
     isDragging.set(true);
-    // activeCursor.set(cursors.resize);
+    activeCursor.set(cursors.resize);
     cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
   }
 
   function removeLeftResizerListener() {
     isDragging.set(false);
-    // activeCursor.set(cursors.default);
+    activeCursor.set(cursors.default);
   }
 
   function onLeftResizerMouseMove(e: MouseEvent) {
     const leftVar = ensureInOverviewBounds(getX(e) - cursorResizerDelta);
     left.set(
-      keepInBounds(leftVar, 0, right.get() - minimalPixelsBetweenResizers)
+      ensureInBounds(leftVar, 0, right.get() - minimalPixelsBetweenResizers)
     );
   }
 
   function onRightResizerMouseDown(e: MouseEvent) {
     cursorResizerDelta = getX(e) - (right.get() - boundingRect.left);
     isDragging.set(true);
-    // activeCursor.set(cursors.resize);
+    activeCursor.set(cursors.resize);
   }
 
   function removeRightResizerListener() {
     isDragging.set(false);
-    // activeCursor.set(cursors.default);
+    activeCursor.set(cursors.default);
   }
 
   function ensureInOverviewBounds(x: number) {
-    return keepInBounds(x, 0, width.get());
+    return ensureInBounds(x, 0, width.get());
   }
 
   function onViewBoxElementMouseDown(e: MouseEvent) {
     cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
     isDragging.set(true);
-    // activeCursor.set(cursors.grabbing);
+    activeCursor.set(cursors.grabbing);
   }
 
   function onViewBoxElementMouseUp() {
     isDragging.set(false);
-    // activeCursor.set(cursors.default);
+    activeCursor.set(cursors.default);
   }
 
   function onViewBoxElementMouseMove(e: MouseEvent) {
     const widthVar = right.get() - left.get();
     const nextLeft = getX(e) - cursorResizerDelta;
-    const stateLeft = keepInBounds(nextLeft, 0, width.get() - widthVar);
+    const stateLeft = ensureInBounds(nextLeft, 0, width.get() - widthVar);
     left.set(stateLeft);
     right.set(stateLeft + widthVar);
   }
@@ -252,7 +248,7 @@ export function Overview({
   function onRightResizerMouseMove(e: MouseEvent) {
     const rightVar = ensureInOverviewBounds(getX(e) - cursorResizerDelta);
     right.set(
-      keepInBounds(
+      ensureInBounds(
         rightVar,
         left.get() + minimalPixelsBetweenResizers,
         rightVar
@@ -280,32 +276,42 @@ export function Overview({
     return graphNames.map((graphName) => options.data[graphName]);
   }
 
-  function createOverview({ width, left }: { width: number; left: number }) {
-    const containerClassName = "overview";
-    const element = document.createElement("div");
-    element.className = containerClassName;
-    element.style.height = `${options.overviewHeight}px`;
-    const resizerLeft = document.createElement("div");
-    resizerLeft.className = "overview__resizer overview__resizer--left";
-    const resizerRight = document.createElement("div");
-    resizerRight.className = "overview__resizer overview__resizer--right";
-    const viewBoxElement = document.createElement("div");
-    viewBoxElement.className = "overview__viewbox";
-    viewBoxElement.style.left = `${left}px`;
-    viewBoxElement.appendChild(resizerLeft);
-    viewBoxElement.appendChild(resizerRight);
-    const graphs = createGraphs({
-      width: width,
-      height: options.overviewHeight,
-    });
-    element.appendChild(graphs.element);
-    element.appendChild(viewBoxElement);
-    return { element, resizerLeft, resizerRight, viewBoxElement, graphs };
-  }
-
   function getX(event: MouseEvent) {
     return event.clientX - boundingRect.left;
   }
 
   return { element };
+};
+
+function createDom({ width, height }: { width: number; height: number }) {
+  const containerClassName = "overview";
+  const element = document.createElement("div");
+  element.className = containerClassName;
+  element.style.height = `${height}px`;
+  const resizerLeft = document.createElement("div");
+  resizerLeft.className = "overview__resizer overview__resizer--left";
+  const resizerRight = document.createElement("div");
+  resizerRight.className = "overview__resizer overview__resizer--right";
+  const viewBoxElement = document.createElement("div");
+  viewBoxElement.className = "overview__viewbox";
+  viewBoxElement.appendChild(resizerLeft);
+  viewBoxElement.appendChild(resizerRight);
+  const graphs = createGraphs({
+    width,
+    height,
+  });
+  element.appendChild(graphs.element);
+  element.appendChild(viewBoxElement);
+
+  // return html`
+  //   <div ref="element" class="overview" style="height: ${height}px">
+  //     ${withRef('graphs', createGraphs({ width, height }))}
+  //     <div ref="viewbox" class="overview__viewbox">
+  //       <div ref="resizerLeft" class="overview__resizer overview__resizer--left"></div>
+  //       <div ref="resizerRight" class="overview__resizer overview__resizer--right"></div>
+  //     </div>
+  //   </div>
+  // `;
+
+  return { element, resizerLeft, resizerRight, viewBoxElement, graphs };
 }

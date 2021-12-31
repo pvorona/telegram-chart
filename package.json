@@ -17,6 +17,7 @@
     "rollup-plugin-node-resolve": "^4.0.1"
   },
   "dependencies": {
+    "@pvorona/observable": "^1.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "rollup-plugin-filesize": "^6.0.1",
     "rollup-plugin-typescript2": "^0.27.1",
