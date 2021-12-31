@@ -399,14 +399,6 @@ export const Chart: Component<ChartOptions, ChartContext> = (
 
     const angle = (Math.atan(e.deltaY / e.deltaX) * 180) / Math.PI;
 
-    // Noise
-    if (
-      (Math.abs(e.deltaX) === 0 && Math.abs(e.deltaY) === 1) ||
-      (Math.abs(e.deltaX) === 1 && Math.abs(e.deltaY) === 0)
-    ) {
-      return;
-    }
-
     const viewBoxWidth = endIndex.get() - startIndex.get();
     const dynamicFactor = (viewBoxWidth / MIN_VIEWBOX) * WHEEL_MULTIPLIER;
 
