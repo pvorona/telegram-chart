@@ -8,7 +8,7 @@ export const ChartContext = (() => {
   const activeCursor = observable(cursors.default);
 
   effect([activeCursor], (cursor) => {
-    [document.body].forEach((element) => (element.style.cursor = cursor));
+    document.body.style.cursor = cursor;
   });
 
   return { isDragging, isWheeling, isGrabbingGraphs, activeCursor };
