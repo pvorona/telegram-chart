@@ -4,6 +4,9 @@ import {
   computeLazy,
   animationObservable,
   observe,
+  transition,
+  groupTransition,
+  Transition,
 } from "@pvorona/observable";
 import { ChartOptions } from "../../types";
 import {
@@ -14,14 +17,7 @@ import {
   VERY_FAST_TRANSITIONS_TIME,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
-import {
-  mapDataToCoords,
-  getMaxValue,
-  getMinValue,
-  transition,
-  groupTransition,
-  Transition,
-} from "../../util";
+import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
 export const ChartContext = (options: ChartOptions) => {

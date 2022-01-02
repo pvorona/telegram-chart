@@ -4,6 +4,7 @@ import {
   computeLazy,
   observable,
   observe,
+  transition,
 } from "@pvorona/observable";
 import { renderGraphs } from "../Graphs";
 import { ChartContext, ChartOptions } from "../../types";
@@ -11,7 +12,6 @@ import { easeInOutQuart, linear } from "../../easings";
 import {
   handleDrag,
   mapDataToCoords,
-  transition,
   getMaxValue,
   getMinValue,
   ensureInBounds,
@@ -39,8 +39,9 @@ export type Props = {
   width: Observable<number> & Gettable<number> & Settable<number>;
   isWheeling: Observable<boolean> & Gettable<boolean> & Settable<boolean>;
   options: ChartOptions;
-  enabledGraphNames: LazyObservable<string[]>;
-  inertOpacityStateByGraphName: LazyObservable<{ [key: string]: number }>;
+  enabledGraphNames: LazyObservable & Gettable<string[]>;
+  inertOpacityStateByGraphName: LazyObservable &
+    Gettable<{ [key: string]: number }>;
 };
 
 export const Overview: Component<Props, ChartContext> = (

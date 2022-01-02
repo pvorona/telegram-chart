@@ -11,6 +11,5 @@ export * from "./memoizeOne";
 // export * from './computed'
 export * from "./hexToRGB";
 // export * from './simplify'
-export * from "./transition";
 export * from "./keepInBounds";
 export * from "./getTooltipDateText";
