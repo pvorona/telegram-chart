@@ -39,7 +39,7 @@ import {
 } from "./constants";
 import { EnabledGraphNames, OpacityState, Point, Component } from "./types";
 import { createGraphs } from "./createGraphs";
-import { Overview } from "./Overview";
+import { Overview } from "../Overview";
 import { interpolate } from "../../util/interpolatePoint";
 
 export const Chart: Component<ChartOptions, ChartContext> = (

@@ -5,9 +5,9 @@ import {
   observable,
   observe,
 } from "@pvorona/observable";
-import { renderGraphs } from "../../Graphs";
-import { ChartContext, ChartOptions } from "../../../types";
-import { easeInOutQuart, linear } from "../../../easings";
+import { renderGraphs } from "../Graphs";
+import { ChartContext, ChartOptions } from "../../types";
+import { easeInOutQuart, linear } from "../../easings";
 import {
   handleDrag,
   mapDataToCoords,
@@ -15,7 +15,7 @@ import {
   getMaxValue,
   getMinValue,
   ensureInBounds,
-} from "../../../util";
+} from "../../util";
 import {
   Gettable,
   LazyObservable,
@@ -26,9 +26,9 @@ import {
   cursors,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
-} from "../constants";
-import { Point, Component } from "../types";
-import { createGraphs } from "../createGraphs";
+} from "../Chart/constants";
+import { Point, Component } from "../Chart/types";
+import { createGraphs } from "../Chart/createGraphs";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 const minimalPixelsBetweenResizers = 10;
