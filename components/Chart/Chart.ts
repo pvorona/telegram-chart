@@ -1,3 +1,11 @@
+import {
+  animationObservable,
+  effect,
+  computeLazy,
+  observable,
+  observe,
+  // compute,
+} from "@pvorona/observable";
 import { renderGraphs } from "../Graphs";
 import { Controls } from "../Controls";
 import { ChartContext, ChartOptions } from "../../types";
@@ -10,12 +18,6 @@ import {
   getMinValue,
   transition,
   groupTransition,
-  animationObservable,
-  effect,
-  computeLazy,
-  observable,
-  observe,
-  // compute,
   Transition,
   ensureInBounds,
   getTooltipDateText,
@@ -153,7 +155,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     }
     // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
   );
-  
+
   const prevVisibleMin = observable(-Infinity);
 
   effect([visibleMin], (visibleMin) => {

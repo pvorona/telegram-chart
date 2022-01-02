@@ -1,3 +1,10 @@
+import {
+  animationObservable,
+  effect,
+  computeLazy,
+  observable,
+  observe,
+} from "@pvorona/observable";
 import { renderGraphs } from "../../Graphs";
 import { ChartContext, ChartOptions } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
@@ -5,11 +12,6 @@ import {
   handleDrag,
   mapDataToCoords,
   transition,
-  animationObservable,
-  effect,
-  computeLazy,
-  observable,
-  observe,
   getMaxValue,
   getMinValue,
   ensureInBounds,
