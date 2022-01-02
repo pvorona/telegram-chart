@@ -6,4 +6,4 @@ import "./Title.css";
 import "./Tooltip.css";
 
 export * from "./Chart";
-export * from "./ChartContext";
+export * from "../Context/ChartContext";

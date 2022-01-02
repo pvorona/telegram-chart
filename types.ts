@@ -1,4 +1,3 @@
-import { Observable, Gettable, Settable } from "@pvorona/observable";
 import { ChartContext } from "./components";
 
 export interface ChartData {
@@ -35,4 +34,4 @@ export interface ChartOptions {
   };
 }
 
-export type ChartContext = typeof ChartContext;
+export type ChartContext = ReturnType<typeof ChartContext>;

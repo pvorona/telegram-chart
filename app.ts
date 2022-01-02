@@ -11,13 +11,14 @@ import { chartOptions } from "./data/dj";
 // const appContainer = document.getElementById('app')!
 const chartContainer = document.getElementById("chart")!;
 
-chartContainer.appendChild(
-  Chart(
-    {
-      ...chartOptions[0],
-      width: chartContainer.offsetWidth,
-      height: chartContainer.offsetHeight,
-    },
-    ChartContext
-  ).element
-);
+chartOptions.forEach((options) => {
+  const betterOptions = {
+    ...options,
+    width: chartContainer.offsetWidth,
+    height: chartContainer.offsetHeight,
+  };
+
+  chartContainer.appendChild(
+    Chart(betterOptions, ChartContext(betterOptions)).element
+  );
+});

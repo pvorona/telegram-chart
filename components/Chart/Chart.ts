@@ -1,291 +1,46 @@
-import {
-  animationObservable,
-  effect,
-  computeLazy,
-  observable,
-  observe,
-  // compute,
-} from "@pvorona/observable";
+import { effect } from "@pvorona/observable";
 import { renderGraphs } from "../Graphs";
 import { Controls } from "../Controls";
 import { ChartContext, ChartOptions } from "../../types";
-import { easeInOutQuart, linear } from "../../easings";
-import {
-  memoizeOne,
-  // getShortNumber,
-  mapDataToCoords,
-  getMaxValue,
-  getMinValue,
-  transition,
-  groupTransition,
-  Transition,
-  ensureInBounds,
-  getTooltipDateText,
-  handleDrag,
-} from "../../util";
+import { memoizeOne, ensureInBounds, handleDrag } from "../../util";
 import {
   MIN_VIEWBOX,
-  DOT_SIZE,
-  CENTER_OFFSET,
   MIN_HEIGHT,
   WHEEL_CLEAR_TIMEOUT,
   WHEEL_MULTIPLIER,
   DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
-  INSTANT_TRANSITION,
-  VERY_FAST_TRANSITIONS_TIME,
-  FAST_TRANSITIONS_TIME,
-  LONG_TRANSITIONS_TIME,
   cursors,
-} from "./constants";
-import { EnabledGraphNames, OpacityState, Point, Component } from "./types";
+} from "../constants";
+import { Component } from "../types";
 import { createGraphs } from "./createGraphs";
 import { Overview } from "../Overview";
 import { interpolate } from "../../util/interpolatePoint";
+// import { XAxis } from "../XAxisV2";
+import { Tooltip } from "../Tooltip";
 
 export const Chart: Component<ChartOptions, ChartContext> = (
   options,
   context
 ) => {
-  const { isDragging, isWheeling, isGrabbingGraphs, activeCursor } = context;
-
-  const enabledStateByGraphName = observable(
-    options.graphNames.reduce(
-      (state, graphName) => ({
-        ...state,
-        [graphName]: true,
-      }),
-      {} as EnabledGraphNames
-    )
-  );
-  const isHovering = observable(false);
-  const mouseX = observable(0);
-  const width = observable(options.width);
-  const height = observable(options.height - options.overviewHeight);
-  const startIndex = observable(options.viewBox.startIndex);
-  const endIndex = observable(options.viewBox.endIndex);
+  const {
+    isHovering,
+    mainGraphPoints,
+    inertOpacityStateByGraphName,
+    isWheeling,
+    isGrabbingGraphs,
+    activeCursor,
+    enabledStateByGraphName,
+    enabledGraphNames,
+    startIndex,
+    endIndex,
+    mouseX,
+    width,
+    height,
+  } = context;
 
   let wheelTimeoutId: number | undefined = undefined;
 
-  const enabledGraphNames = computeLazy(
-    [enabledStateByGraphName],
-    function enabledGraphNamesCompute(enabledStateByGraphName) {
-      return options.graphNames.filter(
-        (graphName) => enabledStateByGraphName[graphName]
-      );
-    }
-  );
-
-  // why lazy
-  const opacityStateByGraphName = computeLazy(
-    [enabledStateByGraphName],
-    function opacityStateByGraphNameCompute(enabledStateByGraphName) {
-      return options.graphNames.reduce(
-        (state, graphName) => ({
-          ...state,
-          [graphName]: Number(enabledStateByGraphName[graphName]),
-        }),
-        {} as OpacityState
-      );
-    }
-  );
-
-  const isAnyGraphEnabled = computeLazy(
-    [enabledGraphNames],
-    (enabledGraphNames) => {
-      return Boolean(enabledGraphNames.length);
-    }
-  );
-
-  // why lazy
-  const isTooltipVisible = computeLazy(
-    [isDragging, isHovering, isWheeling, isGrabbingGraphs, isAnyGraphEnabled],
-    function isTooltipVisibleCompute(
-      isDragging,
-      isHovering,
-      isWheeling,
-      isGrabbingGraphs,
-      isAnyGraphEnabled
-    ) {
-      return (
-        !isWheeling &&
-        !isDragging &&
-        isHovering &&
-        !isGrabbingGraphs &&
-        isAnyGraphEnabled
-      );
-    }
-  );
-
-  const inertStartIndex = animationObservable(
-    startIndex,
-    transition(startIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
-  );
-  const inertEndIndex = animationObservable(
-    endIndex,
-    transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
-  );
-
-  const visibleMax = computeLazy(
-    [startIndex, endIndex, enabledGraphNames],
-    (startIndex, endIndex, enabledGraphNames) => {
-      if (enabledGraphNames.length === 0) return prevVisibleMax.get();
-
-      return getMaxValueInRange(startIndex, endIndex, enabledGraphNames);
-    }
-    // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
-  );
-
-  const prevVisibleMax = observable(+Infinity);
-
-  effect([visibleMax], (visibleMax) => {
-    prevVisibleMax.set(visibleMax);
-  });
-
-  const inertVisibleMax = animationObservable(
-    visibleMax,
-    transition(visibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
-  );
-
-  const visibleMin = computeLazy(
-    [startIndex, endIndex, enabledGraphNames],
-    (startIndex, endIndex, enabledGraphNames) => {
-      if (enabledGraphNames.length === 0) return prevVisibleMin.get();
-
-      return getMinValueInRange(startIndex, endIndex, enabledGraphNames);
-    }
-    // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
-  );
-
-  const prevVisibleMin = observable(-Infinity);
-
-  effect([visibleMin], (visibleMin) => {
-    prevVisibleMin.set(visibleMin);
-  });
-
-  const inertVisibleMin = animationObservable(
-    visibleMin,
-    transition(visibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
-  );
-  const inertOpacityStateByGraphName = animationObservable(
-    opacityStateByGraphName,
-    groupTransition(
-      options.graphNames.reduce(
-        (state, graphName) => ({
-          ...state,
-          [graphName]: transition(1, LONG_TRANSITIONS_TIME, easeInOutQuart),
-        }),
-        {} as { [key: string]: Transition<number> }
-      )
-    )
-  );
-
-  const mainGraphPoints = computeLazy(
-    [
-      inertStartIndex,
-      inertEndIndex,
-      inertVisibleMax,
-      inertVisibleMin,
-      width,
-      height,
-    ],
-    function mainGraphPointsCompute(
-      startIndex,
-      endIndex,
-      max,
-      min,
-      width,
-      height
-    ) {
-      return options.graphNames.reduce(
-        (points, graphName) => ({
-          ...points,
-          [graphName]: mapDataToCoords(
-            options.data[graphName],
-            options.domain,
-            max,
-            min,
-            {
-              width: width * devicePixelRatio,
-              height: height * devicePixelRatio,
-            },
-            { startIndex, endIndex },
-            options.lineWidth * devicePixelRatio,
-            50
-          ),
-        }),
-        {} as { [key: string]: Point[] }
-      );
-    }
-  );
-
-  // can use binary search here
-  const tooltipIndex = computeLazy(
-    [mouseX, mainGraphPoints, isTooltipVisible],
-    function tooltipIndexCompute(x, points, isTooltipVisible) {
-      if (!isTooltipVisible) return 0;
-
-      let closestPointIndex = 0;
-      for (let i = 1; i < points[options.graphNames[0]].length; i++) {
-        const distance = Math.abs(
-          points[options.graphNames[0]][i].x / devicePixelRatio - x
-        );
-        const closesDistance = Math.abs(
-          points[options.graphNames[0]][closestPointIndex].x /
-            devicePixelRatio -
-            x
-        );
-        if (distance < closesDistance) closestPointIndex = i;
-      }
-      return closestPointIndex;
-    }
-  );
-
-  observe(
-    [isDragging, isWheeling, isGrabbingGraphs],
-    (isDragging, isWheeling, isGrabbingGraphs) => {
-      if (isGrabbingGraphs) {
-        inertVisibleMax.setTransition(
-          transition(inertVisibleMax.get(), INSTANT_TRANSITION, linear)
-        );
-        inertVisibleMin.setTransition(
-          transition(inertVisibleMin.get(), INSTANT_TRANSITION, linear)
-        );
-      } else if (isDragging || isWheeling) {
-        inertVisibleMax.setTransition(
-          transition(inertVisibleMax.get(), FAST_TRANSITIONS_TIME, linear)
-        );
-        inertVisibleMin.setTransition(
-          transition(inertVisibleMin.get(), FAST_TRANSITIONS_TIME, linear)
-        );
-      } else {
-        inertVisibleMax.setTransition(
-          transition(
-            inertVisibleMax.get(),
-            LONG_TRANSITIONS_TIME,
-            easeInOutQuart
-          )
-        );
-        inertVisibleMin.setTransition(
-          transition(
-            inertVisibleMin.get(),
-            LONG_TRANSITIONS_TIME,
-            easeInOutQuart
-          )
-        );
-      }
-    }
-  );
-
-  const {
-    element,
-    graphs,
-    tooltip,
-    tooltipLine,
-    tooltipCircles,
-    tooltipValues,
-    tooltipGraphInfo,
-    tooltipDate,
-  } = createDOM();
+  const { element, graphs } = createDOM();
 
   window.addEventListener("resize", function resizeListener() {
     width.set(element.offsetWidth);
@@ -293,68 +48,6 @@ export const Chart: Component<ChartOptions, ChartContext> = (
       Math.max(element.offsetHeight - options.overviewHeight, MIN_HEIGHT)
     );
   });
-
-  effect(
-    [isTooltipVisible, enabledGraphNames],
-    function updateTooltipVisibilityEffect(visible, enabledGraphNames) {
-      tooltipLine.style.visibility = visible ? "visible" : "";
-      tooltip.style.display = visible ? "block" : "";
-      options.graphNames.forEach(
-        (graphName) =>
-          (tooltipCircles[graphName].style.visibility =
-            visible && enabledGraphNames.indexOf(graphName) > -1
-              ? "visible"
-              : "")
-      );
-      if (!visible) return;
-      options.graphNames.forEach(
-        (graphName) =>
-          (tooltipGraphInfo[graphName].hidden =
-            enabledGraphNames.indexOf(graphName) > -1 ? false : true)
-      );
-    }
-  );
-
-  effect(
-    [
-      isTooltipVisible,
-      mainGraphPoints,
-      enabledGraphNames,
-      tooltipIndex,
-      startIndex,
-    ],
-    // [isTooltipVisible, getMainGraphPointsObservable, enabledGraphNames, getTooltipIndexObservable, inertStartIndex],
-    function updateTooltipPositionAndTextEffect(
-      isTooltipVisible,
-      points,
-      enabledGraphNames,
-      index,
-      startIndex
-    ) {
-      if (!isTooltipVisible) return;
-
-      const { x } = points[enabledGraphNames[0]][index];
-      tooltipLine.style.transform = `translateX(${
-        (x - 1) / devicePixelRatio
-      }px)`;
-      const dataIndex = index + Math.floor(startIndex);
-      for (let i = 0; i < enabledGraphNames.length; i++) {
-        const { x, y } = points[enabledGraphNames[i]][index];
-        tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
-          x / devicePixelRatio + CENTER_OFFSET
-        }px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`;
-        tooltipValues[enabledGraphNames[i]].innerText = String(
-          options.data[enabledGraphNames[i]][dataIndex]
-        );
-        // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
-      }
-      tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-      // TODO: Force reflow
-      tooltip.style.transform = `translateX(${
-        x / devicePixelRatio - tooltip.offsetWidth / 2
-      }px)`;
-    }
-  );
 
   effect(
     [mainGraphPoints, inertOpacityStateByGraphName, width, height],
@@ -540,60 +233,6 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     });
   }
 
-  function getMaxValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMaxValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getMinValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMinValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getValues(graphNames: string[]) {
-    return graphNames.map((graphName) => options.data[graphName]);
-  }
-
-  function createTooltip() {
-    const tooltip = document.createElement("div");
-    tooltip.className = "tooltip";
-
-    const tooltipDate = document.createElement("div");
-    tooltipDate.style.padding = "10px 10px 0";
-    tooltip.appendChild(tooltipDate);
-
-    const tooltipLegendContainer = document.createElement("div");
-    tooltipLegendContainer.className = "tooltip__legend";
-    tooltip.appendChild(tooltipLegendContainer);
-
-    const tooltipValues: { [key: string]: HTMLDivElement } = {};
-    const graphInfos: { [key: string]: HTMLDivElement } = {};
-    options.graphNames.forEach((graphName) => {
-      const tooltipGraphInfo = document.createElement("div");
-      tooltipGraphInfo.style.color = options.colors[graphName];
-      tooltipGraphInfo.style.padding = "0 10px 10px";
-      graphInfos[graphName] = tooltipGraphInfo;
-
-      const tooltipValue = document.createElement("div");
-      tooltipValue.style.fontWeight = "bold";
-      tooltipGraphInfo.appendChild(tooltipValue);
-
-      const graphNameElement = document.createElement("div");
-      graphNameElement.innerText = graphName;
-      tooltipGraphInfo.appendChild(graphNameElement);
-
-      tooltipValues[graphName] = tooltipValue;
-      tooltipLegendContainer.appendChild(tooltipGraphInfo);
-    });
-    return { tooltip, tooltipValues, graphInfos, tooltipDate };
-  }
-
   function createDOM() {
     const element = document.createElement("div");
     element.style.height = "100%";
@@ -617,46 +256,20 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     );
     const controls = Controls(options, onButtonClick);
 
-    const tooltipContainer = document.createElement("div");
-    const tooltipLine = document.createElement("div");
-    tooltipLine.className = "tooltip-line";
-    tooltipContainer.appendChild(tooltipLine);
+    const tooltip = Tooltip(options, context);
 
-    const tooltipCircles: { [key: string]: HTMLDivElement } = {};
-    for (let i = 0; i < options.graphNames.length; i++) {
-      const circle = document.createElement("div");
-      circle.style.width = `${DOT_SIZE}px`;
-      circle.style.height = `${DOT_SIZE}px`;
-      circle.style.borderColor = options.colors[options.graphNames[i]];
-      circle.className = "tooltip__dot";
-      tooltipCircles[options.graphNames[i]] = circle;
-      tooltipContainer.appendChild(circle);
-    }
+    graphs.element.appendChild(tooltip.element);
 
-    const {
-      tooltip,
-      tooltipValues,
-      graphInfos: tooltipGraphInfo,
-      tooltipDate,
-    } = createTooltip();
-    tooltipContainer.appendChild(tooltip);
-
-    graphs.element.appendChild(tooltipContainer);
+    // const xAxis = XAxis();
 
     element.appendChild(graphs.element);
+    // element.appendChild(xAxis.element);
     element.appendChild(overview.element);
     element.appendChild(controls);
 
     return {
       graphs,
       element,
-      overview,
-      tooltip,
-      tooltipLine,
-      tooltipCircles,
-      tooltipValues,
-      tooltipGraphInfo,
-      tooltipDate,
     };
   }
 

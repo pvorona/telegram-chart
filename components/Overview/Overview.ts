@@ -26,8 +26,8 @@ import {
   cursors,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
-} from "../Chart/constants";
-import { Point, Component } from "../Chart/types";
+} from "../constants";
+import { Point, Component } from "../types";
 import { createGraphs } from "../Chart/createGraphs";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
