@@ -1,32 +1,43 @@
-import { ChartOptions } from '../../types'
+import { ChartContext, ChartOptions } from "../../types";
+import { Component } from "../types";
 
-export function Controls (config: ChartOptions, onButtonClick: (graphName: string) => void) {
-  const element = document.createElement('div')
-  element.style.marginTop = '20px'
+export const Controls: Component<ChartOptions, ChartContext> = (
+  config,
+  { enabledStateByGraphName }
+) => {
+  const element = document.createElement("div");
+  element.style.marginTop = "20px";
 
-  config.graphNames.forEach(graphName => {
-    const label = document.createElement('label')
-    label.style.marginRight = '20px'
+  function onButtonClick(graphName: string) {
+    enabledStateByGraphName.set({
+      ...enabledStateByGraphName.get(),
+      [graphName]: !enabledStateByGraphName.get()[graphName],
+    });
+  }
 
-    const input = document.createElement('input')
-    input.checked = true
-    input.type = 'checkbox'
-    input.className = 'button'
-    input.onclick = () => onButtonClick(graphName)
+  config.graphNames.forEach((graphName) => {
+    const label = document.createElement("label");
+    label.style.marginRight = "20px";
 
-    const button = document.createElement('div')
-    button.className = 'like-button'
-    button.style.color = config.colors[graphName]
+    const input = document.createElement("input");
+    input.checked = true;
+    input.type = "checkbox";
+    input.className = "button";
+    input.onclick = () => onButtonClick(graphName);
 
-    const text = document.createElement('div')
-    text.className = 'button-text'
-    text.innerText = graphName
+    const button = document.createElement("div");
+    button.className = "like-button";
+    button.style.color = config.colors[graphName];
 
-    button.appendChild(text)
-    label.appendChild(input)
-    label.appendChild(button)
-    element.appendChild(label)
-  })
+    const text = document.createElement("div");
+    text.className = "button-text";
+    text.innerText = graphName;
 
-  return element
-}
+    button.appendChild(text);
+    label.appendChild(input);
+    label.appendChild(button);
+    element.appendChild(label);
+  });
+
+  return { element };
+};

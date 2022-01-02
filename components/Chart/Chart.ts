@@ -29,7 +29,6 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     isWheeling,
     isGrabbingGraphs,
     activeCursor,
-    enabledStateByGraphName,
     enabledGraphNames,
     startIndex,
     endIndex,
@@ -74,13 +73,6 @@ export const Chart: Component<ChartOptions, ChartContext> = (
   initDragListeners();
 
   return { element };
-
-  function onButtonClick(graphName: string) {
-    enabledStateByGraphName.set({
-      ...enabledStateByGraphName.get(),
-      [graphName]: !enabledStateByGraphName.get()[graphName],
-    });
-  }
 
   function onWheel(e: WheelEvent) {
     e.preventDefault();
@@ -254,7 +246,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
       },
       context
     );
-    const controls = Controls(options, onButtonClick);
+    const controls = Controls(options, context);
 
     const tooltip = Tooltip(options, context);
 
@@ -265,7 +257,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     element.appendChild(graphs.element);
     // element.appendChild(xAxis.element);
     element.appendChild(overview.element);
-    element.appendChild(controls);
+    element.appendChild(controls.element);
 
     return {
       graphs,
