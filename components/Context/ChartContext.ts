@@ -11,7 +11,6 @@ import {
 import { ChartOptions } from "../../types";
 import {
   cursors,
-  INSTANT_TRANSITION,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
   VERY_FAST_TRANSITIONS_TIME,
@@ -172,14 +171,7 @@ export const ChartContext = (options: ChartOptions) => {
   observe(
     [isDragging, isWheeling, isGrabbingGraphs],
     (isDragging, isWheeling, isGrabbingGraphs) => {
-      if (isGrabbingGraphs) {
-        inertVisibleMax.setTransition(
-          transition(inertVisibleMax.get(), INSTANT_TRANSITION, linear)
-        );
-        inertVisibleMin.setTransition(
-          transition(inertVisibleMin.get(), INSTANT_TRANSITION, linear)
-        );
-      } else if (isDragging || isWheeling) {
+      if (isDragging || isWheeling || isGrabbingGraphs) {
         inertVisibleMax.setTransition(
           transition(inertVisibleMax.get(), FAST_TRANSITIONS_TIME, linear)
         );
