@@ -17,7 +17,7 @@ export const Controls: Component<ChartOptions, ChartContext> = (
 
   config.graphNames.forEach((graphName) => {
     const label = document.createElement("label");
-    label.style.marginRight = "20px";
+    label.style.marginRight = "15px";
 
     const input = document.createElement("input");
     input.checked = true;

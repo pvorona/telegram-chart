@@ -38,13 +38,13 @@ export const chartOptions: ChartOptions[] = [
     OVERVIEW_LINE_WIDTH: 1,
     colors: { "A": "#3DC23F", "B": "#E42222" },
     data: {
-      "A": data1.map((d) => d.value),
-      "B": data2.map((d) => d.value),
+      A: data1.map((d) => d.value),
+      B: data2.map((d) => d.value),
     },
     total: data1.length,
     visibilityState: {
-      "A": true,
-      "B": true,
+      A: true,
+      B: true,
     },
     viewBox: {
       startIndex: (data1.length - 1) * 0.75,

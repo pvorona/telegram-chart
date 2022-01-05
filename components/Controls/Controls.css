@@ -10,23 +10,23 @@
   border: 1px solid;
   padding: 11px 19px 11px 42px;
   background: none;
-  border-radius: 30px;
+  border-radius: 8px;
   font-size: 14px;
   position: relative;
   cursor: pointer;
-  transition: border-color .3s ease-in-out;
+  transition: border-color 0.3s ease-in-out;
 }
 
 .theme-light .like-button {
-  border-color: #EDEFF0;
+  border-color: #edeff0;
 }
 
 .theme-dark .like-button {
-  border-color: #334659;
+  border-color: var(--button-border-cl);
 }
 
 .like-button::before {
-  content: '';
+  content: "";
   width: 1.5em;
   height: 1.5em;
   position: absolute;
@@ -35,7 +35,7 @@
   transform: translateY(-50%);
   left: 10px;
   border-radius: 50%;
-  transition: background .2s;
+  transition: background 0.2s;
 }
 
 .button:checked ~ .like-button::before {
@@ -43,7 +43,7 @@
 }
 
 .button:checked ~ .like-button::after {
-  content: '';
+  content: "";
   width: 0.3em;
   height: 0.6em;
   position: absolute;
@@ -55,7 +55,7 @@
 }
 
 .button-text {
-  transition: color .3s ease-in-out;
+  transition: color 0.3s ease-in-out;
 }
 
 .theme-light .button-text {
@@ -63,5 +63,5 @@
 }
 
 .theme-dark .button-text {
-  color: #E8ECEE;
+  color: #e8ecee;
 }
