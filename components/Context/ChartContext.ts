@@ -213,6 +213,8 @@ export const ChartContext = (options: ChartOptions) => {
     mainGraphPoints,
     startIndex,
     endIndex,
+    inertStartIndex,
+    inertEndIndex,
     mouseX,
     inertOpacityStateByGraphName,
     visibleMax,

@@ -16,7 +16,9 @@ export interface Data {
 }
 
 export interface ChartOptions {
+  xAxisMarginBottom:number
   domain: number[];
+  xAxisHeight: number;
   graphNames: string[];
   width: number;
   height: number;

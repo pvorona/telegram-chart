@@ -15,7 +15,7 @@ import { Component } from "../types";
 import { createGraphs } from "./createGraphs";
 import { Overview } from "../Overview";
 import { interpolate } from "../../util/interpolatePoint";
-// import { XAxis } from "../XAxisV2";
+import { XAxis } from "../XAxis";
 import { Tooltip } from "../Tooltip";
 
 export const Chart: Component<ChartOptions, ChartContext> = (
@@ -44,7 +44,13 @@ export const Chart: Component<ChartOptions, ChartContext> = (
   window.addEventListener("resize", function resizeListener() {
     width.set(element.offsetWidth);
     height.set(
-      Math.max(element.offsetHeight - options.overviewHeight, MIN_HEIGHT)
+      Math.max(
+        element.offsetHeight -
+          options.overviewHeight -
+          options.xAxisHeight -
+          options.xAxisMarginBottom,
+        MIN_HEIGHT
+      )
     );
   });
 
@@ -231,7 +237,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     const graphs = createGraphs({
       width: width.get(),
       height: options.height - options.overviewHeight,
-      containerHeight: `calc(100% - ${options.overviewHeight}px)`,
+      containerHeight: `calc(100% - ${options.overviewHeight}px - ${options.xAxisHeight}px - ${options.xAxisMarginBottom}px)`,
       containerMinHeight: MIN_HEIGHT,
     });
     const overview = Overview(
@@ -252,10 +258,20 @@ export const Chart: Component<ChartOptions, ChartContext> = (
 
     graphs.element.appendChild(tooltip.element);
 
-    // const xAxis = XAxis();
+    const xAxis = XAxis(
+      {
+        width,
+        marginBottom: options.xAxisMarginBottom,
+        graphNames: options.graphNames,
+        totalPoints: options.total,
+        domain: options.domain,
+        height: options.xAxisHeight,
+      },
+      context
+    );
 
     element.appendChild(graphs.element);
-    // element.appendChild(xAxis.element);
+    element.appendChild(xAxis.element);
     element.appendChild(overview.element);
     element.appendChild(controls.element);
 
