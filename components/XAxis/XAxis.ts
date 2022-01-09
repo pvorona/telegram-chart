@@ -1,11 +1,25 @@
-import { effect, Gettable, Observable } from "@pvorona/observable";
+import {
+  // animationObservable,
+  computeLazy,
+  effect,
+  Gettable,
+  Observable,
+  // transition,
+} from "@pvorona/observable";
+// import { linear } from "../../easings";
 import { ChartContext } from "../../types";
+// import { FAST_TRANSITIONS_TIME } from "../constants";
 // import { calculateLogScaleMultiplier } from "../../util";
 // import { interpolate } from "../../util/interpolatePoint";
 import { Component } from "../types";
 
 // - [ ] Changing window size does not changes canvas size
-// - [ ] Re-rendering when viewbox does not change (toggle graphs)
+// - [ ] Re-rendering when view box does not change (toggle graphs)
+// - [ ] First and last labels can be clipped
+// - [ ] Animation when changing step size
+//       Inert Observable Factor
+//       opacity -> progress between int factors
+//       animating multiple factor groups?
 // - [-] Starting not from 0
 // - [ ] Calculating factor with loop
 
@@ -21,11 +35,11 @@ export const XAxis: Component<
     totalPoints: number;
     domain: number[];
     height: number;
-    marginBottom:number;
+    marginBottom: number;
   },
   ChartContext
 > = (
-  { width, graphNames, domain, height,marginBottom },
+  { width, graphNames, domain, height, marginBottom },
   { mainGraphPoints, inertStartIndex, inertEndIndex }
 ) => {
   const { element, context } = createDOM({
@@ -33,10 +47,20 @@ export const XAxis: Component<
     height: height,
     marginBottom,
   });
+  const factor = computeLazy(
+    [inertStartIndex, inertEndIndex],
+    (inertStartIndex, inertEndIndex) =>
+      computeScaleFactor(inertEndIndex - inertStartIndex)
+  );
+
+  // const inertFactor = animationObservable(
+  //   factor,
+  //   transition(factor.get(), FAST_TRANSITIONS_TIME, linear)
+  // );
 
   effect(
-    [inertStartIndex, inertEndIndex, mainGraphPoints, width],
-    (inertStartIndex, inertEndIndex, mainGraphPoints, width) => {
+    [inertStartIndex, mainGraphPoints, width, factor],
+    (inertStartIndex, mainGraphPoints, width, factor) => {
       context.clearRect(
         0,
         0,
@@ -46,7 +70,6 @@ export const XAxis: Component<
       // canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
       // canvas.height = H * devicePixelRatio; // only needs to be run when sizes change
 
-      const factor = computeScaleFactor(inertEndIndex - inertStartIndex);
       // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
       const points = mainGraphPoints[graphNames[0]];
 
@@ -85,7 +108,15 @@ function computeScaleFactor(number: number) {
   return factor;
 }
 
-function createDOM({ width, height,marginBottom }: { width: number; height: number,marginBottom:number }) {
+function createDOM({
+  width,
+  height,
+  marginBottom,
+}: {
+  width: number;
+  height: number;
+  marginBottom: number;
+}) {
   const canvas = document.createElement("canvas");
   canvas.style.marginBottom = `${marginBottom}px`;
   canvas.style.width = `100%`;

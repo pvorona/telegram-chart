@@ -21,7 +21,12 @@ import { easeInOutQuart, linear } from "../../easings";
 
 export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
-  const height = observable(options.height - options.overviewHeight);
+  const height = observable(
+    options.height -
+      options.overviewHeight -
+      options.xAxisHeight -
+      options.xAxisMarginBottom
+  );
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
   const mouseX = observable(0);

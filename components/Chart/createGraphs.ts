@@ -6,12 +6,12 @@ export function createGraphs({
 }: {
   width: number;
   height: number;
-  containerHeight?: string;
+  containerHeight?: number;
   containerMinHeight?: number;
 }) {
   const containerClassName = "graphs";
   const element = document.createElement("div");
-  element.style.height = containerHeight || `${height}px`;
+  element.style.height = containerHeight ? `${containerHeight}px` : `${height}px`;
   if (containerMinHeight) element.style.minHeight = `${containerMinHeight}px`;
   element.className = containerClassName;
   const canvas = document.createElement("canvas");

@@ -236,8 +236,16 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     element.style.height = "100%";
     const graphs = createGraphs({
       width: width.get(),
-      height: options.height - options.overviewHeight,
-      containerHeight: `calc(100% - ${options.overviewHeight}px - ${options.xAxisHeight}px - ${options.xAxisMarginBottom}px)`,
+      height:
+        options.height -
+        options.overviewHeight -
+        options.xAxisHeight -
+        options.xAxisMarginBottom,
+      containerHeight:
+        options.height -
+        options.overviewHeight -
+        options.xAxisHeight -
+        options.xAxisMarginBottom,
       containerMinHeight: MIN_HEIGHT,
     });
     const overview = Overview(
