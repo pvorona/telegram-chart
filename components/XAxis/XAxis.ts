@@ -13,7 +13,7 @@ import { ChartContext } from "../../types";
 // import { interpolate } from "../../util/interpolatePoint";
 import { Component } from "../types";
 
-// - [ ] Changing window size does not changes canvas size
+// - [x] Changing window size does not changes canvas size
 // - [ ] Re-rendering when view box does not change (toggle graphs)
 // - [ ] First and last labels can be clipped
 // - [ ] Animation when changing step size
@@ -42,7 +42,7 @@ export const XAxis: Component<
   { width, graphNames, domain, height, marginBottom },
   { mainGraphPoints, inertStartIndex, inertEndIndex }
 ) => {
-  const { element, context } = createDOM({
+  const { element, context, canvas } = createDOM({
     width: width.get(),
     height: height,
     marginBottom,
@@ -61,14 +61,19 @@ export const XAxis: Component<
   effect(
     [inertStartIndex, mainGraphPoints, width, factor],
     (inertStartIndex, mainGraphPoints, width, factor) => {
-      context.clearRect(
-        0,
-        0,
-        width * devicePixelRatio,
-        height * devicePixelRatio
-      );
-      // canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
-      // canvas.height = H * devicePixelRatio; // only needs to be run when sizes change
+      // context.clearRect(
+      //   0,
+      //   0,
+      //   width * devicePixelRatio,
+      //   height * devicePixelRatio
+      // );
+      canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
+      canvas.height = height * devicePixelRatio; // only needs to be run when sizes change
+
+      context.fillStyle = color;
+      context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
+      context.textBaseline = "top";
+      context.textAlign = "center";
 
       // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
       const points = mainGraphPoints[graphNames[0]];
@@ -124,10 +129,6 @@ function createDOM({
   canvas.width = width * devicePixelRatio;
   canvas.height = height * devicePixelRatio;
   const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-  context.fillStyle = color;
-  context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
-  context.textBaseline = "top";
-  context.textAlign = "center";
 
   return { element: canvas, canvas, context };
 }
