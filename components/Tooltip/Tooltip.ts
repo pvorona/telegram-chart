@@ -1,8 +1,8 @@
-import { effect, computeLazy } from "@pvorona/observable";
+import { effect, computeLazy, Lambda } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
 import { getTooltipDateText } from "../../util";
 import { DOT_SIZE, CENTER_OFFSET } from "../constants";
-import { Component } from "../types";
+import { Component, Point } from "../types";
 
 export const Tooltip: Component<ChartOptions, ChartContext> = (
   options,
@@ -48,91 +48,112 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     }
   );
 
-  effect(
-    [isTooltipVisible, enabledGraphNames],
-    function updateTooltipVisibilityEffect(visible, enabledGraphNames) {
-      tooltipLine.style.visibility = visible ? "visible" : "";
-      tooltip.style.display = visible ? "block" : "";
-      options.graphNames.forEach(
-        (graphName) =>
-          (tooltipCircles[graphName].style.visibility =
-            visible && enabledGraphNames.indexOf(graphName) > -1
-              ? "visible"
-              : "")
+  let updateTooltipPositionAndTextEffectUnobserve: undefined | Lambda =
+    undefined;
+  let updateTooltipCirclesVisibilityEffectUnobserve: undefined | Lambda =
+    undefined;
+  let updateTooltipGraphInfoEffectUnobserve: undefined | Lambda = undefined;
+
+  effect([isTooltipVisible], (isTooltipVisible) => {
+    if (isTooltipVisible) {
+      tooltipLine.style.visibility = "visible";
+      tooltip.style.display = "block";
+
+      // Test if it makes sense to extract effect functions outside of this effect
+      // can use binary search here
+      const tooltipIndex = computeLazy(
+        [mouseX, mainGraphPoints],
+        function tooltipIndexCompute(x, points) {
+          let closestPointIndex = 0;
+          for (let i = 1; i < points[options.graphNames[0]].length; i++) {
+            const distance = Math.abs(
+              points[options.graphNames[0]][i].x / devicePixelRatio - x
+            );
+            const closesDistance = Math.abs(
+              points[options.graphNames[0]][closestPointIndex].x /
+                devicePixelRatio -
+                x
+            );
+            if (distance < closesDistance) closestPointIndex = i;
+          }
+          return closestPointIndex;
+        }
       );
-      if (!visible) return;
-      options.graphNames.forEach(
-        (graphName) =>
-          (tooltipGraphInfo[graphName].hidden =
-            enabledGraphNames.indexOf(graphName) > -1 ? false : true)
+
+      updateTooltipPositionAndTextEffectUnobserve = effect(
+        [mainGraphPoints, enabledGraphNames, tooltipIndex, startIndex],
+        updateTooltipPositionAndText
       );
-    }
-  );
 
-  // can use binary search here
-  const tooltipIndex = computeLazy(
-    [mouseX, mainGraphPoints, isTooltipVisible],
-    function tooltipIndexCompute(x, points, isTooltipVisible) {
-      if (!isTooltipVisible) return 0;
+      updateTooltipCirclesVisibilityEffectUnobserve = effect(
+        [enabledGraphNames],
+        (enabledGraphNames) => {
+          options.graphNames.forEach(
+            (graphName) =>
+              (tooltipCircles[graphName].style.visibility =
+                enabledGraphNames.indexOf(graphName) > -1 ? "visible" : "")
+          );
+        }
+      );
 
-      let closestPointIndex = 0;
-      for (let i = 1; i < points[options.graphNames[0]].length; i++) {
-        const distance = Math.abs(
-          points[options.graphNames[0]][i].x / devicePixelRatio - x
-        );
-        const closesDistance = Math.abs(
-          points[options.graphNames[0]][closestPointIndex].x /
-            devicePixelRatio -
-            x
-        );
-        if (distance < closesDistance) closestPointIndex = i;
+      updateTooltipGraphInfoEffectUnobserve = effect(
+        [enabledGraphNames],
+        (enabledGraphNames) => {
+          options.graphNames.forEach((graphName) => {
+            tooltipGraphInfo[graphName].hidden =
+              !enabledGraphNames.includes(graphName);
+          });
+        }
+      );
+    } else {
+      tooltipLine.style.visibility = "";
+      tooltip.style.display = "";
+
+      options.graphNames.forEach((graphName) => {
+        tooltipCircles[graphName].style.visibility = "";
+      });
+
+      if (updateTooltipPositionAndTextEffectUnobserve) {
+        updateTooltipPositionAndTextEffectUnobserve();
       }
-      return closestPointIndex;
-    }
-  );
 
-  effect(
-    [
-      isTooltipVisible,
-      mainGraphPoints,
-      enabledGraphNames,
-      tooltipIndex,
-      startIndex,
-    ],
-    // [isTooltipVisible, getMainGraphPointsObservable, enabledGraphNames, getTooltipIndexObservable, inertStartIndex],
-    function updateTooltipPositionAndTextEffect(
-      isTooltipVisible,
-      points,
-      enabledGraphNames,
-      index,
-      startIndex
-    ) {
-      if (!isTooltipVisible) return;
-
-      const { x } = points[enabledGraphNames[0]][index];
-      tooltipLine.style.transform = `translateX(${
-        (x - 1) / devicePixelRatio
-      }px)`;
-      const dataIndex = index + Math.floor(startIndex);
-      for (let i = 0; i < enabledGraphNames.length; i++) {
-        const { x, y } = points[enabledGraphNames[i]][index];
-        tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
-          x / devicePixelRatio + CENTER_OFFSET
-        }px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`;
-        tooltipValues[enabledGraphNames[i]].innerText = String(
-          options.data[enabledGraphNames[i]][dataIndex]
-        );
-        // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
+      if (updateTooltipCirclesVisibilityEffectUnobserve) {
+        updateTooltipCirclesVisibilityEffectUnobserve();
       }
-      tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-      // TODO: Force reflow
-      tooltip.style.transform = `translateX(${
-        x / devicePixelRatio - tooltip.offsetWidth / 2
-      }px)`;
+
+      if (updateTooltipGraphInfoEffectUnobserve) {
+        updateTooltipGraphInfoEffectUnobserve();
+      }
     }
-  );
+  });
 
   return { element: tooltipContainer };
+
+  function updateTooltipPositionAndText(
+    points: Record<string, Point[]>,
+    enabledGraphNames: string[],
+    index: number,
+    startIndex: number
+  ) {
+    const { x } = points[enabledGraphNames[0]][index];
+    tooltipLine.style.transform = `translateX(${(x - 1) / devicePixelRatio}px)`;
+    const dataIndex = index + Math.floor(startIndex);
+    for (let i = 0; i < enabledGraphNames.length; i++) {
+      const { x, y } = points[enabledGraphNames[i]][index];
+      tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
+        x / devicePixelRatio + CENTER_OFFSET
+      }px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`;
+      tooltipValues[enabledGraphNames[i]].innerText = String(
+        options.data[enabledGraphNames[i]][dataIndex]
+      );
+      // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
+    }
+    tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
+    // TODO: Force reflow
+    tooltip.style.transform = `translateX(${
+      x / devicePixelRatio - tooltip.offsetWidth / 2
+    }px)`;
+  }
 
   function createDOM() {
     const tooltip = document.createElement("div");

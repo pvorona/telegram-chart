@@ -60,14 +60,13 @@ export const XAxis: Component<
   //   transition(factor.get(), FAST_TRANSITIONS_TIME, linear)
   // );
 
-  // State:
+  // Window Resizing State:
   // Resizing ON -> update width effect on
   // Resizing OFF -> update width effect off
 
   effect([width], (width) => {
     canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
     canvas.height = height * devicePixelRatio; // only needs to be run when sizes change
-
     context.fillStyle = color;
     context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
     context.textBaseline = "top";
@@ -77,6 +76,7 @@ export const XAxis: Component<
   effect(
     [inertStartIndex, mainGraphPoints, width, factor],
     (inertStartIndex, mainGraphPoints, width, factor) => {
+      // No need to run if the size changed
       context.clearRect(
         0,
         0,
@@ -97,7 +97,11 @@ export const XAxis: Component<
       ) {
         const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
         const { x } = points[pointIndex];
-        const label = getOrCreate(labelsCache, domain[currentRealIndex], createLabel);
+        const label = getOrCreate(
+          labelsCache,
+          domain[currentRealIndex],
+          createLabel
+        );
 
         context.fillText(label, x, 0);
       }
