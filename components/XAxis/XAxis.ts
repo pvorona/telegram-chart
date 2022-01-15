@@ -8,13 +8,15 @@ import {
 } from "@pvorona/observable";
 // import { linear } from "../../easings";
 import { ChartContext } from "../../types";
+import { getOrCreate } from "../getOrCreate";
 // import { FAST_TRANSITIONS_TIME } from "../constants";
 // import { calculateLogScaleMultiplier } from "../../util";
 // import { interpolate } from "../../util/interpolatePoint";
 import { Component } from "../types";
 
 // - [x] Changing window size does not changes canvas size
-// - [ ] Re-rendering when view box does not change (toggle graphs)
+// - [ ] Re-rendering when view box does not change (toggle graphs) | State machine?
+// - [x] Dates cache
 // - [ ] First and last labels can be clipped
 // - [ ] Animation when changing step size
 //       Inert Observable Factor
@@ -25,8 +27,8 @@ import { Component } from "../types";
 
 const color = "#afb3b1";
 const fontsize = 12;
-const FONT_FAMILY =
-  "-apple-system, BlinkMacSystemFont, Roboto, Helvetica, Verdana, sans-serif";
+const FONT_FAMILY = "system-ui, Roboto, Helvetica, Verdana, sans-serif";
+const labelsCache = {};
 
 export const XAxis: Component<
   {
@@ -58,22 +60,29 @@ export const XAxis: Component<
   //   transition(factor.get(), FAST_TRANSITIONS_TIME, linear)
   // );
 
+  // State:
+  // Resizing ON -> update width effect on
+  // Resizing OFF -> update width effect off
+
+  effect([width], (width) => {
+    canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
+    canvas.height = height * devicePixelRatio; // only needs to be run when sizes change
+
+    context.fillStyle = color;
+    context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
+    context.textBaseline = "top";
+    context.textAlign = "center";
+  });
+
   effect(
     [inertStartIndex, mainGraphPoints, width, factor],
     (inertStartIndex, mainGraphPoints, width, factor) => {
-      // context.clearRect(
-      //   0,
-      //   0,
-      //   width * devicePixelRatio,
-      //   height * devicePixelRatio
-      // );
-      canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
-      canvas.height = height * devicePixelRatio; // only needs to be run when sizes change
-
-      context.fillStyle = color;
-      context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
-      context.textBaseline = "top";
-      context.textAlign = "center";
+      context.clearRect(
+        0,
+        0,
+        width * devicePixelRatio,
+        height * devicePixelRatio
+      );
 
       // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
       const points = mainGraphPoints[graphNames[0]];
@@ -88,11 +97,7 @@ export const XAxis: Component<
       ) {
         const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
         const { x } = points[pointIndex];
-
-        const date = new Date(domain[currentRealIndex]);
-        const label = `${String(date.getHours()).padStart(2, "0")}:${String(
-          date.getMinutes()
-        ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+        const label = getOrCreate(labelsCache, domain[currentRealIndex], createLabel);
 
         context.fillText(label, x, 0);
       }
@@ -132,3 +137,10 @@ function createDOM({
 
   return { element: canvas, canvas, context };
 }
+
+const createLabel = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return `${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes()
+  ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+};
