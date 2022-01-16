@@ -45,8 +45,7 @@ export const XAxis: Component<
   { mainGraphPoints, inertStartIndex, inertEndIndex }
 ) => {
   const { element, context, canvas } = createDOM({
-    width: width.get(),
-    height: height,
+    height,
     marginBottom,
   });
   const factor = computeLazy(
@@ -123,11 +122,9 @@ function computeScaleFactor(number: number) {
 }
 
 function createDOM({
-  width,
   height,
   marginBottom,
 }: {
-  width: number;
   height: number;
   marginBottom: number;
 }) {
@@ -135,8 +132,6 @@ function createDOM({
   canvas.style.marginBottom = `${marginBottom}px`;
   canvas.style.width = `100%`;
   canvas.style.height = `${height}px`;
-  canvas.width = width * devicePixelRatio;
-  canvas.height = height * devicePixelRatio;
   const context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
   return { element: canvas, canvas, context };
