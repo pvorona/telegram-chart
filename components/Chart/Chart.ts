@@ -72,6 +72,10 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     }
   );
 
+  effect([height], (height) => {
+    graphs.element.style.height = `${height}px`;
+  });
+
   const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect() {
     return graphs.element.getBoundingClientRect();
   });
