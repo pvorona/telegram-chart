@@ -15,8 +15,10 @@ import { getOrCreate } from "../getOrCreate";
 import { Component, Point } from "../types";
 
 // - [x] Changing window size does not changes canvas size
-// - [ ] Re-rendering when view box does not change (toggle graphs) | State machine?
+// - [x] Re-rendering when view box does not change (toggle graphs) | State machine?
 // - [x] Dates cache
+// - [x] Ticks
+// - [ ] Ticks should overlap main canvas
 // - [ ] First and last labels can be clipped
 // - [ ] Animation when changing step size
 //       Inert Observable Factor
@@ -25,6 +27,8 @@ import { Component, Point } from "../types";
 // - [-] Starting not from 0
 // - [ ] Calculating factor with loop
 
+const TICK_HEIGHT = 10;
+const LABEL_TICK_PADDING = 10;
 const color = "#afb3b1";
 const fontsize = 12;
 const FONT_FAMILY = "system-ui, Roboto, Helvetica, Verdana, sans-serif";
@@ -66,6 +70,7 @@ export const XAxis: Component<
     context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
     context.textBaseline = "top";
     context.textAlign = "center";
+    context.strokeStyle = color;
 
     updateXLabels(inertStartIndex.get(), mainGraphPoints.get(), factor.get());
   });
@@ -78,6 +83,7 @@ export const XAxis: Component<
     // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
     const points = mainGraphPoints[graphNames[0]];
 
+    context.beginPath();
     for (
       let currentRealIndex =
         Math.floor(inertStartIndex) +
@@ -93,25 +99,27 @@ export const XAxis: Component<
         domain[currentRealIndex],
         createLabel
       );
-
-      context.fillText(label, x, 0);
+      context.fillText(
+        label,
+        x,
+        TICK_HEIGHT * devicePixelRatio + LABEL_TICK_PADDING * devicePixelRatio
+      );
+      context.moveTo(x, 0);
+      context.lineTo(x, TICK_HEIGHT * devicePixelRatio);
     }
+    context.stroke();
   }
 
-  effect(
-    [inertStartIndex, mainGraphPoints, width, factor],
-    (inertStartIndex, mainGraphPoints, width, factor) => {
-      // No need to run if the size changed
-      context.clearRect(
-        0,
-        0,
-        width * devicePixelRatio,
-        height * devicePixelRatio
-      );
+  effect([inertStartIndex, factor], (inertStartIndex, factor) => {
+    context.clearRect(
+      0,
+      0,
+      width.get() * devicePixelRatio,
+      height * devicePixelRatio
+    );
 
-      updateXLabels(inertStartIndex, mainGraphPoints, factor);
-    }
-  );
+    updateXLabels(inertStartIndex, mainGraphPoints.get(), factor);
+  });
 
   return { element };
 };
