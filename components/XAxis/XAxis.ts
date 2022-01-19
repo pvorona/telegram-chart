@@ -19,7 +19,8 @@ import { Component, Point } from "../types";
 // - [x] Dates cache
 // - [x] Ticks
 // - [ ] Ticks should overlap main canvas
-// - [ ] First and last labels can be clipped
+// - [x] First and last labels can be clipped
+// - [ ] Compute precise label clipping
 // - [ ] Animation when changing step size
 //       Inert Observable Factor
 //       opacity -> progress between int factors
@@ -27,6 +28,7 @@ import { Component, Point } from "../types";
 // - [-] Starting not from 0
 // - [ ] Calculating factor with loop
 
+const LABEL_WIDTH = 35;
 const TICK_HEIGHT = 10;
 const LABEL_TICK_PADDING = 10;
 const color = "#afb3b1";
@@ -94,18 +96,22 @@ export const XAxis: Component<
     ) {
       const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
       const { x } = points[pointIndex];
+
+      if (x < LABEL_WIDTH) continue;
+      if (width.get() * devicePixelRatio - x < LABEL_WIDTH) continue;
+
       const label = getOrCreate(
         labelsCache,
         domain[currentRealIndex],
         createLabel
       );
+      context.moveTo(x, 0);
+      context.lineTo(x, TICK_HEIGHT * devicePixelRatio);
       context.fillText(
         label,
         x,
         TICK_HEIGHT * devicePixelRatio + LABEL_TICK_PADDING * devicePixelRatio
       );
-      context.moveTo(x, 0);
-      context.lineTo(x, TICK_HEIGHT * devicePixelRatio);
     }
     context.stroke();
   }
