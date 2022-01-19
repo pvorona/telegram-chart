@@ -12,7 +12,7 @@ import { getOrCreate } from "../getOrCreate";
 // import { FAST_TRANSITIONS_TIME } from "../constants";
 // import { calculateLogScaleMultiplier } from "../../util";
 // import { interpolate } from "../../util/interpolatePoint";
-import { Component } from "../types";
+import { Component, Point } from "../types";
 
 // - [x] Changing window size does not changes canvas size
 // - [ ] Re-rendering when view box does not change (toggle graphs) | State machine?
@@ -59,10 +59,6 @@ export const XAxis: Component<
   //   transition(factor.get(), FAST_TRANSITIONS_TIME, linear)
   // );
 
-  // Window Resizing State:
-  // Resizing ON -> update width effect on
-  // Resizing OFF -> update width effect off
-
   effect([width], (width) => {
     canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
     canvas.height = height * devicePixelRatio; // only needs to be run when sizes change
@@ -70,7 +66,37 @@ export const XAxis: Component<
     context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
     context.textBaseline = "top";
     context.textAlign = "center";
+
+    updateXLabels(inertStartIndex.get(), mainGraphPoints.get(), factor.get());
   });
+
+  function updateXLabels(
+    inertStartIndex: number,
+    mainGraphPoints: { [key: string]: Point[] },
+    factor: number
+  ) {
+    // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
+    const points = mainGraphPoints[graphNames[0]];
+
+    for (
+      let currentRealIndex =
+        Math.floor(inertStartIndex) +
+        factor -
+        (Math.floor(inertStartIndex) % factor);
+      currentRealIndex < Math.floor(inertStartIndex) + points.length;
+      currentRealIndex += factor
+    ) {
+      const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
+      const { x } = points[pointIndex];
+      const label = getOrCreate(
+        labelsCache,
+        domain[currentRealIndex],
+        createLabel
+      );
+
+      context.fillText(label, x, 0);
+    }
+  }
 
   effect(
     [inertStartIndex, mainGraphPoints, width, factor],
@@ -83,27 +109,7 @@ export const XAxis: Component<
         height * devicePixelRatio
       );
 
-      // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
-      const points = mainGraphPoints[graphNames[0]];
-
-      for (
-        let currentRealIndex =
-          Math.floor(inertStartIndex) +
-          factor -
-          (Math.floor(inertStartIndex) % factor);
-        currentRealIndex < Math.floor(inertStartIndex) + points.length;
-        currentRealIndex += factor
-      ) {
-        const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
-        const { x } = points[pointIndex];
-        const label = getOrCreate(
-          labelsCache,
-          domain[currentRealIndex],
-          createLabel
-        );
-
-        context.fillText(label, x, 0);
-      }
+      updateXLabels(inertStartIndex, mainGraphPoints, factor);
     }
   );
 
