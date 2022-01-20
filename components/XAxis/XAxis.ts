@@ -2,18 +2,17 @@ import {
   // animationObservable,
   computeLazy,
   effect,
-  Gettable,
-  Observable,
   // transition,
 } from "@pvorona/observable";
 // import { linear } from "../../easings";
-import { ChartContext } from "../../types";
-import { getOrCreate } from "../getOrCreate";
+import { ChartContext, ChartOptions } from "../../types";
+import { createCache } from "../../util/createCache";
 // import { FAST_TRANSITIONS_TIME } from "../constants";
 // import { calculateLogScaleMultiplier } from "../../util";
 // import { interpolate } from "../../util/interpolatePoint";
 import { Component, Point } from "../types";
 
+// - [ ] config
 // - [x] Changing window size does not changes canvas size
 // - [x] Re-rendering when view box does not change (toggle graphs) | State machine?
 // - [x] Dates cache
@@ -28,28 +27,23 @@ import { Component, Point } from "../types";
 // - [-] Starting not from 0
 // - [ ] Calculating factor with loop
 
-const LABEL_WIDTH = 35;
-const TICK_HEIGHT = 10;
-const LABEL_TICK_PADDING = 10;
-const color = "#afb3b1";
-const fontsize = 12;
-const FONT_FAMILY = "system-ui, Roboto, Helvetica, Verdana, sans-serif";
-const labelsCache = {};
-
-export const XAxis: Component<
-  {
-    width: Observable<number> & Gettable<number>;
-    graphNames: string[];
-    totalPoints: number;
-    domain: number[];
-    height: number;
-    marginBottom: number;
-  },
-  ChartContext
-> = (
-  { width, graphNames, domain, height, marginBottom },
-  { mainGraphPoints, inertStartIndex, inertEndIndex }
+export const XAxis: Component<ChartOptions, ChartContext> = (
+  options,
+  { mainGraphPoints, inertStartIndex, inertEndIndex, width }
 ) => {
+  const labelsCache = createCache(createLabel);
+
+  const {
+    graphNames,
+    domain,
+    x: {
+      color,
+      marginBottom,
+      tick: { height: tickHeight, margin: tickMargin },
+      label: { fontSize, fontFamily, width: labelWidth },
+    },
+  } = options;
+  const height = fontSize + tickHeight + tickMargin + marginBottom;
   const { element, context, canvas } = createDOM({
     height,
     marginBottom,
@@ -66,10 +60,10 @@ export const XAxis: Component<
   // );
 
   effect([width], (width) => {
-    canvas.width = width * devicePixelRatio; // only needs to be run when sizes change
-    canvas.height = height * devicePixelRatio; // only needs to be run when sizes change
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
     context.fillStyle = color;
-    context.font = `${fontsize * devicePixelRatio}px ${FONT_FAMILY}`;
+    context.font = `${fontSize * devicePixelRatio}px ${fontFamily}`;
     context.textBaseline = "top";
     context.textAlign = "center";
     context.strokeStyle = color;
@@ -97,20 +91,17 @@ export const XAxis: Component<
       const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
       const { x } = points[pointIndex];
 
-      if (x < LABEL_WIDTH) continue;
-      if (width.get() * devicePixelRatio - x < LABEL_WIDTH) continue;
+      if (x < labelWidth) continue;
+      if (width.get() * devicePixelRatio - x < labelWidth) continue;
 
-      const label = getOrCreate(
-        labelsCache,
-        domain[currentRealIndex],
-        createLabel
-      );
+      const label = labelsCache.get(domain[currentRealIndex]);
+
       context.moveTo(x, 0);
-      context.lineTo(x, TICK_HEIGHT * devicePixelRatio);
+      context.lineTo(x, tickHeight * devicePixelRatio);
       context.fillText(
         label,
         x,
-        TICK_HEIGHT * devicePixelRatio + LABEL_TICK_PADDING * devicePixelRatio
+        tickHeight * devicePixelRatio + tickMargin * devicePixelRatio
       );
     }
     context.stroke();

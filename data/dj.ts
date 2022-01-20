@@ -11,8 +11,19 @@ const data2 = data2O.slice(0, Math.floor(data1O.length * 0.6));
 export const chartOptions: ChartOptions[] = [
   {
     domain: data1.map((d) => d.timestamp),
-    xAxisHeight: 10 + 10 + 12,
-    xAxisMarginBottom: 5,
+    x: {
+      color: "#afb3b1",
+      tick: {
+        height: 10,
+        margin: 10,
+      },
+      label: {
+        width: 40,
+        fontSize: 12,
+        fontFamily: "system-ui, Roboto, Helvetica, Verdana, sans-serif",
+      },
+      marginBottom: 5,
+    },
     graphNames: ["A", "B"],
     width: 100,
     height: 100,

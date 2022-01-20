@@ -41,17 +41,21 @@ export const Chart: Component<ChartOptions, ChartContext> = (
 
   const { element, graphs } = createDOM();
 
+  function computeChartHeight() {
+    return Math.max(
+      element.offsetHeight -
+        options.overviewHeight -
+        options.x.label.fontSize -
+        options.x.tick.height -
+        options.x.marginBottom -
+        options.x.marginBottom,
+      MIN_HEIGHT
+    );
+  }
+
   window.addEventListener("resize", function resizeListener() {
     width.set(element.offsetWidth);
-    height.set(
-      Math.max(
-        element.offsetHeight -
-          options.overviewHeight -
-          options.xAxisHeight -
-          options.xAxisMarginBottom,
-        MIN_HEIGHT
-      )
-    );
+    height.set(computeChartHeight());
   });
 
   effect(
@@ -243,13 +247,17 @@ export const Chart: Component<ChartOptions, ChartContext> = (
       height:
         options.height -
         options.overviewHeight -
-        options.xAxisHeight -
-        options.xAxisMarginBottom,
+        options.x.label.fontSize -
+        options.x.tick.height -
+        options.x.marginBottom -
+        options.x.marginBottom,
       containerHeight:
         options.height -
         options.overviewHeight -
-        options.xAxisHeight -
-        options.xAxisMarginBottom,
+        options.x.label.fontSize -
+        options.x.tick.height -
+        options.x.marginBottom -
+        options.x.marginBottom,
       containerMinHeight: MIN_HEIGHT,
     });
     const overview = Overview(
@@ -271,14 +279,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     graphs.element.appendChild(tooltip.element);
 
     const xAxis = XAxis(
-      {
-        width,
-        marginBottom: options.xAxisMarginBottom,
-        graphNames: options.graphNames,
-        totalPoints: options.total,
-        domain: options.domain,
-        height: options.xAxisHeight,
-      },
+      options,
       context
     );
 

@@ -16,9 +16,20 @@ export interface Data {
 }
 
 export interface ChartOptions {
-  xAxisMarginBottom:number
+  x: {
+    color: string;
+    tick: {
+      height: number;
+      margin: number;
+    };
+    label: {
+      width: number;
+      fontSize: number;
+      fontFamily: string;
+    };
+    marginBottom: number;
+  };
   domain: number[];
-  xAxisHeight: number;
   graphNames: string[];
   width: number;
   height: number;

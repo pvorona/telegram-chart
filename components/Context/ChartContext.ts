@@ -24,8 +24,10 @@ export const ChartContext = (options: ChartOptions) => {
   const height = observable(
     options.height -
       options.overviewHeight -
-      options.xAxisHeight -
-      options.xAxisMarginBottom
+      options.x.tick.height -
+      options.x.tick.margin -
+      options.x.label.fontSize -
+      options.x.marginBottom
   );
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
