@@ -12,7 +12,7 @@ import { createCache } from "../../util/createCache";
 // import { interpolate } from "../../util/interpolatePoint";
 import { Component, Point } from "../types";
 
-// - [ ] config
+// - [x] config
 // - [x] Changing window size does not changes canvas size
 // - [x] Re-rendering when view box does not change (toggle graphs) | State machine?
 // - [x] Dates cache
@@ -20,6 +20,7 @@ import { Component, Point } from "../types";
 // - [ ] Ticks should overlap main canvas
 // - [x] First and last labels can be clipped
 // - [ ] Compute precise label clipping
+// - [ ] Highlight tick when hovering point around it
 // - [ ] Animation when changing step size
 //       Inert Observable Factor
 //       opacity -> progress between int factors
