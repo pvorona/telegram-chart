@@ -55,6 +55,8 @@ export const Overview: Component<Props, ChartContext> = (
   },
   { isDragging, isWheeling, activeCursor }
 ) => {
+  const height = options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
+
   const left = observable(
     (startIndex.get() / (options.total - 1)) * width.get()
   );
@@ -173,23 +175,40 @@ export const Overview: Component<Props, ChartContext> = (
     viewBoxElement.style.right = `${width - right}px`;
   });
 
+  effect([width], (width) => {
+    graphs.canvas.width = width * window.devicePixelRatio;
+    graphs.canvas.height = options.overviewHeight * window.devicePixelRatio;
+
+    updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
+  });
+
   effect(
-    [inertOpacityStateByGraphName, overviewGraphPoints, width],
-    (inertOpacityStateByGraphName, overviewGraphPoints, width) => {
-      graphs.canvas.width = width * window.devicePixelRatio; // only needs to be run when sizes change
-      graphs.canvas.height = options.overviewHeight * window.devicePixelRatio; // only needs to be run when sizes change
-      renderGraphs({
-        opacityState: inertOpacityStateByGraphName,
-        points: overviewGraphPoints,
-        width,
-        context: graphs.context,
-        height: options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH,
-        graphNames: options.graphNames,
-        lineWidth: options.OVERVIEW_LINE_WIDTH,
-        strokeStyles: options.colors,
-      });
+    [overviewGraphPoints, inertOpacityStateByGraphName],
+    (overviewGraphPoints, inertOpacityStateByGraphName) => {
+      graphs.context.clearRect(
+        0,
+        0,
+        width.get() * devicePixelRatio,
+        height * devicePixelRatio
+      );
+
+      updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
     }
   );
+
+  function updatePoints(
+    overviewGraphPoints: { [key: string]: Point[] },
+    inertOpacityStateByGraphName: { [key: string]: number }
+  ) {
+    renderGraphs({
+      opacityState: inertOpacityStateByGraphName,
+      points: overviewGraphPoints,
+      context: graphs.context,
+      graphNames: options.graphNames,
+      lineWidth: options.OVERVIEW_LINE_WIDTH,
+      strokeStyles: options.colors,
+    });
+  }
 
   const boundingRect = element.getBoundingClientRect();
 

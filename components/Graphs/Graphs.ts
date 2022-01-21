@@ -13,8 +13,6 @@ export function renderGraphs({
   graphNames: string[];
   lineWidth: number;
   strokeStyles: { [key: string]: string };
-  width: number;
-  height: number;
   opacityState: { [key: string]: number };
 }) {
   for (let i = 0; i < graphNames.length; i++) {

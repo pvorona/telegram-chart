@@ -11,7 +11,7 @@ import {
   DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
   cursors,
 } from "../constants";
-import { Component } from "../types";
+import { Component, Point } from "../types";
 import { createGraphs } from "./createGraphs";
 import { Overview } from "../Overview";
 import { interpolate } from "../../util/interpolatePoint";
@@ -58,23 +58,43 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     height.set(computeChartHeight());
   });
 
+  effect([width, height], (width, height) => {
+    graphs.canvas.width = width * window.devicePixelRatio;
+    graphs.canvas.height = height * window.devicePixelRatio;
+
+    updateMainGraphEffect(
+      mainGraphPoints.get(),
+      inertOpacityStateByGraphName.get()
+    );
+  });
+
   effect(
-    [mainGraphPoints, inertOpacityStateByGraphName, width, height],
-    function updateMainGraphEffect(points, opacityState, width, height) {
-      graphs.canvas.width = width * window.devicePixelRatio; // only needs to be run when sizes change
-      graphs.canvas.height = height * window.devicePixelRatio; // only needs to be run when sizes change
-      renderGraphs({
-        points,
-        opacityState,
-        width,
-        height,
-        context: graphs.context,
-        graphNames: options.graphNames,
-        lineWidth: options.lineWidth,
-        strokeStyles: options.colors,
-      });
+    [mainGraphPoints, inertOpacityStateByGraphName],
+    (mainGraphPoints, inertOpacityStateByGraphName) => {
+      graphs.context.clearRect(
+        0,
+        0,
+        width.get() * devicePixelRatio,
+        height.get() * devicePixelRatio
+      );
+
+      updateMainGraphEffect(mainGraphPoints, inertOpacityStateByGraphName);
     }
   );
+
+  function updateMainGraphEffect(
+    points: { [key: string]: Point[] },
+    opacityState: { [key: string]: number }
+  ) {
+    renderGraphs({
+      points,
+      opacityState,
+      context: graphs.context,
+      graphNames: options.graphNames,
+      lineWidth: options.lineWidth,
+      strokeStyles: options.colors,
+    });
+  }
 
   effect([height], (height) => {
     graphs.element.style.height = `${height}px`;
@@ -278,10 +298,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
 
     graphs.element.appendChild(tooltip.element);
 
-    const xAxis = XAxis(
-      options,
-      context
-    );
+    const xAxis = XAxis(options, context);
 
     element.appendChild(graphs.element);
     element.appendChild(xAxis.element);

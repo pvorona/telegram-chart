@@ -39,13 +39,13 @@ export function YAxis (max, min, height) {
       (total, element) => total + (max / newMax * element.bottom + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height),
       0,
     )
-    const multilplier = calculateLogScaleMultiplier(numberOfVisibleSteps) + Number(height <= 250)
+    const multiplier = calculateLogScaleMultiplier(numberOfVisibleSteps) + Number(height <= 250)
     elements.forEach((element, index) => {
       const y = max / newMax * element.bottom
 
       element.line.style.transform = `translateY(${-1 * y}px)`
       element.number.style.transform = `translateY(${-1 * (y + NUMBER_VERTICAL_PADDING)}px)`
-      const isVisible = y + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height && !(index % Math.pow(2, multilplier))
+      const isVisible = y + NUMBER_VERTICAL_PADDING + NUMBER_VERTICAL_SPACE <= height && !(index % Math.pow(2, multiplier))
       if (isVisible) {
         element.line.style.opacity = 1
         element.number.style.opacity = 1
