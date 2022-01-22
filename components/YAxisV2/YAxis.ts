@@ -16,33 +16,36 @@ export const YAxis = (
     (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
   );
 
-  effect([height, width, factor], (height, width) => {
-    const yStep = height / options.y.ticks;
+  effect(
+    [height, width, visibleMin, visibleMax],
+    (height, width, visibleMin, visibleMax) => {
+      const yStep = (visibleMax - visibleMin) / options.y.ticks;
 
-    context.clearRect(
-      0,
-      0,
-      width * devicePixelRatio,
-      height * devicePixelRatio
-    );
-    context.beginPath();
+      context.clearRect(
+        0,
+        0,
+        width * devicePixelRatio,
+        height * devicePixelRatio
+      );
+      context.beginPath();
 
-    // for (
-    //   let currentRealIndex =
-    //     Math.floor(inertStartIndex) +
-    //     factor -
-    //     (Math.floor(inertStartIndex) % factor);
-    //   currentRealIndex < Math.floor(inertStartIndex) + points.length;
-    //   currentRealIndex += factor
-    // ) {
-    // }
+      // for (
+      //   let currentRealIndex =
+      //     Math.floor(inertStartIndex) +
+      //     factor -
+      //     (Math.floor(inertStartIndex) % factor);
+      //   currentRealIndex < Math.floor(inertStartIndex) + points.length;
+      //   currentRealIndex += factor
+      // ) {
+      // }
 
-    for (let i = 1; i <= options.y.ticks; i++) {
-      context.moveTo(0, yStep * i * devicePixelRatio);
-      context.lineTo(width * devicePixelRatio, yStep * i * devicePixelRatio);
+      for (let i = 1; i <= options.y.ticks; i++) {
+        context.moveTo(0, yStep * i * devicePixelRatio);
+        context.lineTo(width * devicePixelRatio, yStep * i * devicePixelRatio);
+      }
+      context.stroke();
     }
-    context.stroke();
-  });
+  );
 
   return { element };
 };

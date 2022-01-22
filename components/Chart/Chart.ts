@@ -16,7 +16,7 @@ import { createGraphs } from "./createGraphs";
 import { Overview } from "../Overview";
 import { interpolate } from "../../util/interpolatePoint";
 import { XAxis } from "../XAxis";
-// import { YAxis } from "../YAxisV2";
+import { YAxis } from "../YAxisV2";
 import { Tooltip } from "../Tooltip";
 
 export const Chart: Component<ChartOptions, ChartContext> = (
@@ -296,10 +296,10 @@ export const Chart: Component<ChartOptions, ChartContext> = (
     const controls = Controls(options, context);
     const tooltip = Tooltip(options, context);
     const xAxis = XAxis(options, context);
-    // const yAxis = YAxis(options, context);
+    const yAxis = YAxis(options, context);
 
     graphs.element.appendChild(tooltip.element);
-    // graphs.element.appendChild(yAxis.element);
+    graphs.element.appendChild(yAxis.element);
     element.appendChild(graphs.element);
     element.appendChild(xAxis.element);
     element.appendChild(overview.element);
