@@ -23,7 +23,7 @@ export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
   const height = observable(
     options.height -
-      options.overviewHeight -
+      options.overview.height -
       options.x.tick.height -
       options.x.tick.margin -
       options.x.label.fontSize -

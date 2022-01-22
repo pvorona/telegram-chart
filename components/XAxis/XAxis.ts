@@ -52,7 +52,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
     (inertStartIndex, inertEndIndex) =>
-      computeScaleFactor(inertEndIndex - inertStartIndex)
+      computeScaleFactor(inertEndIndex - inertStartIndex, options.x.ticks)
   );
 
   // const inertFactor = animationObservable(
@@ -122,10 +122,10 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   return { element };
 };
 
-function computeScaleFactor(number: number) {
+function computeScaleFactor(number: number, ticks: number) {
   let factor = 1;
   while (true) {
-    if (number / factor <= 8) {
+    if (number / factor <= ticks) {
       break;
     }
     factor *= 2;

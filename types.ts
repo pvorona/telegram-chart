@@ -18,6 +18,7 @@ export interface Data {
 export interface ChartOptions {
   x: {
     color: string;
+    ticks: number;
     tick: {
       height: number;
       margin: number;
@@ -29,14 +30,23 @@ export interface ChartOptions {
     };
     marginBottom: number;
   };
+  y: {
+    color: string;
+    ticks: number;
+    label: {
+      fontSize: number;
+      fontFamily: string;
+    };
+  };
   domain: number[];
   graphNames: string[];
   width: number;
   height: number;
   lineWidth: number;
-  overviewHeight: number;
-  overviewWidth: number;
-  OVERVIEW_LINE_WIDTH: number;
+  overview: {
+    height: number;
+    strokeWidth: number;
+  };
   colors: { [key: string]: string };
   data: Data;
   total: number;

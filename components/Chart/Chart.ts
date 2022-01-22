@@ -16,6 +16,7 @@ import { createGraphs } from "./createGraphs";
 import { Overview } from "../Overview";
 import { interpolate } from "../../util/interpolatePoint";
 import { XAxis } from "../XAxis";
+// import { YAxis } from "../YAxisV2";
 import { Tooltip } from "../Tooltip";
 
 export const Chart: Component<ChartOptions, ChartContext> = (
@@ -44,7 +45,7 @@ export const Chart: Component<ChartOptions, ChartContext> = (
   function computeChartHeight() {
     return Math.max(
       element.offsetHeight -
-        options.overviewHeight -
+        options.overview.height -
         options.x.label.fontSize -
         options.x.tick.height -
         options.x.marginBottom -
@@ -266,14 +267,14 @@ export const Chart: Component<ChartOptions, ChartContext> = (
       width: width.get(),
       height:
         options.height -
-        options.overviewHeight -
+        options.overview.height -
         options.x.label.fontSize -
         options.x.tick.height -
         options.x.marginBottom -
         options.x.marginBottom,
       containerHeight:
         options.height -
-        options.overviewHeight -
+        options.overview.height -
         options.x.label.fontSize -
         options.x.tick.height -
         options.x.marginBottom -
@@ -293,13 +294,12 @@ export const Chart: Component<ChartOptions, ChartContext> = (
       context
     );
     const controls = Controls(options, context);
-
     const tooltip = Tooltip(options, context);
+    const xAxis = XAxis(options, context);
+    // const yAxis = YAxis(options, context);
 
     graphs.element.appendChild(tooltip.element);
-
-    const xAxis = XAxis(options, context);
-
+    // graphs.element.appendChild(yAxis.element);
     element.appendChild(graphs.element);
     element.appendChild(xAxis.element);
     element.appendChild(overview.element);

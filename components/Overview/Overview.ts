@@ -55,7 +55,7 @@ export const Overview: Component<Props, ChartContext> = (
   },
   { isDragging, isWheeling, activeCursor }
 ) => {
-  const height = options.overviewHeight - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
+  const height = options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
   const left = observable(
     (startIndex.get() / (options.total - 1)) * width.get()
@@ -113,7 +113,8 @@ export const Overview: Component<Props, ChartContext> = (
             {
               width: width * devicePixelRatio,
               height:
-                (options.overviewHeight - VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) *
+                (options.overview.height -
+                  VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) *
                 devicePixelRatio,
             },
             { startIndex: 0, endIndex: options.total - 1 },
@@ -161,11 +162,18 @@ export const Overview: Component<Props, ChartContext> = (
     }
   });
 
-  const { element, resizerLeft, resizerRight, viewBoxElement, graphs } =
-    createDom({
-      width: width.get(),
-      height: options.overviewHeight,
-    });
+  const {
+    element,
+    resizerLeft,
+    resizerRight,
+    viewBoxElement,
+    graphs,
+    leftSide,
+    rightSide,
+  } = createDom({
+    width: width.get(),
+    height: options.overview.height,
+  });
 
   effect([left], (left) => {
     viewBoxElement.style.left = `${left}px`;
@@ -177,7 +185,7 @@ export const Overview: Component<Props, ChartContext> = (
 
   effect([width], (width) => {
     graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = options.overviewHeight * window.devicePixelRatio;
+    graphs.canvas.height = options.overview.height * window.devicePixelRatio;
 
     updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
@@ -205,14 +213,45 @@ export const Overview: Component<Props, ChartContext> = (
       points: overviewGraphPoints,
       context: graphs.context,
       graphNames: options.graphNames,
-      lineWidth: options.OVERVIEW_LINE_WIDTH,
+      lineWidth: options.overview.strokeWidth,
       strokeStyles: options.colors,
     });
   }
 
-  const boundingRect = element.getBoundingClientRect();
+  const boundingRect = element.getBoundingClientRect(); // Does not work: capturing geometry before mounting
 
   let cursorResizerDelta = 0;
+
+  leftSide.addEventListener("mousedown", onLeftSideClick);
+  rightSide.addEventListener("mousedown", onRightSideClick);
+
+  function onLeftSideClick(event: MouseEvent) {
+    const boundingRect = element.getBoundingClientRect();
+    const viewBoxWidth = right.get() - left.get();
+    const newLeft = ensureInBounds(
+      getX(event) - viewBoxWidth / 2 - boundingRect.left,
+      0,
+      width.get()
+    );
+    const newRight = newLeft + viewBoxWidth;
+
+    left.set(newLeft);
+    right.set(newRight);
+  }
+
+  function onRightSideClick(event: MouseEvent) {
+    const boundingRect = element.getBoundingClientRect();
+    const viewBoxWidth = right.get() - left.get();
+    const newRight = ensureInBounds(
+      getX(event) + viewBoxWidth / 2 - boundingRect.left,
+      0,
+      width.get()
+    );
+    const newLeft = newRight - viewBoxWidth;
+
+    left.set(newLeft);
+    right.set(newRight);
+  }
 
   handleDrag(resizerLeft, {
     onDragStart: onLeftResizerMouseDown,
@@ -331,8 +370,17 @@ function createDom({ width, height }: { width: number; height: number }) {
   resizerRight.className = "overview__resizer overview__resizer--right";
   const viewBoxElement = document.createElement("div");
   viewBoxElement.className = "overview__viewbox";
+
+  const leftSide = document.createElement("div");
+  leftSide.className = "overview__left";
+  const rightSide = document.createElement("div");
+  rightSide.className = "overview__right";
+
+  viewBoxElement.appendChild(leftSide);
   viewBoxElement.appendChild(resizerLeft);
   viewBoxElement.appendChild(resizerRight);
+  viewBoxElement.appendChild(rightSide);
+
   const graphs = createGraphs({
     width,
     height,
@@ -350,5 +398,13 @@ function createDom({ width, height }: { width: number; height: number }) {
   //   </div>
   // `;
 
-  return { element, resizerLeft, resizerRight, viewBoxElement, graphs };
+  return {
+    element,
+    resizerLeft,
+    resizerRight,
+    viewBoxElement,
+    graphs,
+    leftSide,
+    rightSide,
+  };
 }

@@ -10,9 +10,10 @@ const data2 = data2O.slice(0, Math.floor(data1O.length * 0.6));
 
 export const chartOptions: ChartOptions[] = [
   {
-    domain: data1.map((d) => d.timestamp),
     x: {
       color: "#afb3b1",
+      marginBottom: 5,
+      ticks: 8,
       tick: {
         height: 10,
         margin: 10,
@@ -20,18 +21,31 @@ export const chartOptions: ChartOptions[] = [
       label: {
         width: 40,
         fontSize: 12,
-        fontFamily: "system-ui, Roboto, Helvetica, Verdana, sans-serif",
+        fontFamily: "system-ui, sans-serif",
       },
-      marginBottom: 5,
+    },
+    y: {
+      color: "#afb3b180",
+      ticks: 5,
+      label: {
+        fontSize: 12,
+        fontFamily: "system-ui, sans-serif",
+      },
     },
     graphNames: ["A", "B"],
     width: 100,
     height: 100,
     lineWidth: 1,
-    overviewHeight: 75,
-    overviewWidth: 100,
-    OVERVIEW_LINE_WIDTH: 1,
+    overview: {
+      height: 75,
+      strokeWidth: 1,
+    },
+    viewBox: {
+      startIndex: (data1.length - 1) * 0.75,
+      endIndex: data1.length - 1,
+    },
     colors: { A: "#3DC23F", B: "#E42222" },
+    domain: data1.map((d) => d.timestamp),
     data: {
       A: data1.map((d) => d.value),
       B: data2.map((d) => d.value),
@@ -40,10 +54,6 @@ export const chartOptions: ChartOptions[] = [
     visibilityState: {
       A: true,
       B: true,
-    },
-    viewBox: {
-      startIndex: (data1.length - 1) * 0.75,
-      endIndex: data1.length - 1,
     },
   },
 ];
