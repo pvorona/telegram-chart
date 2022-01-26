@@ -45,7 +45,7 @@ export interface ChartOptions {
   lineWidth: number;
   overview: {
     height: number;
-    strokeWidth: number;
+    lineWidth: number;
   };
   colors: { [key: string]: string };
   data: Data;

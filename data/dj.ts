@@ -38,7 +38,7 @@ export const chartOptions: ChartOptions[] = [
     lineWidth: 1,
     overview: {
       height: 75,
-      strokeWidth: 1,
+      lineWidth: 1,
     },
     viewBox: {
       startIndex: (data1.length - 1) * 0.75,

@@ -13,22 +13,19 @@ import {
   cursors,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
+  MIN_HEIGHT,
   VERY_FAST_TRANSITIONS_TIME,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
+const CONTROLS_HEIGHT = 80;
+
 export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
-  const height = observable(
-    options.height -
-      options.overview.height -
-      options.x.tick.height -
-      options.x.tick.margin -
-      options.x.label.fontSize -
-      options.x.marginBottom
-  );
+  const height = observable(options.height);
+  const canvasHeight = observable(computeCanvasHeight(height.get()));
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
   const mouseX = observable(0);
@@ -46,6 +43,24 @@ export const ChartContext = (options: ChartOptions) => {
       {} as EnabledGraphNames
     )
   );
+
+  function computeCanvasHeight(containerHeight: number) {
+    return Math.max(
+      containerHeight -
+        options.overview.height -
+        options.x.tick.height -
+        options.x.tick.margin -
+        options.x.label.fontSize -
+        options.x.marginBottom -
+        CONTROLS_HEIGHT,
+      MIN_HEIGHT
+    );
+  }
+
+  observe([height], (height) => {
+    canvasHeight.set(computeCanvasHeight(height));
+  });
+
   const enabledGraphNames = computeLazy(
     [enabledStateByGraphName],
     function enabledGraphNamesCompute(enabledStateByGraphName) {
@@ -143,7 +158,7 @@ export const ChartContext = (options: ChartOptions) => {
       inertVisibleMax,
       inertVisibleMin,
       width,
-      height,
+      canvasHeight,
     ],
     function mainGraphPointsCompute(
       startIndex,
@@ -229,6 +244,7 @@ export const ChartContext = (options: ChartOptions) => {
     prevVisibleMax,
     prevVisibleMin,
     width,
+    canvasHeight,
     height,
   };
 

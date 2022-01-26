@@ -1,3 +1,3 @@
 import './Graphs.css'
 
-export * from './Graphs'
+export * from './renderGraphs'

@@ -17,12 +17,6 @@ import {
   ensureInBounds,
 } from "../../util";
 import {
-  Gettable,
-  LazyObservable,
-  Observable,
-  Settable,
-} from "@pvorona/observable";
-import {
   cursors,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
@@ -33,27 +27,18 @@ import { createGraphs } from "../Chart/createGraphs";
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 const minimalPixelsBetweenResizers = 10;
 
-export type Props = {
-  startIndex: Observable<number> & Gettable<number> & Settable<number>;
-  endIndex: Observable<number> & Gettable<number> & Settable<number>;
-  width: Observable<number> & Gettable<number> & Settable<number>;
-  isWheeling: Observable<boolean> & Gettable<boolean> & Settable<boolean>;
-  options: ChartOptions;
-  enabledGraphNames: LazyObservable & Gettable<string[]>;
-  inertOpacityStateByGraphName: LazyObservable &
-    Gettable<{ [key: string]: number }>;
-};
-
-export const Overview: Component<Props, ChartContext> = (
+export const Overview: Component<ChartOptions, ChartContext> = (
+  options,
   {
+    isDragging,
+    isWheeling,
+    activeCursor,
     startIndex,
     endIndex,
     width,
-    options,
     enabledGraphNames,
     inertOpacityStateByGraphName,
-  },
-  { isDragging, isWheeling, activeCursor }
+  }
 ) => {
   const height = options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
@@ -213,7 +198,7 @@ export const Overview: Component<Props, ChartContext> = (
       points: overviewGraphPoints,
       context: graphs.context,
       graphNames: options.graphNames,
-      lineWidth: options.overview.strokeWidth,
+      lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
     });
   }

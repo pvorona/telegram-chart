@@ -1,9 +1,12 @@
-import { computeLazy, effect } from "@pvorona/observable";
+import {
+  // computeLazy,
+  effect,
+} from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
 
 export const YAxis = (
   options: ChartOptions,
-  { width, height, visibleMin, visibleMax }: ChartContext
+  { width, canvasHeight: height, visibleMin, visibleMax }: ChartContext
 ) => {
   const { element, context } = createDom(
     width.get(),
@@ -11,10 +14,10 @@ export const YAxis = (
     options.y.color
   );
 
-  const factor = computeLazy(
-    [visibleMin, visibleMax],
-    (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
-  );
+  // const factor = computeLazy(
+  //   [visibleMin, visibleMax],
+  //   (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
+  // );
 
   effect(
     [height, width, visibleMin, visibleMax],
@@ -68,13 +71,13 @@ function createDom(width: number, height: number, color: string) {
   return { element, context };
 }
 
-function computeScaleFactor(number: number) {
-  let factor = 1;
-  while (true) {
-    if (number / factor <= 8) {
-      break;
-    }
-    factor *= 2;
-  }
-  return factor;
-}
+// function computeScaleFactor(number: number) {
+//   let factor = 1;
+//   while (true) {
+//     if (number / factor <= 8) {
+//       break;
+//     }
+//     factor *= 2;
+//   }
+//   return factor;
+// }
