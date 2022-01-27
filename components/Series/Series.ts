@@ -11,10 +11,10 @@ import {
   MIN_HEIGHT,
 } from "../constants";
 import { Point } from "../types";
-import { createGraphs } from "./createGraphs";
+import { createGraphs } from "../Chart/createGraphs";
 import { interpolate } from "../../util/interpolatePoint";
 
-export const Graphs = (
+export const Series = (
   chartOptions: ChartOptions,
   {
     width,
@@ -38,10 +38,7 @@ export const Graphs = (
     canvas.width = width * window.devicePixelRatio;
     canvas.height = height * window.devicePixelRatio;
 
-    updateGraphs(
-      mainGraphPoints.get(),
-      inertOpacityStateByGraphName.get()
-    );
+    updateGraphs(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
 
   effect(

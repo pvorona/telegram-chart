@@ -4,9 +4,9 @@ import { Overview } from "../Overview";
 import { XAxis } from "../XAxis";
 // import { YAxis } from "../YAxisV2";
 import { Tooltip } from "../Tooltip";
-import { Graphs } from "./Graphs";
+import { Series } from "../Series";
 import { ChartContext } from "../Context";
-import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/observable";
+import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
 
 export const Chart = (options: ChartOptions) => {
   const context = ChartContext(options);
@@ -29,7 +29,7 @@ export const Chart = (options: ChartOptions) => {
   function createDom() {
     const element = document.createElement("div");
     element.style.height = "100%";
-    const graphs = Graphs(options, context);
+    const graphs = Series(options, context);
     const overview = Overview(options, context);
     const controls = Controls(options, context);
     const tooltip = Tooltip(options, context);
