@@ -32,7 +32,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   options,
   { mainGraphPoints, inertStartIndex, inertEndIndex, width }
 ) => {
-  const labelsCache = createCache(createLabel);
+  const labels = createCache(createLabel);
 
   const {
     graphNames,
@@ -41,7 +41,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
       color,
       marginBottom,
       tick: { height: tickHeight, margin: tickMargin },
-      label: { fontSize, fontFamily, width: labelWidth },
+      label: { fontSize, fontFamily },
     },
   } = options;
   const height = fontSize + tickHeight + tickMargin + marginBottom;
@@ -91,11 +91,12 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     ) {
       const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
       const { x } = points[pointIndex];
+      const label = labels.get(domain[currentRealIndex]);
 
-      if (x < labelWidth) continue;
-      if (width.get() * devicePixelRatio - x < labelWidth) continue;
+      const { width: labelWidth } = context.measureText(label);
 
-      const label = labelsCache.get(domain[currentRealIndex]);
+      if (x < labelWidth / 2) continue;
+      if (width.get() * devicePixelRatio - x < labelWidth / 2) continue;
 
       context.moveTo(x, 0);
       context.lineTo(x, tickHeight * devicePixelRatio);
