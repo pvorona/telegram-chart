@@ -10,7 +10,8 @@ import {
 } from "@pvorona/observable";
 import { ChartOptions } from "../../types";
 import {
-  cursors,
+  Cursor,
+  cursor,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
   MIN_HEIGHT,
@@ -19,8 +20,6 @@ import {
 import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
-
-const CONTROLS_HEIGHT = 80;
 
 export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
@@ -33,7 +32,7 @@ export const ChartContext = (options: ChartOptions) => {
   const isDragging = observable(false);
   const isWheeling = observable(false);
   const isGrabbingGraphs = observable(false);
-  const activeCursor = observable(cursors.default);
+  const activeCursor = observable<Cursor>(cursor.default);
   const enabledStateByGraphName = observable(
     options.graphNames.reduce(
       (state, graphName) => ({
@@ -50,9 +49,8 @@ export const ChartContext = (options: ChartOptions) => {
         options.overview.height -
         options.x.tick.height -
         options.x.tick.margin -
-        options.x.label.fontSize -
-        options.x.marginBottom -
-        CONTROLS_HEIGHT,
+        options.x.label.fontSize * devicePixelRatio -
+        options.x.marginBottom,
       MIN_HEIGHT
     );
   }
@@ -219,8 +217,18 @@ export const ChartContext = (options: ChartOptions) => {
     }
   );
 
-  effect([activeCursor], (cursor) => {
-    document.body.style.cursor = cursor;
+  effect([activeCursor], (activeCursor) => {
+    for (const key in cursor) {
+      const className = cursor[key as keyof typeof cursor];
+
+      if (className) {
+        document.body.classList.remove(className);
+      }
+    }
+
+    if (activeCursor) {
+      document.body.classList.add(activeCursor);
+    }
   });
 
   return {

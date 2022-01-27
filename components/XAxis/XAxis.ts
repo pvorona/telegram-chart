@@ -52,7 +52,8 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
     (inertStartIndex, inertEndIndex) =>
-      computeScaleFactor(inertEndIndex - inertStartIndex, options.x.ticks)
+      // Math.log2(1 << (32 - Math.clz32(inertEndIndex - inertStartIndex)))
+    computeScaleFactor(inertEndIndex - inertStartIndex, options.x.ticks)
   );
 
   // const inertFactor = animationObservable(
@@ -92,7 +93,6 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
       const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
       const { x } = points[pointIndex];
       const label = labels.get(domain[currentRealIndex]);
-
       const { width: labelWidth } = context.measureText(label);
 
       if (x < labelWidth / 2) continue;

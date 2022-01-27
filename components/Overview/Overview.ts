@@ -17,7 +17,7 @@ import {
   ensureInBounds,
 } from "../../util";
 import {
-  cursors,
+  cursor,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
 } from "../constants";
@@ -256,13 +256,13 @@ export const Overview: Component<ChartOptions, ChartContext> = (
 
   function onLeftResizerMouseDown(e: MouseEvent) {
     isDragging.set(true);
-    activeCursor.set(cursors.resize);
+    activeCursor.set(cursor.resize);
     cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
   }
 
   function removeLeftResizerListener() {
     isDragging.set(false);
-    activeCursor.set(cursors.default);
+    activeCursor.set(cursor.default);
   }
 
   function onLeftResizerMouseMove(e: MouseEvent) {
@@ -275,12 +275,12 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   function onRightResizerMouseDown(e: MouseEvent) {
     cursorResizerDelta = getX(e) - (right.get() - boundingRect.left);
     isDragging.set(true);
-    activeCursor.set(cursors.resize);
+    activeCursor.set(cursor.resize);
   }
 
   function removeRightResizerListener() {
     isDragging.set(false);
-    activeCursor.set(cursors.default);
+    activeCursor.set(cursor.default);
   }
 
   function ensureInOverviewBounds(x: number) {
@@ -290,12 +290,12 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   function onViewBoxElementMouseDown(e: MouseEvent) {
     cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
     isDragging.set(true);
-    activeCursor.set(cursors.grabbing);
+    activeCursor.set(cursor.grabbing);
   }
 
   function onViewBoxElementMouseUp() {
     isDragging.set(false);
-    activeCursor.set(cursors.default);
+    activeCursor.set(cursor.default);
   }
 
   function onViewBoxElementMouseMove(e: MouseEvent) {

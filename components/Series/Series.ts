@@ -7,7 +7,7 @@ import {
   WHEEL_CLEAR_TIMEOUT,
   WHEEL_MULTIPLIER,
   DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
-  cursors,
+  cursor,
   MIN_HEIGHT,
 } from "../constants";
 import { Point } from "../types";
@@ -137,13 +137,13 @@ export const Series = (
     handleDrag(element, {
       onDragStart: (e: MouseEvent) => {
         isGrabbingGraphs.set(true);
-        activeCursor.set(cursors.grabbing);
+        activeCursor.set(cursor.grabbing);
 
         prevMouseX = e.clientX;
       },
       onDragEnd: () => {
         isGrabbingGraphs.set(false);
-        activeCursor.set(cursors.default);
+        activeCursor.set(cursor.default);
 
         prevMouseX = 0;
       },

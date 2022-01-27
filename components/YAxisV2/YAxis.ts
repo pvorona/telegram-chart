@@ -22,6 +22,8 @@ export const YAxis = (
   effect(
     [height, width, visibleMin, visibleMax],
     (height, width, visibleMin, visibleMax) => {
+      const valueRange = overallMax - overallMin
+      
       const yStep = (visibleMax - visibleMin) / options.y.ticks;
 
       context.clearRect(

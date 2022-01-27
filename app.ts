@@ -1,5 +1,6 @@
 import { Chart } from "./components";
 import { ChartOptions } from "./types";
+import "./css/styles.css";
 
 type DataEntry = { timestamp: number; value: number };
 
@@ -53,7 +54,7 @@ async function startApp() {
       height: chartContainer.offsetHeight,
       lineWidth: 1,
       overview: {
-        height: 75,
+        height: 100,
         lineWidth: 1,
       },
       viewBox: {

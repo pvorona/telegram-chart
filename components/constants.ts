@@ -18,11 +18,12 @@ export enum THEME {
   DARK = 1,
 }
 
-export const enum cursors {
-  resize = "ew-resize",
-  grabbing = "grabbing",
-  default = "",
-}
+export type Cursor = typeof cursor[keyof typeof cursor]
+export const cursor = {
+  resize: "ew-resize",
+  grabbing: "grabbing",
+  default: "",
+} as const;
 
 export const MIN_VIEWBOX = 120;
 

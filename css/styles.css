@@ -1,0 +1,7 @@
+.ew-resize * {
+  cursor: ew-resize !important;
+}
+
+.grabbing * {
+  cursor: grabbing !important;
+}

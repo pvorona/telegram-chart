@@ -6,7 +6,9 @@ export const Controls: Component<ChartOptions, ChartContext> = (
   { enabledStateByGraphName }
 ) => {
   const element = document.createElement("div");
-  element.style.marginTop = "20px";
+  element.style.position = "fixed";
+  element.style.right = "20px";
+  element.style.top = "20px";
 
   function onButtonClick(graphName: string) {
     enabledStateByGraphName.set({
