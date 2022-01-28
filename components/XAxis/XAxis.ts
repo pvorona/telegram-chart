@@ -1,42 +1,34 @@
 import {
-  // animationObservable,
   computeLazy,
   effect,
-  // transition,
 } from "@pvorona/observable";
-// import { linear } from "../../easings";
 import { ChartContext, ChartOptions } from "../../types";
 import { createCache } from "../../util/createCache";
-// import { FAST_TRANSITIONS_TIME } from "../constants";
-// import { calculateLogScaleMultiplier } from "../../util";
-// import { interpolate } from "../../util/interpolatePoint";
-import { Component, Point } from "../types";
+import { interpolate } from "../../util/interpolatePoint";
+import { Component } from "../types";
 
-// - [x] config
+// - [x] Config
 // - [x] Changing window size does not changes canvas size
 // - [x] Re-rendering when view box does not change (toggle graphs) | State machine?
 // - [x] Dates cache
 // - [x] Ticks
-// - [ ] Ticks should overlap main canvas
 // - [x] First and last labels can be clipped
-// - [ ] Compute precise label clipping
+// - [x] Starting not from 0
+// - [ ] Ticks should overlap main canvas
 // - [ ] Highlight tick when hovering point around it
+// - [ ] Calculating factor with loop
+// - [ ] Extract domain to screen coords mapping from graph points to reuse?
 // - [ ] Animation when changing step size
 //       Inert Observable Factor
 //       opacity -> progress between int factors
 //       animating multiple factor groups?
-// - [-] Starting not from 0
-// - [ ] Calculating factor with loop
 
 export const XAxis: Component<ChartOptions, ChartContext> = (
   options,
-  { mainGraphPoints, inertStartIndex, inertEndIndex, width }
+  { inertStartIndex, inertEndIndex, width }
 ) => {
-  const labels = createCache(createLabel);
-
+  const labels = createCache(formatTimestamp);
   const {
-    graphNames,
-    domain,
     x: {
       color,
       marginBottom,
@@ -52,14 +44,8 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
     (inertStartIndex, inertEndIndex) =>
-      // Math.log2(1 << (32 - Math.clz32(inertEndIndex - inertStartIndex)))
-    computeScaleFactor(inertEndIndex - inertStartIndex, options.x.ticks)
+      computeScaleFactor(inertEndIndex - inertStartIndex, options.x.ticks)
   );
-
-  // const inertFactor = animationObservable(
-  //   factor,
-  //   transition(factor.get(), FAST_TRANSITIONS_TIME, linear)
-  // );
 
   effect([width], (width) => {
     canvas.width = width * devicePixelRatio;
@@ -70,55 +56,54 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     context.textAlign = "center";
     context.strokeStyle = color;
 
-    updateXLabels(inertStartIndex.get(), mainGraphPoints.get(), factor.get());
+    simplest(inertStartIndex.get(), inertEndIndex.get(), factor.get());
   });
 
-  function updateXLabels(
+  function simplest(
     inertStartIndex: number,
-    mainGraphPoints: { [key: string]: Point[] },
+    inertEndIndex: number,
     factor: number
   ) {
-    // const factor = calculateLogScaleMultiplier(endIndex - startIndex);
-    const points = mainGraphPoints[graphNames[0]];
-
-    context.beginPath();
+    console.time("simplest");
     for (
-      let currentRealIndex =
-        Math.floor(inertStartIndex) +
-        factor -
-        (Math.floor(inertStartIndex) % factor);
-      currentRealIndex < Math.floor(inertStartIndex) + points.length;
-      currentRealIndex += factor
+      let i = getClosestGreaterOrEqualDivisibleInt(
+        Math.floor(inertStartIndex),
+        factor
+      );
+      i <= Math.floor(inertEndIndex);
+      i += factor
     ) {
-      const pointIndex = currentRealIndex - Math.floor(inertStartIndex);
-      const { x } = points[pointIndex];
-      const label = labels.get(domain[currentRealIndex]);
+      const bitmapX = interpolate(
+        inertStartIndex,
+        inertEndIndex,
+        0,
+        width.get() * devicePixelRatio,
+        i
+      );
+      const label = labels.get(options.domain[i]);
       const { width: labelWidth } = context.measureText(label);
 
-      if (x < labelWidth / 2) continue;
-      if (width.get() * devicePixelRatio - x < labelWidth / 2) continue;
+      if (bitmapX < labelWidth / 2) continue;
+      if (width.get() * devicePixelRatio - bitmapX < labelWidth / 2) continue;
 
-      context.moveTo(x, 0);
-      context.lineTo(x, tickHeight * devicePixelRatio);
-      context.fillText(
-        label,
-        x,
-        tickHeight * devicePixelRatio + tickMargin * devicePixelRatio
-      );
+      context.fillText(label, bitmapX, 0);
     }
-    context.stroke();
+    console.timeEnd("simplest");
   }
 
-  effect([inertStartIndex, factor], (inertStartIndex, factor) => {
-    context.clearRect(
-      0,
-      0,
-      width.get() * devicePixelRatio,
-      height * devicePixelRatio
-    );
+  effect(
+    [inertStartIndex, inertEndIndex, factor],
+    (inertStartIndex, inertEndIndex, factor) => {
+      context.clearRect(
+        0,
+        0,
+        width.get() * devicePixelRatio,
+        height * devicePixelRatio
+      );
 
-    updateXLabels(inertStartIndex, mainGraphPoints.get(), factor);
-  });
+      simplest(inertStartIndex, inertEndIndex, factor);
+    }
+  );
 
   return { element };
 };
@@ -150,9 +135,32 @@ function createDOM({
   return { element: canvas, canvas, context };
 }
 
-const createLabel = (timestamp: number) => {
+const formatTimestamp = (timestamp: number) => {
   const date = new Date(timestamp);
   return `${String(date.getHours()).padStart(2, "0")}:${String(
     date.getMinutes()
   ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
 };
+
+function getClosestGreaterOrEqualDivisibleInt(
+  n: number,
+  divisor: number
+): number {
+  const closestSmallerOrEqualDivisibleInt =
+    getClosestSmallerOrEqualDivisibleInt(n, divisor);
+
+  return closestSmallerOrEqualDivisibleInt >= n
+    ? closestSmallerOrEqualDivisibleInt
+    : getClosestGreaterDivisibleInt(n, divisor);
+}
+
+function getClosestSmallerOrEqualDivisibleInt(
+  n: number,
+  divisor: number
+): number {
+  return n - (n % divisor);
+}
+
+function getClosestGreaterDivisibleInt(n: number, divisor: number): number {
+  return n + divisor - (n % divisor);
+}
