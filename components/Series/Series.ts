@@ -66,6 +66,7 @@ export const Series = (
       graphNames: chartOptions.graphNames,
       lineWidth: chartOptions.lineWidth,
       strokeStyles: chartOptions.colors,
+      height: canvasHeight.get(),
     });
   }
 

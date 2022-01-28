@@ -23,16 +23,6 @@
   pointer-events: none;
 }
 
-.theme-light .tooltip {
-  background-color: white;
-  color: #222222;
-}
-
-.theme-dark .tooltip {
-  background-color: var(--overview-edges-cl);
-  color: white;
-}
-
 .tooltip__legend {
   display: flex;
   margin-top: 10px;

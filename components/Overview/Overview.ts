@@ -40,7 +40,8 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     inertOpacityStateByGraphName,
   }
 ) => {
-  const height = options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
+  const canvasHeight =
+    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
   const left = observable(
     (startIndex.get() / (options.total - 1)) * width.get()
@@ -97,10 +98,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
             inertOverallMin,
             {
               width: width * devicePixelRatio,
-              height:
-                (options.overview.height -
-                  VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) *
-                devicePixelRatio,
+              height: canvasHeight * devicePixelRatio,
             },
             { startIndex: 0, endIndex: options.total - 1 },
             options.lineWidth * devicePixelRatio
@@ -158,6 +156,8 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   } = createDom({
     width: width.get(),
     height: options.overview.height,
+    edgeColor: options.overview.edgeColor,
+    backdropColor: options.overview.overlayColor,
   });
 
   effect([left], (left) => {
@@ -170,7 +170,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
 
   effect([width], (width) => {
     graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = options.overview.height * window.devicePixelRatio;
+    graphs.canvas.height = canvasHeight * window.devicePixelRatio;
 
     updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
@@ -182,7 +182,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
         0,
         0,
         width.get() * devicePixelRatio,
-        height * devicePixelRatio
+        canvasHeight * devicePixelRatio
       );
 
       updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
@@ -200,6 +200,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
       graphNames: options.graphNames,
       lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
+      height: canvasHeight,
     });
   }
 
@@ -344,21 +345,36 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   return { element };
 };
 
-function createDom({ width, height }: { width: number; height: number }) {
+function createDom({
+  width,
+  height,
+  edgeColor,
+  backdropColor,
+}: {
+  width: number;
+  height: number;
+  edgeColor: string;
+  backdropColor: string;
+}) {
   const containerClassName = "overview";
   const element = document.createElement("div");
   element.className = containerClassName;
   element.style.height = `${height}px`;
   const resizerLeft = document.createElement("div");
+  resizerLeft.style.backgroundColor = edgeColor;
   resizerLeft.className = "overview__resizer overview__resizer--left";
   const resizerRight = document.createElement("div");
+  resizerRight.style.backgroundColor = edgeColor;
   resizerRight.className = "overview__resizer overview__resizer--right";
   const viewBoxElement = document.createElement("div");
+  viewBoxElement.style.borderColor = edgeColor;
   viewBoxElement.className = "overview__viewbox";
 
   const leftSide = document.createElement("div");
+  leftSide.style.backgroundColor = backdropColor;
   leftSide.className = "overview__left";
   const rightSide = document.createElement("div");
+  rightSide.style.backgroundColor = backdropColor;
   rightSide.className = "overview__right";
 
   viewBoxElement.appendChild(leftSide);

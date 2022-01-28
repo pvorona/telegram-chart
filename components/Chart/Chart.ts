@@ -29,16 +29,16 @@ export const Chart = (options: ChartOptions) => {
   function createDom() {
     const element = document.createElement("div");
     element.style.height = "100%";
-    const graphs = Series(options, context);
+    const series = Series(options, context);
     const overview = Overview(options, context);
     const controls = Controls(options, context);
     const tooltip = Tooltip(options, context);
     const xAxis = XAxis(options, context);
     // const yAxis = YAxis(options, context);
 
-    graphs.element.appendChild(tooltip.element);
+    series.element.appendChild(tooltip.element);
     // element.appendChild(yAxis.element);
-    element.appendChild(graphs.element);
+    element.appendChild(series.element);
     element.appendChild(xAxis.element);
     element.appendChild(overview.element);
     element.appendChild(controls.element);
