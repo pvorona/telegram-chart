@@ -38,20 +38,14 @@ export function renderGraphs({
     context.lineJoin = "round";
     context.beginPath();
 
-    let maxValueIndex = 0;
-
     for (let j = 0; j < points[graphNames[i]].length; j++) {
       const { x, y } = points[graphNames[i]][j];
       context.lineTo(x, y);
 
-      if (y < points[graphNames[i]][maxValueIndex].y) {
-        maxValueIndex = j;
-      }
-
       if (j === points[graphNames[i]].length - 1) {
         const gradient = context.createLinearGradient(
           0,
-          points[graphNames[i]][maxValueIndex].y,
+          0,
           0,
           height * devicePixelRatio
         );

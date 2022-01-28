@@ -1,7 +1,4 @@
-import {
-  computeLazy,
-  effect,
-} from "@pvorona/observable";
+import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
 import { createCache } from "../../util/createCache";
 import { interpolate } from "../../util/interpolatePoint";
@@ -36,7 +33,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
       label: { fontSize, fontFamily },
     },
   } = options;
-  const height = fontSize + tickHeight + tickMargin + marginBottom;
+  const height = fontSize + tickHeight + tickMargin;
   const { element, context, canvas } = createDOM({
     height,
     marginBottom,

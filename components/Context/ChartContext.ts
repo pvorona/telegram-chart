@@ -164,7 +164,7 @@ export const ChartContext = (options: ChartOptions) => {
       max,
       min,
       width,
-      height
+      canvasHeight
     ) {
       return options.graphNames.reduce(
         (points, graphName) => ({
@@ -176,11 +176,10 @@ export const ChartContext = (options: ChartOptions) => {
             min,
             {
               width: width * devicePixelRatio,
-              height: height * devicePixelRatio,
+              height: canvasHeight * devicePixelRatio,
             },
             { startIndex, endIndex },
-            options.lineWidth * devicePixelRatio,
-            50
+            options.lineWidth * devicePixelRatio
           ),
         }),
         {} as { [key: string]: Point[] }

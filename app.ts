@@ -34,11 +34,11 @@ const HUE_1 = 168;
 
 const themes: Theme[] = [
   {
-    background: `hsla(${HUE_1}, 5%, 18%, 1)`,
-    overviewBackdrop: `hsla(${HUE_1}, 5%, 10%, 0.75)`,
-    overviewEdge: `hsla(${HUE_1}, 5%, 30%, 0.5)`,
-    tooltipLine: `hsla(${HUE_1}, 5%, 35%)`,
-    tooltipBackgroundColor: `hsla(${HUE_1}, 5%, 30%, 0.5)`,
+    background: `hsla(${HUE_1}, 2%, 18%, 1)`,
+    overviewBackdrop: `hsla(${HUE_1}, 2%, 10%, 0.75)`,
+    overviewEdge: `hsla(${HUE_1}, 2%, 30%, 0.5)`,
+    tooltipLine: `hsla(${HUE_1}, 2%, 35%)`,
+    tooltipBackgroundColor: `hsla(${HUE_1}, 2%, 30%, 0.5)`,
     tooltipColor: "#afb3b1",
     series: ["#3DC23F", "#E42222"],
     x: "#afb3b1",
@@ -103,8 +103,8 @@ async function startApp() {
           marginBottom: 5,
           ticks: 8,
           tick: {
-            height: 10,
-            margin: 10,
+            height: 0,
+            margin: 0,
           },
           label: {
             width: 40,
