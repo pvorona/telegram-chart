@@ -1,9 +1,12 @@
-import { computeLazy, effect } from "@pvorona/observable";
+import {
+  // computeLazy,
+  effect,
+} from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
 
 export const YAxis = (
   options: ChartOptions,
-  { width, height, visibleMin, visibleMax }: ChartContext
+  { width, canvasHeight: height, visibleMin, visibleMax }: ChartContext
 ) => {
   const { element, context } = createDom(
     width.get(),
@@ -11,38 +14,43 @@ export const YAxis = (
     options.y.color
   );
 
-  const factor = computeLazy(
-    [visibleMin, visibleMax],
-    (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
-  );
+  // const factor = computeLazy(
+  //   [visibleMin, visibleMax],
+  //   (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
+  // );
 
-  effect([height, width, factor], (height, width) => {
-    const yStep = height / options.y.ticks;
+  effect(
+    [height, width, visibleMin, visibleMax],
+    (height, width, visibleMin, visibleMax) => {
+      const valueRange = overallMax - overallMin
+      
+      const yStep = (visibleMax - visibleMin) / options.y.ticks;
 
-    context.clearRect(
-      0,
-      0,
-      width * devicePixelRatio,
-      height * devicePixelRatio
-    );
-    context.beginPath();
+      context.clearRect(
+        0,
+        0,
+        width * devicePixelRatio,
+        height * devicePixelRatio
+      );
+      context.beginPath();
 
-    // for (
-    //   let currentRealIndex =
-    //     Math.floor(inertStartIndex) +
-    //     factor -
-    //     (Math.floor(inertStartIndex) % factor);
-    //   currentRealIndex < Math.floor(inertStartIndex) + points.length;
-    //   currentRealIndex += factor
-    // ) {
-    // }
+      // for (
+      //   let currentRealIndex =
+      //     Math.floor(inertStartIndex) +
+      //     factor -
+      //     (Math.floor(inertStartIndex) % factor);
+      //   currentRealIndex < Math.floor(inertStartIndex) + points.length;
+      //   currentRealIndex += factor
+      // ) {
+      // }
 
-    for (let i = 1; i <= options.y.ticks; i++) {
-      context.moveTo(0, yStep * i * devicePixelRatio);
-      context.lineTo(width * devicePixelRatio, yStep * i * devicePixelRatio);
+      for (let i = 1; i <= options.y.ticks; i++) {
+        context.moveTo(0, yStep * i * devicePixelRatio);
+        context.lineTo(width * devicePixelRatio, yStep * i * devicePixelRatio);
+      }
+      context.stroke();
     }
-    context.stroke();
-  });
+  );
 
   return { element };
 };
@@ -65,13 +73,13 @@ function createDom(width: number, height: number, color: string) {
   return { element, context };
 }
 
-function computeScaleFactor(number: number) {
-  let factor = 1;
-  while (true) {
-    if (number / factor <= 8) {
-      break;
-    }
-    factor *= 2;
-  }
-  return factor;
-}
+// function computeScaleFactor(number: number) {
+//   let factor = 1;
+//   while (true) {
+//     if (number / factor <= 8) {
+//       break;
+//     }
+//     factor *= 2;
+//   }
+//   return factor;
+// }

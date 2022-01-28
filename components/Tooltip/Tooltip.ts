@@ -157,6 +157,8 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
 
   function createDOM() {
     const tooltip = document.createElement("div");
+    tooltip.style.backgroundColor = options.tooltip.backgroundColor
+    tooltip.style.color = options.tooltip.color
     tooltip.className = "tooltip";
 
     const tooltipDate = document.createElement("div");
@@ -164,7 +166,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     tooltip.appendChild(tooltipDate);
 
     const tooltipLegendContainer = document.createElement("div");
-    tooltipLegendContainer.className = "tooltip__legend";
+    tooltipLegendContainer.className = "tooltip__legend";    
     tooltip.appendChild(tooltipLegendContainer);
 
     const tooltipValues: { [key: string]: HTMLDivElement } = {};
@@ -189,6 +191,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
 
     const tooltipContainer = document.createElement("div");
     const tooltipLine = document.createElement("div");
+    tooltipLine.style.backgroundColor = options.tooltip.lineColor;
     tooltipLine.className = "tooltip-line";
     tooltipContainer.appendChild(tooltipLine);
 

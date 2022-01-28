@@ -10,9 +10,11 @@ import {
 } from "@pvorona/observable";
 import { ChartOptions } from "../../types";
 import {
-  cursors,
+  Cursor,
+  cursor,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
+  MIN_HEIGHT,
   VERY_FAST_TRANSITIONS_TIME,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
@@ -21,14 +23,8 @@ import { easeInOutQuart, linear } from "../../easings";
 
 export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
-  const height = observable(
-    options.height -
-      options.overview.height -
-      options.x.tick.height -
-      options.x.tick.margin -
-      options.x.label.fontSize -
-      options.x.marginBottom
-  );
+  const height = observable(options.height);
+  const canvasHeight = observable(computeCanvasHeight(height.get()));
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
   const mouseX = observable(0);
@@ -36,7 +32,7 @@ export const ChartContext = (options: ChartOptions) => {
   const isDragging = observable(false);
   const isWheeling = observable(false);
   const isGrabbingGraphs = observable(false);
-  const activeCursor = observable(cursors.default);
+  const activeCursor = observable<Cursor>(cursor.default);
   const enabledStateByGraphName = observable(
     options.graphNames.reduce(
       (state, graphName) => ({
@@ -46,6 +42,23 @@ export const ChartContext = (options: ChartOptions) => {
       {} as EnabledGraphNames
     )
   );
+
+  function computeCanvasHeight(containerHeight: number) {
+    return Math.max(
+      containerHeight -
+        options.overview.height -
+        options.x.tick.height -
+        options.x.tick.margin -
+        options.x.label.fontSize * devicePixelRatio -
+        options.x.marginBottom,
+      MIN_HEIGHT
+    );
+  }
+
+  observe([height], (height) => {
+    canvasHeight.set(computeCanvasHeight(height));
+  });
+
   const enabledGraphNames = computeLazy(
     [enabledStateByGraphName],
     function enabledGraphNamesCompute(enabledStateByGraphName) {
@@ -143,7 +156,7 @@ export const ChartContext = (options: ChartOptions) => {
       inertVisibleMax,
       inertVisibleMin,
       width,
-      height,
+      canvasHeight,
     ],
     function mainGraphPointsCompute(
       startIndex,
@@ -204,8 +217,18 @@ export const ChartContext = (options: ChartOptions) => {
     }
   );
 
-  effect([activeCursor], (cursor) => {
-    document.body.style.cursor = cursor;
+  effect([activeCursor], (activeCursor) => {
+    for (const key in cursor) {
+      const className = cursor[key as keyof typeof cursor];
+
+      if (className) {
+        document.body.classList.remove(className);
+      }
+    }
+
+    if (activeCursor) {
+      document.body.classList.add(activeCursor);
+    }
   });
 
   return {
@@ -229,6 +252,7 @@ export const ChartContext = (options: ChartOptions) => {
     prevVisibleMax,
     prevVisibleMin,
     width,
+    canvasHeight,
     height,
   };
 

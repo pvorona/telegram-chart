@@ -45,7 +45,9 @@ export interface ChartOptions {
   lineWidth: number;
   overview: {
     height: number;
-    strokeWidth: number;
+    lineWidth: number;
+    overlayColor: string;
+    edgeColor: string;
   };
   colors: { [key: string]: string };
   data: Data;
@@ -55,6 +57,11 @@ export interface ChartOptions {
     startIndex: number;
     endIndex: number;
   };
+  tooltip: {
+    lineColor:string
+    backgroundColor: string
+    color:string
+  }
 }
 
 export type ChartContext = ReturnType<typeof ChartContext>;

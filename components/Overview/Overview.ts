@@ -17,13 +17,7 @@ import {
   ensureInBounds,
 } from "../../util";
 import {
-  Gettable,
-  LazyObservable,
-  Observable,
-  Settable,
-} from "@pvorona/observable";
-import {
-  cursors,
+  cursor,
   FAST_TRANSITIONS_TIME,
   LONG_TRANSITIONS_TIME,
 } from "../constants";
@@ -33,29 +27,21 @@ import { createGraphs } from "../Chart/createGraphs";
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
 const minimalPixelsBetweenResizers = 10;
 
-export type Props = {
-  startIndex: Observable<number> & Gettable<number> & Settable<number>;
-  endIndex: Observable<number> & Gettable<number> & Settable<number>;
-  width: Observable<number> & Gettable<number> & Settable<number>;
-  isWheeling: Observable<boolean> & Gettable<boolean> & Settable<boolean>;
-  options: ChartOptions;
-  enabledGraphNames: LazyObservable & Gettable<string[]>;
-  inertOpacityStateByGraphName: LazyObservable &
-    Gettable<{ [key: string]: number }>;
-};
-
-export const Overview: Component<Props, ChartContext> = (
+export const Overview: Component<ChartOptions, ChartContext> = (
+  options,
   {
+    isDragging,
+    isWheeling,
+    activeCursor,
     startIndex,
     endIndex,
     width,
-    options,
     enabledGraphNames,
     inertOpacityStateByGraphName,
-  },
-  { isDragging, isWheeling, activeCursor }
+  }
 ) => {
-  const height = options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
+  const canvasHeight =
+    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
   const left = observable(
     (startIndex.get() / (options.total - 1)) * width.get()
@@ -112,10 +98,7 @@ export const Overview: Component<Props, ChartContext> = (
             inertOverallMin,
             {
               width: width * devicePixelRatio,
-              height:
-                (options.overview.height -
-                  VIEWBOX_TOP_BOTTOM_BORDER_WIDTH * 2) *
-                devicePixelRatio,
+              height: canvasHeight * devicePixelRatio,
             },
             { startIndex: 0, endIndex: options.total - 1 },
             options.lineWidth * devicePixelRatio
@@ -173,6 +156,8 @@ export const Overview: Component<Props, ChartContext> = (
   } = createDom({
     width: width.get(),
     height: options.overview.height,
+    edgeColor: options.overview.edgeColor,
+    backdropColor: options.overview.overlayColor,
   });
 
   effect([left], (left) => {
@@ -185,7 +170,7 @@ export const Overview: Component<Props, ChartContext> = (
 
   effect([width], (width) => {
     graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = options.overview.height * window.devicePixelRatio;
+    graphs.canvas.height = canvasHeight * window.devicePixelRatio;
 
     updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
@@ -197,7 +182,7 @@ export const Overview: Component<Props, ChartContext> = (
         0,
         0,
         width.get() * devicePixelRatio,
-        height * devicePixelRatio
+        canvasHeight * devicePixelRatio
       );
 
       updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
@@ -213,8 +198,9 @@ export const Overview: Component<Props, ChartContext> = (
       points: overviewGraphPoints,
       context: graphs.context,
       graphNames: options.graphNames,
-      lineWidth: options.overview.strokeWidth,
+      lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
+      height: canvasHeight,
     });
   }
 
@@ -271,13 +257,13 @@ export const Overview: Component<Props, ChartContext> = (
 
   function onLeftResizerMouseDown(e: MouseEvent) {
     isDragging.set(true);
-    activeCursor.set(cursors.resize);
+    activeCursor.set(cursor.resize);
     cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
   }
 
   function removeLeftResizerListener() {
     isDragging.set(false);
-    activeCursor.set(cursors.default);
+    activeCursor.set(cursor.default);
   }
 
   function onLeftResizerMouseMove(e: MouseEvent) {
@@ -290,12 +276,12 @@ export const Overview: Component<Props, ChartContext> = (
   function onRightResizerMouseDown(e: MouseEvent) {
     cursorResizerDelta = getX(e) - (right.get() - boundingRect.left);
     isDragging.set(true);
-    activeCursor.set(cursors.resize);
+    activeCursor.set(cursor.resize);
   }
 
   function removeRightResizerListener() {
     isDragging.set(false);
-    activeCursor.set(cursors.default);
+    activeCursor.set(cursor.default);
   }
 
   function ensureInOverviewBounds(x: number) {
@@ -305,12 +291,12 @@ export const Overview: Component<Props, ChartContext> = (
   function onViewBoxElementMouseDown(e: MouseEvent) {
     cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
     isDragging.set(true);
-    activeCursor.set(cursors.grabbing);
+    activeCursor.set(cursor.grabbing);
   }
 
   function onViewBoxElementMouseUp() {
     isDragging.set(false);
-    activeCursor.set(cursors.default);
+    activeCursor.set(cursor.default);
   }
 
   function onViewBoxElementMouseMove(e: MouseEvent) {
@@ -359,21 +345,36 @@ export const Overview: Component<Props, ChartContext> = (
   return { element };
 };
 
-function createDom({ width, height }: { width: number; height: number }) {
+function createDom({
+  width,
+  height,
+  edgeColor,
+  backdropColor,
+}: {
+  width: number;
+  height: number;
+  edgeColor: string;
+  backdropColor: string;
+}) {
   const containerClassName = "overview";
   const element = document.createElement("div");
   element.className = containerClassName;
   element.style.height = `${height}px`;
   const resizerLeft = document.createElement("div");
+  resizerLeft.style.backgroundColor = edgeColor;
   resizerLeft.className = "overview__resizer overview__resizer--left";
   const resizerRight = document.createElement("div");
+  resizerRight.style.backgroundColor = edgeColor;
   resizerRight.className = "overview__resizer overview__resizer--right";
   const viewBoxElement = document.createElement("div");
+  viewBoxElement.style.borderColor = edgeColor;
   viewBoxElement.className = "overview__viewbox";
 
   const leftSide = document.createElement("div");
+  leftSide.style.backgroundColor = backdropColor;
   leftSide.className = "overview__left";
   const rightSide = document.createElement("div");
+  rightSide.style.backgroundColor = backdropColor;
   rightSide.className = "overview__right";
 
   viewBoxElement.appendChild(leftSide);
