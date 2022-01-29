@@ -159,7 +159,7 @@ export const ChartContext = (options: ChartOptions) => {
       width,
       canvasHeight,
     ],
-    function mainGraphPointsCompute(
+    function computeVisibleSeriesPoints(
       startIndex,
       endIndex,
       max,

@@ -110,21 +110,38 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   );
 
   observe([startIndex, width], (startIndex, width) => {
-    left.set((startIndex / (options.total - 1)) * width);
+    const newLeft = (startIndex / (options.total - 1)) * width;
+
+    if (!areNumbersClose(left.get(), newLeft)) {
+      left.set(newLeft);
+    }
   });
 
   observe([endIndex, width], (endIndex, width) => {
-    right.set((endIndex / (options.total - 1)) * width);
+    const newRight = (endIndex / (options.total - 1)) * width;
+
+    if (!areNumbersClose(right.get(), newRight)) {
+      right.set(newRight);
+    }
   });
 
   observe([left], (left) => {
-    startIndex.set((left / width.get()) * (options.total - 1));
+    const newStartIndex = (left / width.get()) * (options.total - 1);
+
+    if (!areNumbersClose(startIndex.get(), newStartIndex)) {
+      startIndex.set(newStartIndex);
+    }
   });
 
   observe([right], (right) => {
-    endIndex.set(
-      Math.min((right / width.get()) * (options.total - 1), options.total - 1)
+    const newEndIndex = Math.min(
+      (right / width.get()) * (options.total - 1),
+      options.total - 1
     );
+
+    if (!areNumbersClose(endIndex.get(), newEndIndex)) {
+      endIndex.set(newEndIndex);
+    }
   });
 
   observe([isDragging, isWheeling], (isDragging, isWheeling) => {
@@ -390,8 +407,8 @@ function createDom({
     width,
     height: canvasCssHeight,
   });
-  graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`
-  
+  graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
+
   element.appendChild(graphs.element);
   element.appendChild(viewBoxElement);
 
@@ -414,4 +431,8 @@ function createDom({
     leftSide,
     rightSide,
   };
+}
+
+function areNumbersClose(a: number, b: number, epsilon = 1e-3) {
+  return Math.abs(a - b) <= epsilon;
 }
