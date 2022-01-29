@@ -121,7 +121,8 @@ async function startApp() {
       const options: ChartOptions = {
         x: {
           color: theme.x,
-          marginBottom: 5,
+          marginBottom: 7,
+          marginTop: 10,
           ticks: 8,
           tick: {
             height: 0,

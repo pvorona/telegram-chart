@@ -29,6 +29,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     x: {
       color,
       marginBottom,
+      marginTop,
       tick: { height: tickHeight, margin: tickMargin },
       label: { fontSize, fontFamily },
     },
@@ -37,6 +38,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   const { element, context, canvas } = createDOM({
     height,
     marginBottom,
+    marginTop,
   });
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
@@ -117,12 +119,15 @@ function computeScaleFactor(number: number, ticks: number) {
 function createDOM({
   height,
   marginBottom,
+  marginTop,
 }: {
   height: number;
   marginBottom: number;
+  marginTop: number;
 }) {
   const canvas = document.createElement("canvas");
   canvas.style.marginBottom = `${marginBottom}px`;
+  canvas.style.marginTop = `${marginTop}px`;
   canvas.style.width = `100%`;
   canvas.style.height = `${height}px`;
   const context = canvas.getContext("2d") as CanvasRenderingContext2D;

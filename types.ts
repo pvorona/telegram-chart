@@ -28,6 +28,7 @@ export interface ChartOptions {
       fontFamily: string;
     };
     marginBottom: number;
+    marginTop: number;
   };
   y: {
     color: string;

@@ -50,7 +50,8 @@ export const ChartContext = (options: ChartOptions) => {
         options.x.tick.height -
         options.x.tick.margin -
         options.x.label.fontSize -
-        options.x.marginBottom,
+        options.x.marginBottom -
+        options.x.marginTop,
       MIN_HEIGHT
     );
   }
