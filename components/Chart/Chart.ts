@@ -28,7 +28,8 @@ export const Chart = (options: ChartOptions) => {
 
   function createDom() {
     const element = document.createElement("div");
-    element.style.height = "100%";
+    element.style.display = "flex";
+    element.style.flexDirection = "column";
     const series = Series(options, context);
     const overview = Overview(options, context);
     const controls = Controls(options, context);

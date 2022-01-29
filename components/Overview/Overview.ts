@@ -24,7 +24,7 @@ import {
 import { Point, Component } from "../types";
 import { createGraphs } from "../Chart/createGraphs";
 
-const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 4;
+const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 const minimalPixelsBetweenResizers = 10;
 
 export const Overview: Component<ChartOptions, ChartContext> = (
@@ -40,7 +40,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     inertOpacityStateByGraphName,
   }
 ) => {
-  const canvasHeight =
+  const canvasCssHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
   const left = observable(
@@ -98,7 +98,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
             inertOverallMin,
             {
               width: width * devicePixelRatio,
-              height: canvasHeight * devicePixelRatio,
+              height: canvasCssHeight * devicePixelRatio,
             },
             { startIndex: 0, endIndex: options.total - 1 },
             options.lineWidth * devicePixelRatio
@@ -156,6 +156,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   } = createDom({
     width: width.get(),
     height: options.overview.height,
+    canvasCssHeight,
     edgeColor: options.overview.edgeColor,
     backdropColor: options.overview.overlayColor,
   });
@@ -170,7 +171,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
 
   effect([width], (width) => {
     graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = canvasHeight * window.devicePixelRatio;
+    graphs.canvas.height = canvasCssHeight * window.devicePixelRatio;
 
     updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
@@ -182,7 +183,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
         0,
         0,
         width.get() * devicePixelRatio,
-        canvasHeight * devicePixelRatio
+        canvasCssHeight * devicePixelRatio
       );
 
       updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
@@ -200,7 +201,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
       graphNames: options.graphNames,
       lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
-      height: canvasHeight,
+      height: canvasCssHeight,
     });
   }
 
@@ -350,9 +351,11 @@ function createDom({
   height,
   edgeColor,
   backdropColor,
+  canvasCssHeight,
 }: {
   width: number;
   height: number;
+  canvasCssHeight: number;
   edgeColor: string;
   backdropColor: string;
 }) {
@@ -360,6 +363,7 @@ function createDom({
   const element = document.createElement("div");
   element.className = containerClassName;
   element.style.height = `${height}px`;
+  // element.style.padding = `${2}px 0`;
   const resizerLeft = document.createElement("div");
   resizerLeft.style.backgroundColor = edgeColor;
   resizerLeft.className = "overview__resizer overview__resizer--left";
@@ -384,8 +388,10 @@ function createDom({
 
   const graphs = createGraphs({
     width,
-    height,
+    height: canvasCssHeight,
   });
+  graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`
+  
   element.appendChild(graphs.element);
   element.appendChild(viewBoxElement);
 

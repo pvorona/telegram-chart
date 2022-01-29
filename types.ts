@@ -24,7 +24,6 @@ export interface ChartOptions {
       margin: number;
     };
     label: {
-      width: number;
       fontSize: number;
       fontFamily: string;
     };
@@ -58,10 +57,10 @@ export interface ChartOptions {
     endIndex: number;
   };
   tooltip: {
-    lineColor:string
-    backgroundColor: string
-    color:string
-  }
+    lineColor: string;
+    backgroundColor: string;
+    color: string;
+  };
 }
 
 export type ChartContext = ReturnType<typeof ChartContext>;

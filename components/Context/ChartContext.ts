@@ -49,7 +49,7 @@ export const ChartContext = (options: ChartOptions) => {
         options.overview.height -
         options.x.tick.height -
         options.x.tick.margin -
-        options.x.label.fontSize * devicePixelRatio -
+        options.x.label.fontSize -
         options.x.marginBottom,
       MIN_HEIGHT
     );

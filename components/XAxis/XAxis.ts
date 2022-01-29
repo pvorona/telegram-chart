@@ -61,7 +61,6 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     inertEndIndex: number,
     factor: number
   ) {
-    console.time("simplest");
     for (
       let i = getClosestGreaterOrEqualDivisibleInt(
         Math.floor(inertStartIndex),
@@ -85,7 +84,6 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
 
       context.fillText(label, bitmapX, 0);
     }
-    console.timeEnd("simplest");
   }
 
   effect(
