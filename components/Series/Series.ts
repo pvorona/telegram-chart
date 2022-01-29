@@ -32,14 +32,26 @@ export const Series = (
 ) => {
   const { element, canvas, context } = createDom();
 
+  renderSeries(
+    mainGraphPoints.get(),
+    inertOpacityStateByGraphName.get(),
+  );
+
   let wheelTimeoutId: number | undefined = undefined;
 
-  effect([width, canvasHeight], (width, height) => {
-    canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
+  effect(
+    [width, canvasHeight],
+    (width, height) => {
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
 
-    updateGraphs(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
-  });
+      renderSeries(
+        mainGraphPoints.get(),
+        inertOpacityStateByGraphName.get(),
+      );
+    },
+    { fireImmediately: false }
+  );
 
   effect(
     [mainGraphPoints, inertOpacityStateByGraphName],
@@ -51,13 +63,14 @@ export const Series = (
         canvasHeight.get() * devicePixelRatio
       );
 
-      updateGraphs(mainGraphPoints, inertOpacityStateByGraphName);
-    }
+      renderSeries(mainGraphPoints, inertOpacityStateByGraphName);
+    },
+    { fireImmediately: false }
   );
 
-  function updateGraphs(
+  function renderSeries(
     points: { [key: string]: Point[] },
-    opacityState: { [key: string]: number }
+    opacityState: { [key: string]: number },
   ) {
     renderGraphs({
       points,
@@ -70,9 +83,13 @@ export const Series = (
     });
   }
 
-  effect([canvasHeight], (height) => {
-    element.style.height = `${height}px`;
-  });
+  effect(
+    [canvasHeight],
+    (height) => {
+      element.style.height = `${height}px`;
+    },
+    { fireImmediately: false }
+  );
 
   initDragListeners();
 

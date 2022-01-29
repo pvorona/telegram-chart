@@ -57,18 +57,15 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     marginTop,
   });
 
+  renderLabels(inertStartIndex.get(), inertEndIndex.get(), factor.get());
+
   effect(
     [width],
     (width) => {
       setCanvasSize(canvas, width, height);
       setCanvasStyle(context);
 
-      renderLabels(
-        inertStartIndex.get(),
-        inertEndIndex.get(),
-        factor.get(),
-        context
-      );
+      renderLabels(inertStartIndex.get(), inertEndIndex.get(), factor.get());
     },
     { fireImmediately: false }
   );
@@ -83,7 +80,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
         height * devicePixelRatio
       );
 
-      renderLabels(inertStartIndex, inertEndIndex, factor, context);
+      renderLabels(inertStartIndex, inertEndIndex, factor);
     },
     { fireImmediately: false }
   );
@@ -93,8 +90,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   function renderLabels(
     inertStartIndex: number,
     inertEndIndex: number,
-    factor: number,
-    context: CanvasRenderingContext2D
+    factor: number
   ) {
     for (
       let i = getClosestGreaterOrEqualDivisibleInt(
@@ -139,12 +135,6 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
 
     setCanvasSize(canvas, width.get(), height);
     setCanvasStyle(context);
-    renderLabels(
-      inertStartIndex.get(),
-      inertEndIndex.get(),
-      factor.get(),
-      context
-    );
 
     return { element: canvas, canvas, context };
   }
