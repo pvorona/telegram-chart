@@ -19,6 +19,7 @@ type DataEntry = { timestamp: number; value: number };
 // }]
 
 type Theme = {
+  body?: string;
   background: string;
   overviewBackdrop: string;
   overviewEdge: string;
@@ -67,6 +68,7 @@ const themes: Theme[] = [
     y: "hsl(222, 20%, 77%)",
   },
   {
+    body: "linear-gradient(0deg, hsl(200deg 18% 15%), hsl(200deg 18% 20%) 50%, hsl(200deg 18% 23%) 100%)",
     background: "hsl(198, 17%, 20%)",
     overviewBackdrop: `hsla(198, 17%,10%,0.75)`,
     overviewEdge: `hsla(198, 17%, 30%, 0.5)`,
@@ -97,7 +99,7 @@ function selectRandomTheme(): Theme {
 }
 
 const theme = selectRandomTheme();
-document.body.style.backgroundColor = theme.background;
+document.body.style.background = theme.body || theme.background;
 
 async function startApp() {
   document.addEventListener("DOMContentLoaded", async () => {
