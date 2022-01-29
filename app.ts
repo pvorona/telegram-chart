@@ -40,7 +40,7 @@ const themes: Theme[] = [
     tooltipLine: `hsla(150, 6%, 35%, ${tooltipAlpha})`,
     tooltipBackgroundColor: `hsla(150, 6%, 30%, 0.5)`,
     tooltipColor: "#afb3b1",
-    series: ["#3DC23F", "#E42222"],
+    series: ["#7ab885", "#f64c4c"],
     x: "#afb3b1",
     y: "#afb3b180",
   },

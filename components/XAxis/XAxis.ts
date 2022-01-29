@@ -4,6 +4,16 @@ import { createCache } from "../../util/createCache";
 import { interpolate } from "../../util/interpolatePoint";
 import { Component } from "../types";
 
+// - Rsi realStartIndex
+// - Si startIndex
+// - Ei endIndex
+// - Rei realEndIndex
+
+//         Data
+//      0 ....... N
+// 10   10.3      17.6   18
+// Rsi  Si        Ei     Rei
+
 // - [x] Config
 // - [x] Changing window size does not changes canvas size
 // - [x] Re-rendering when view box does not change (toggle graphs) | State machine?
@@ -11,6 +21,7 @@ import { Component } from "../types";
 // - [x] Ticks
 // - [x] First and last labels can be clipped
 // - [x] Starting not from 0
+// - [x] Render is executed multiple times initially
 // - [ ] Ticks should overlap main canvas
 // - [ ] Highlight tick when hovering point around it
 // - [ ] Calculating factor with loop
@@ -35,33 +46,55 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     },
   } = options;
   const height = fontSize + tickHeight + tickMargin;
-  const { element, context, canvas } = createDOM({
-    height,
-    marginBottom,
-    marginTop,
-  });
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
     (inertStartIndex, inertEndIndex) =>
       computeScaleFactor(inertEndIndex - inertStartIndex, options.x.ticks)
   );
-
-  effect([width], (width) => {
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
-    context.fillStyle = color;
-    context.font = `${fontSize * devicePixelRatio}px ${fontFamily}`;
-    context.textBaseline = "top";
-    context.textAlign = "center";
-    context.strokeStyle = color;
-
-    simplest(inertStartIndex.get(), inertEndIndex.get(), factor.get());
+  const { element, context, canvas } = createDOM({
+    height,
+    marginBottom,
+    marginTop,
   });
 
-  function simplest(
+  effect(
+    [width],
+    (width) => {
+      setCanvasSize(canvas, width, height);
+      setCanvasStyle(context);
+
+      renderLabels(
+        inertStartIndex.get(),
+        inertEndIndex.get(),
+        factor.get(),
+        context
+      );
+    },
+    { fireImmediately: false }
+  );
+
+  effect(
+    [inertStartIndex, inertEndIndex, factor],
+    (inertStartIndex, inertEndIndex, factor) => {
+      context.clearRect(
+        0,
+        0,
+        width.get() * devicePixelRatio,
+        height * devicePixelRatio
+      );
+
+      renderLabels(inertStartIndex, inertEndIndex, factor, context);
+    },
+    { fireImmediately: false }
+  );
+
+  return { element };
+
+  function renderLabels(
     inertStartIndex: number,
     inertEndIndex: number,
-    factor: number
+    factor: number,
+    context: CanvasRenderingContext2D
   ) {
     for (
       let i = getClosestGreaterOrEqualDivisibleInt(
@@ -88,21 +121,50 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     }
   }
 
-  effect(
-    [inertStartIndex, inertEndIndex, factor],
-    (inertStartIndex, inertEndIndex, factor) => {
-      context.clearRect(
-        0,
-        0,
-        width.get() * devicePixelRatio,
-        height * devicePixelRatio
-      );
+  function createDOM({
+    height,
+    marginBottom,
+    marginTop,
+  }: {
+    height: number;
+    marginBottom: number;
+    marginTop: number;
+  }) {
+    const canvas = document.createElement("canvas");
+    canvas.style.marginBottom = `${marginBottom}px`;
+    canvas.style.marginTop = `${marginTop}px`;
+    canvas.style.width = `100%`;
+    canvas.style.height = `${height}px`;
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-      simplest(inertStartIndex, inertEndIndex, factor);
-    }
-  );
+    setCanvasSize(canvas, width.get(), height);
+    setCanvasStyle(context);
+    renderLabels(
+      inertStartIndex.get(),
+      inertEndIndex.get(),
+      factor.get(),
+      context
+    );
 
-  return { element };
+    return { element: canvas, canvas, context };
+  }
+
+  function setCanvasSize(
+    canvas: HTMLCanvasElement,
+    width: number,
+    height: number
+  ) {
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+  }
+
+  function setCanvasStyle(context: CanvasRenderingContext2D) {
+    context.fillStyle = color;
+    context.font = `${fontSize * devicePixelRatio}px ${fontFamily}`;
+    context.textBaseline = "top";
+    context.textAlign = "center";
+    context.strokeStyle = color;
+  }
 };
 
 function computeScaleFactor(number: number, ticks: number) {
@@ -114,25 +176,6 @@ function computeScaleFactor(number: number, ticks: number) {
     factor *= 2;
   }
   return factor;
-}
-
-function createDOM({
-  height,
-  marginBottom,
-  marginTop,
-}: {
-  height: number;
-  marginBottom: number;
-  marginTop: number;
-}) {
-  const canvas = document.createElement("canvas");
-  canvas.style.marginBottom = `${marginBottom}px`;
-  canvas.style.marginTop = `${marginTop}px`;
-  canvas.style.width = `100%`;
-  canvas.style.height = `${height}px`;
-  const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-
-  return { element: canvas, canvas, context };
 }
 
 const formatTimestamp = (timestamp: number) => {
