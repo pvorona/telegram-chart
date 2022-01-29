@@ -201,6 +201,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
       circle.style.width = `${DOT_SIZE}px`;
       circle.style.height = `${DOT_SIZE}px`;
       circle.style.borderColor = options.colors[options.graphNames[i]];
+      circle.style.backgroundColor = options.colors[options.graphNames[i]];
       circle.className = "tooltip__dot";
       tooltipCircles[options.graphNames[i]] = circle;
       tooltipContainer.appendChild(circle);
