@@ -219,6 +219,9 @@ export const Overview: Component<ChartOptions, ChartContext> = (
       lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
       height: canvasCssHeight,
+      width: width.get(),
+      // Use `miter` line join in overview?
+      lineJoinByName: options.lineJoin,
     });
   }
 

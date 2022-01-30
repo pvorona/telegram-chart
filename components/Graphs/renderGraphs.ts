@@ -1,6 +1,6 @@
 import { hexToRGB } from "../../util";
 
-const MARGIN_OVERSHOOT = 2;
+const MARGIN_OVERSHOOT = 1;
 const TRANSPARENT = `rgba(0,0,0,0)`;
 
 export function renderGraphs({
@@ -10,7 +10,8 @@ export function renderGraphs({
   lineWidth,
   strokeStyles,
   opacityState,
-
+  lineJoinByName: lineJoin,
+  width,
   height,
 }: {
   context: CanvasRenderingContext2D;
@@ -19,9 +20,11 @@ export function renderGraphs({
   lineWidth: number;
   strokeStyles: { [key: string]: string };
   opacityState: { [key: string]: number };
-
+  lineJoinByName: { [series:string]: CanvasLineJoin }
+  width: number;
   height: number;
 }) {
+  console.time('render')
   for (let i = 0; i < graphNames.length; i++) {
     const opacity = opacityState[graphNames[i]];
     if (opacity === 0) continue;
@@ -35,7 +38,7 @@ export function renderGraphs({
 
     context.strokeStyle = color;
     context.lineWidth = lineWidth * devicePixelRatio;
-    context.lineJoin = "round";
+    context.lineJoin = lineJoin[graphNames[i]];
     context.beginPath();
 
     for (let j = 0; j < points[graphNames[i]].length; j++) {
@@ -53,16 +56,16 @@ export function renderGraphs({
         gradient.addColorStop(0.5, gradientColorStop);
         gradient.addColorStop(1, TRANSPARENT);
 
-        context.lineTo(x + MARGIN_OVERSHOOT, y);
+        context.lineTo(width * devicePixelRatio + MARGIN_OVERSHOOT, y);
         context.lineTo(
-          x + MARGIN_OVERSHOOT,
+          width * devicePixelRatio + MARGIN_OVERSHOOT,
           height * devicePixelRatio + MARGIN_OVERSHOOT
         );
         context.lineTo(
-          -MARGIN_OVERSHOOT,
+          0 - MARGIN_OVERSHOOT,
           height * devicePixelRatio + MARGIN_OVERSHOOT
         );
-        context.lineTo(-MARGIN_OVERSHOOT, points[graphNames[i]][0].y);
+        context.lineTo(0 - MARGIN_OVERSHOOT, points[graphNames[i]][0].y);
         context.fillStyle = gradient;
         context.fill();
       }
@@ -70,4 +73,6 @@ export function renderGraphs({
 
     context.stroke();
   }
+  console.timeEnd('render')
+
 }

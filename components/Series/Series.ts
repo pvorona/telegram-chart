@@ -80,6 +80,8 @@ export const Series = (
       lineWidth: chartOptions.lineWidth,
       strokeStyles: chartOptions.colors,
       height: canvasHeight.get(),
+      width:width.get(),
+      lineJoinByName: chartOptions.lineJoin,
     });
   }
 
