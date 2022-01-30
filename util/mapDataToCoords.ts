@@ -1,6 +1,6 @@
 import { Point } from "../components/types";
 import { interpolatePoint } from "./interpolatePoint";
-import { ceil, floor } from "./math";
+import { floor, ceil } from "./math";
 
 const X_MUL = 100_000;
 const Y_MUL = 1;
@@ -27,7 +27,7 @@ export function mapDataToCoords(
       ((height - offsetBottom) / (max - min)) *
       (interpolatePoint(startIndex, data) - min);
     const x = 0;
-    const y = Math.floor(lineWidth + height - offsetBottom - value);
+    const y = floor(lineWidth + height - offsetBottom - value);
 
     const key = x * X_MUL + y * Y_MUL;
     if (!used[key]) {
@@ -41,11 +41,11 @@ export function mapDataToCoords(
   // let totalSimilarPoints = 0;
   for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     const value = ((height - offsetBottom) / (max - min)) * (data[i] - min);
-    const x = Math.floor(
+    const x = floor(
       (width / (getTime(domain, endIndex) - getTime(domain, startIndex))) *
         (getTime(domain, i) - getTime(domain, startIndex))
     );
-    const y = Math.floor(lineWidth + height - offsetBottom - value);
+    const y = floor(lineWidth + height - offsetBottom - value);
 
     const key = x * X_MUL + y * Y_MUL;
     if (!used[key]) {
@@ -61,8 +61,8 @@ export function mapDataToCoords(
       ((height - offsetBottom) / (max - min)) *
       (interpolatePoint(endIndex, data) - min);
 
-    const x = Math.floor(width);
-    const y = Math.floor(lineWidth + height - offsetBottom - value);
+    const x = floor(width);
+    const y = floor(lineWidth + height - offsetBottom - value);
 
     const key = x * X_MUL + y * Y_MUL;
     if (!used[key]) {
@@ -98,7 +98,7 @@ function getTime(domain: number[], index: number): number {
   }
 
   return (
-    (domain[Math.ceil(index)] - domain[Math.floor(index)]) * (index % 1) +
-    domain[Math.floor(index)]
+    (domain[ceil(index)] - domain[floor(index)]) * (index % 1) +
+    domain[floor(index)]
   );
 }

@@ -6,7 +6,7 @@ import {
   observe,
   transition,
 } from "@pvorona/observable";
-import { renderGraphs } from "../Graphs";
+import { renderLineSeriesWithAreaGradient } from "../renderers";
 import { ChartContext, ChartOptions } from "../../types";
 import { easeInOutQuart, linear } from "../../easings";
 import {
@@ -211,7 +211,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     overviewGraphPoints: { [key: string]: Point[] },
     inertOpacityStateByGraphName: { [key: string]: number }
   ) {
-    renderGraphs({
+    renderLineSeriesWithAreaGradient({
       opacityState: inertOpacityStateByGraphName,
       points: overviewGraphPoints,
       context: graphs.context,

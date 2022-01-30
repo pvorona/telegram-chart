@@ -1,5 +1,6 @@
 import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
+import { floor } from "../../util";
 import { createCache } from "../../util/createCache";
 import { interpolate } from "../../util/interpolatePoint";
 import { Component } from "../types";
@@ -94,10 +95,10 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   ) {
     for (
       let i = getClosestGreaterOrEqualDivisibleInt(
-        Math.floor(inertStartIndex),
+        floor(inertStartIndex),
         factor
       );
-      i <= Math.floor(inertEndIndex);
+      i <= floor(inertEndIndex);
       i += factor
     ) {
       const bitmapX = interpolate(

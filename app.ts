@@ -1,6 +1,7 @@
 import { Chart } from "./components";
 import { ChartOptions } from "./types";
 import "./css/styles.css";
+import { floor } from "./util";
 
 type DataEntry = { timestamp: number; value: number };
 
@@ -94,7 +95,7 @@ const themes: Theme[] = [
 ];
 
 function selectRandomTheme(): Theme {
-  const themeIndex = Math.floor(Math.random() * themes.length);
+  const themeIndex = floor(Math.random() * themes.length);
   console.log(`Selected theme: ${themeIndex}`);
   return themes[themeIndex];
 }
@@ -112,14 +113,8 @@ async function startApp() {
         (r) => r.json()
       );
       const [data1O, data2O] = await Promise.all([series1, series2]);
-      const data1: DataEntry[] = data1O.slice(
-        0,
-        Math.floor(data1O.length * 0.6)
-      );
-      const data2: DataEntry[] = data2O.slice(
-        0,
-        Math.floor(data1O.length * 0.6)
-      );
+      const data1: DataEntry[] = data1O.slice(0, floor(data1O.length * 0.6));
+      const data2: DataEntry[] = data2O.slice(0, floor(data1O.length * 0.6));
       const chartContainer = document.getElementById("chart")!;
       const options: ChartOptions = {
         x: {
@@ -164,8 +159,8 @@ async function startApp() {
           B: data2.map((d) => d.value),
         },
         lineJoin: {
-          A: 'miter',
-          B: 'miter',
+          A: "miter",
+          B: "miter",
         },
         colors: { A: theme.series[0], B: theme.series[1] },
         total: data1.length,

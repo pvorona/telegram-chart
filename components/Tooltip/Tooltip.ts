@@ -1,6 +1,6 @@
 import { effect, computeLazy, Lambda } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
-import { getTooltipDateText } from "../../util";
+import { floor, getTooltipDateText } from "../../util";
 import { DOT_SIZE, CENTER_OFFSET } from "../constants";
 import { Component, Point } from "../types";
 
@@ -137,7 +137,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
   ) {
     const { x } = points[enabledGraphNames[0]][index];
     tooltipLine.style.transform = `translateX(${(x - 1) / devicePixelRatio}px)`;
-    const dataIndex = index + Math.floor(startIndex);
+    const dataIndex = index + floor(startIndex);
     for (let i = 0; i < enabledGraphNames.length; i++) {
       const { x, y } = points[enabledGraphNames[i]][index];
       tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${

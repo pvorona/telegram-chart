@@ -1,3 +1,5 @@
+import { floor } from "./math"
+
 var suffixes = {
   'K': 6,
   'M': 9,
@@ -15,7 +17,7 @@ export function getShortNumber (num: number): string {
   var size
 
   num = Math.abs(num);
-  size = Math.floor(num).toString().length
+  size = floor(num).toString().length
 
   exponent = size % 3 === 0 ? size - 3 : size - (size % 3)
   shortNumber = String(Math.round(10 * (num / Math.pow(10, exponent))) / 10)

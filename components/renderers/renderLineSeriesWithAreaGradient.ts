@@ -3,7 +3,7 @@ import { hexToRGB } from "../../util";
 const MARGIN_OVERSHOOT = 1;
 const TRANSPARENT = `rgba(0,0,0,0)`;
 
-export function renderGraphs({
+export function renderLineSeriesWithAreaGradient({
   context,
   points,
   graphNames,
@@ -20,11 +20,10 @@ export function renderGraphs({
   lineWidth: number;
   strokeStyles: { [key: string]: string };
   opacityState: { [key: string]: number };
-  lineJoinByName: { [series:string]: CanvasLineJoin }
+  lineJoinByName: { [series: string]: CanvasLineJoin };
   width: number;
   height: number;
 }) {
-  console.time('render')
   for (let i = 0; i < graphNames.length; i++) {
     const opacity = opacityState[graphNames[i]];
     if (opacity === 0) continue;
@@ -73,6 +72,4 @@ export function renderGraphs({
 
     context.stroke();
   }
-  console.timeEnd('render')
-
 }
