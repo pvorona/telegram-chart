@@ -5,20 +5,6 @@ import { floor } from "./util";
 
 type DataEntry = { timestamp: number; value: number };
 
-// type Series = {
-//   title?: string
-//   series?: number[]
-//   color?: string
-//   isVisible?: boolean
-// }
-
-// const graphs = [{
-//   title: 'A',
-//   data: [1, 2],
-//   color: 'red',
-//   visible: true,
-// }]
-
 type Theme = {
   body?: string;
   background: string;
@@ -47,6 +33,7 @@ const themes: Theme[] = [
     y: "#afb3b180",
   },
   {
+    body: "linear-gradient(0deg, hsl(0, 0%, 20%), hsl(0, 0%, 30%))",
     background: "hsl(240, 0%, 25%)",
     overviewBackdrop: `hsla(240,0%,10%,0.75)`,
     overviewEdge: `hsla(240,0%,30%,0.5)`,
@@ -81,6 +68,7 @@ const themes: Theme[] = [
     y: "hsl(198, 17%, 77%)",
   },
   {
+    body: 'linear-gradient(0deg, hsl(224, 8%, 26%), hsl(224, 8%, 32%))',
     background: "hsl(224, 8%, 26%)",
     overviewBackdrop: `hsla(224, 8%,10%,0.75)`,
     overviewEdge: `hsla(224, 8%, 30%, 0.5)`,

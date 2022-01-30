@@ -25,26 +25,29 @@ export function renderLineSeriesWithAreaGradient({
   height: number;
 }) {
   for (let i = 0; i < graphNames.length; i++) {
-    const opacity = opacityState[graphNames[i]];
+    const graphName = graphNames[i]
+    const opacity = opacityState[graphName];
+
     if (opacity === 0) continue;
-    const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`;
-    const gradientColorStart = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${
+
+    const color = `rgba(${hexToRGB(strokeStyles[graphName])},${opacity})`;
+    const gradientColorStart = `rgba(${hexToRGB(strokeStyles[graphName])},${
       opacity / 4
     })`;
-    const gradientColorStop = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${
+    const gradientColorStop = `rgba(${hexToRGB(strokeStyles[graphName])},${
       opacity / 32
     })`;
 
     context.strokeStyle = color;
     context.lineWidth = lineWidth * devicePixelRatio;
-    context.lineJoin = lineJoin[graphNames[i]];
+    context.lineJoin = lineJoin[graphName];
     context.beginPath();
 
-    for (let j = 0; j < points[graphNames[i]].length; j++) {
-      const { x, y } = points[graphNames[i]][j];
+    for (let j = 0; j < points[graphName].length; j++) {
+      const { x, y } = points[graphName][j];
       context.lineTo(x, y);
 
-      if (j === points[graphNames[i]].length - 1) {
+      if (j === points[graphName].length - 1) {
         const gradient = context.createLinearGradient(
           0,
           0,
@@ -64,7 +67,7 @@ export function renderLineSeriesWithAreaGradient({
           0 - MARGIN_OVERSHOOT,
           height * devicePixelRatio + MARGIN_OVERSHOOT
         );
-        context.lineTo(0 - MARGIN_OVERSHOOT, points[graphNames[i]][0].y);
+        context.lineTo(0 - MARGIN_OVERSHOOT, points[graphName][0].y);
         context.fillStyle = gradient;
         context.fill();
       }

@@ -20,7 +20,6 @@ export function mapDataToCoords(
   const height = availableHeight - lineWidth * 2;
   const coords: Point[] = [];
   const used: { [key: number]: boolean } = {};
-  let good = 0;
 
   if (!Number.isInteger(startIndex)) {
     const value =
@@ -28,17 +27,13 @@ export function mapDataToCoords(
       (interpolatePoint(startIndex, data) - min);
     const x = 0;
     const y = floor(lineWidth + height - offsetBottom - value);
-
     const key = x * X_MUL + y * Y_MUL;
     if (!used[key]) {
       used[key] = true;
       coords.push({ x, y });
-    } else {
-      good++;
     }
   }
 
-  // let totalSimilarPoints = 0;
   for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     const value = ((height - offsetBottom) / (max - min)) * (data[i] - min);
     const x = floor(
@@ -51,8 +46,6 @@ export function mapDataToCoords(
     if (!used[key]) {
       used[key] = true;
       coords.push({ x, y });
-    } else {
-      good++;
     }
   }
 
@@ -68,29 +61,11 @@ export function mapDataToCoords(
     if (!used[key]) {
       used[key] = true;
       coords.push({ x, y });
-    } else {
-      good++;
     }
   }
 
-  console.log(`Found exact points ${good}`);
-
   return coords;
 }
-
-// function appendDistinctLast(points: Point[], x: number, y: number): void {
-//   if (points.length === 0) {
-//     points.push({ x, y });
-
-//     return;
-//   }
-
-//   const lastPoint = points[points.length - 1];
-
-//   if (lastPoint.x !== x || lastPoint.y !== y) {
-//     points.push({ x, y });
-//   }
-// }
 
 function getTime(domain: number[], index: number): number {
   if (Number.isInteger(index)) {

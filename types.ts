@@ -78,4 +78,27 @@ export interface ChartOptions {
   };
 }
 
+// type Series = {
+//   title?: string
+//   series?: number[]
+//   color?: string
+//   isVisible?: boolean
+// }
+
+// const graphs = [{
+//   title: 'A',
+//   data: [1, 2],
+//   color: 'red',
+//   visible: true,
+// }]
+
+
+// type Series = {
+//   title?: string
+//   series?: number[]
+//   color?: string
+//   isVisible?: boolean
+
+// }
+
 export type ChartContext = ReturnType<typeof ChartContext>;

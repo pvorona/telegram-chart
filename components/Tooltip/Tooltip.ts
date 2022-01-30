@@ -149,7 +149,6 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
       // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
     }
     tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-    // TODO: Force reflow
     tooltip.style.transform = `translateX(${
       x / devicePixelRatio - tooltip.offsetWidth / 2
     }px)`;
