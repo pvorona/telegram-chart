@@ -1,6 +1,10 @@
 const MEASURE_PREFIX = "measure";
 let index = 0;
 
+// - [ ] Moving average series
+// - [ ] p95
+// - [ ] Timing distribution
+
 export function measurePerformance<T extends any[], R>(
   fn: (...params: T) => R
 ) {
@@ -18,17 +22,29 @@ export function measurePerformance<T extends any[], R>(
   };
 }
 
-function perf(mark: string) {
-  return mean(
+function mean(mark: string) {
+  return meanArray(
     performance
       .getEntriesByName(`${MEASURE_PREFIX}_${mark}`)
       .map((entry) => entry.duration)
   );
 }
 
-function mean(array: number[]) {
+function invocations(mark: string) {
+  return performance.getEntriesByName(`${MEASURE_PREFIX}_${mark}`).length;
+}
+
+function meanArray(array: number[]) {
   const sum = array.reduce((total, n) => total + n, 0);
   return sum / array.length;
 }
 
-(window as any).perf = perf;
+function stats(mark: string) {
+  return {
+    mark,
+    mean: mean(mark),
+    invocations: invocations(mark),
+  };
+}
+
+(window as any).stats = stats;

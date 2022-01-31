@@ -69,12 +69,12 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
             const distance = Math.abs(
               points[options.graphNames[0]][i].x / devicePixelRatio - x
             );
-            const closesDistance = Math.abs(
+            const closestDistance = Math.abs(
               points[options.graphNames[0]][closestPointIndex].x /
                 devicePixelRatio -
                 x
             );
-            if (distance < closesDistance) closestPointIndex = i;
+            if (distance < closestDistance) closestPointIndex = i;
           }
           return closestPointIndex;
         }
