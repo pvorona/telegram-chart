@@ -1,8 +1,7 @@
 import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
-import { floor } from "../../util";
+import { floor, toScreenX } from "../../util";
 import { createCache } from "../../util/createCache";
-import { interpolate } from "../../util/interpolatePoint";
 import { Component } from "../types";
 
 // - Rsi realStartIndex
@@ -101,20 +100,20 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
       i <= floor(inertEndIndex);
       i += factor
     ) {
-      const bitmapX = interpolate(
+      const screenX = toScreenX(
+        options.domain,
+        width.get() * devicePixelRatio,
         inertStartIndex,
         inertEndIndex,
-        0,
-        width.get() * devicePixelRatio,
         i
       );
       const label = labels.get(options.domain[i]);
       const { width: labelWidth } = context.measureText(label);
 
-      if (bitmapX < labelWidth / 2) continue;
-      if (width.get() * devicePixelRatio - bitmapX < labelWidth / 2) continue;
+      if (screenX < labelWidth / 2) continue;
+      if (width.get() * devicePixelRatio - screenX < labelWidth / 2) continue;
 
-      context.fillText(label, bitmapX, 0);
+      context.fillText(label, screenX, 0);
     }
   }
 

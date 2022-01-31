@@ -1,5 +1,5 @@
 import { Point } from "../components/types";
-import { interpolatePoint } from "./interpolatePoint";
+import { interpolate, interpolatePoint } from "./interpolatePoint";
 import { floor, ceil } from "./math";
 
 const X_MUL = 100_000;
@@ -36,10 +36,7 @@ export function mapDataToCoords(
 
   for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     const value = ((height - offsetBottom) / (max - min)) * (data[i] - min);
-    const x = floor(
-      (width / (getTime(domain, endIndex) - getTime(domain, startIndex))) *
-        (getTime(domain, i) - getTime(domain, startIndex))
-    );
+    const x = toScreenX(domain, width, startIndex, endIndex, i);
     const y = floor(lineWidth + height - offsetBottom - value);
 
     const key = x * X_MUL + y * Y_MUL;
@@ -67,7 +64,8 @@ export function mapDataToCoords(
   return coords;
 }
 
-function getTime(domain: number[], index: number): number {
+// Gets x by fractional index
+function getX(domain: number[], index: number): number {
   if (Number.isInteger(index)) {
     return domain[index];
   }
@@ -77,3 +75,23 @@ function getTime(domain: number[], index: number): number {
     domain[floor(index)]
   );
 }
+
+export function toScreenX(
+  xs: number[],
+  width: number,
+  startIndex: number,
+  endIndex: number,
+  currentIndex: number
+) {
+  return floor(
+    interpolate(
+      getX(xs, startIndex),
+      getX(xs, endIndex),
+      0,
+      width,
+      getX(xs, currentIndex)
+    )
+  );
+}
+
+// export function toScreenY (min:number,max:number, height:number) {}
