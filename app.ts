@@ -99,17 +99,19 @@ function selectRandomTheme(): Theme {
 }
 
 const theme = selectRandomTheme();
+
 document.body.style.background = theme.body || theme.background;
 
 async function startApp() {
+  const series1 = fetch("./data/dj/1593495762538-1593515829173.json").then(
+    (r) => r.json()
+  );
+  const series2 = fetch("./data/dj/1593520483683-1593533756968.json").then(
+    (r) => r.json()
+  );
+
   document.addEventListener("DOMContentLoaded", async () => {
     try {
-      const series1 = fetch("./data/dj/1593495762538-1593515829173.json").then(
-        (r) => r.json()
-      );
-      const series2 = fetch("./data/dj/1593520483683-1593533756968.json").then(
-        (r) => r.json()
-      );
       const [data1O, data2O] = await Promise.all([series1, series2]);
       const data1: DataEntry[] = data1O.slice(
         0,

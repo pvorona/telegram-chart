@@ -64,4 +64,34 @@ export interface ChartOptions {
   };
 }
 
+// type Series = {
+//   title?: string
+//   series?: number[]
+//   color?: string
+//   isVisible?: boolean
+// }
+
+// const graphs = [{
+//   title: 'A',
+//   data: [1, 2],
+//   color: 'red',
+//   visible: true,
+// }]
+
+// type LineWidth = 1 | 2 | 3 | 4;
+// type LineStyle = 'solid' | 'dashed'
+
+// type Series = {
+//   // title?: string;
+//   // axisLabelVisible
+//   data?: number[];
+//   color?: string;
+//   // Are series visible on initial render
+//   // Default: true
+//   visible?: boolean;
+//   lineJoin: CanvasLineJoin;
+//   lineWidth: LineWidth;
+//   lineStyle?: LineStyle
+// };
+
 export type ChartContext = ReturnType<typeof ChartContext>;
