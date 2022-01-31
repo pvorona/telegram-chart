@@ -1,13 +1,32 @@
 import { Point } from "../components/types";
 import { interpolate, interpolatePoint } from "./interpolatePoint";
 import { floor, ceil } from "./math";
+import { measurePerformance } from "./measurePerformance";
 
+// Hashing breaks if data range is high
 const X_MUL = 100_000;
-const Y_MUL = 1;
+
+function hash(x: number, y: number) {
+  return x * X_MUL + y;
+}
+
+function pushIfNew(
+  x: number,
+  y: number,
+  used: { [key: number]: boolean },
+  array: Point[]
+) {
+  const key = hash(x, y);
+
+  if (!used[key]) {
+    used[key] = true;
+    array.push({ x, y });
+  }
+}
 
 // h = H * w / W
 // O(n)
-export function mapDataToCoords(
+export const mapDataToCoords = measurePerformance(function mapDataToCoords(
   data: number[],
   domain: number[],
   max: number,
@@ -22,47 +41,50 @@ export function mapDataToCoords(
   const used: { [key: number]: boolean } = {};
 
   if (!Number.isInteger(startIndex)) {
-    const value =
-      ((height - offsetBottom) / (max - min)) *
-      (interpolatePoint(startIndex, data) - min);
     const x = 0;
-    const y = floor(lineWidth + height - offsetBottom - value);
-    const key = x * X_MUL + y * Y_MUL;
-    if (!used[key]) {
-      used[key] = true;
-      coords.push({ x, y });
-    }
+    const y = toScreenY(
+      data,
+      min,
+      max,
+      lineWidth + height - offsetBottom,
+      startIndex
+    );
+
+    pushIfNew(x, y, used, coords);
   }
 
-  for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
-    const value = ((height - offsetBottom) / (max - min)) * (data[i] - min);
-    const x = toScreenX(domain, width, startIndex, endIndex, i);
-    const y = floor(lineWidth + height - offsetBottom - value);
+  for (
+    let currentIndex = ceil(startIndex);
+    currentIndex <= floor(endIndex);
+    currentIndex++
+  ) {
+    const x = toScreenX(domain, width, startIndex, endIndex, currentIndex);
+    const y = toScreenY(
+      data,
+      min,
+      max,
+      lineWidth + height - offsetBottom,
+      currentIndex
+    );
 
-    const key = x * X_MUL + y * Y_MUL;
-    if (!used[key]) {
-      used[key] = true;
-      coords.push({ x, y });
-    }
+    pushIfNew(x, y, used, coords);
   }
 
   if (!Number.isInteger(endIndex)) {
-    const value =
-      ((height - offsetBottom) / (max - min)) *
-      (interpolatePoint(endIndex, data) - min);
-
     const x = floor(width);
-    const y = floor(lineWidth + height - offsetBottom - value);
+    const y = toScreenY(
+      data,
+      min,
+      max,
+      lineWidth + height - offsetBottom,
+      endIndex
+    );
 
-    const key = x * X_MUL + y * Y_MUL;
-    if (!used[key]) {
-      used[key] = true;
-      coords.push({ x, y });
-    }
+    pushIfNew(x, y, used, coords);
   }
 
   return coords;
-}
+});
 
 // Gets x by fractional index
 function getX(domain: number[], index: number): number {
@@ -94,4 +116,18 @@ export function toScreenX(
   );
 }
 
-// export function toScreenY (min:number,max:number, height:number) {}
+export function toScreenY(
+  ys: number[],
+  min: number,
+  max: number,
+  height: number,
+  currentIndex: number
+) {
+  return floor(
+    interpolate(max, min, 0, height, interpolatePoint(currentIndex, ys))
+  );
+
+  const value =
+    (height / (max - min)) * (interpolatePoint(currentIndex, ys) - min);
+  return floor(height - value);
+}
