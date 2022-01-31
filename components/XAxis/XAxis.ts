@@ -64,7 +64,6 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     (width) => {
       setCanvasSize(canvas, width, height);
       setCanvasStyle(context);
-
       renderLabels(inertStartIndex.get(), inertEndIndex.get(), factor.get());
     },
     { fireImmediately: false }
@@ -79,7 +78,6 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
         width.get() * devicePixelRatio,
         height * devicePixelRatio
       );
-
       renderLabels(inertStartIndex, inertEndIndex, factor);
     },
     { fireImmediately: false }

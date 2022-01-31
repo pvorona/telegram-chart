@@ -1,6 +1,6 @@
 import { hexToRGB } from "../../util";
 
-const MARGIN_OVERSHOOT = 1;
+const MARGIN_OVERSHOOT = 2;
 const TRANSPARENT = `rgba(0,0,0,0)`;
 
 export function renderLineSeriesWithAreaGradient({

@@ -1,9 +1,13 @@
 const MEASURE_PREFIX = "measure";
 let index = 0;
 
-// - [ ] Moving average series
-// - [ ] p95
-// - [ ] Timing distribution
+// PerformanceStats
+// - [ ] FPS
+//       - startFPSMeasurement()
+// - Derivations (computed independently of data collection):
+//       - [ ] Moving average series
+//       - [ ] p95
+//       - [ ] Timing distribution
 
 export function measurePerformance<T extends any[], R>(
   fn: (...params: T) => R
