@@ -403,9 +403,9 @@ function createDom({
   rightSide.className = "overview__right";
 
   viewBoxElement.appendChild(leftSide);
+  viewBoxElement.appendChild(rightSide);
   viewBoxElement.appendChild(resizerLeft);
   viewBoxElement.appendChild(resizerRight);
-  viewBoxElement.appendChild(rightSide);
 
   const graphs = createGraphs({
     width,
