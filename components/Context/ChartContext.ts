@@ -7,6 +7,7 @@ import {
   transition,
   groupTransition,
   Transition,
+  inert,
 } from "@pvorona/observable";
 import { ChartOptions } from "../../types";
 import {
@@ -74,14 +75,20 @@ export const ChartContext = (options: ChartOptions) => {
       return Boolean(enabledGraphNames.length);
     }
   );
-  const inertStartIndex = animationObservable(
-    startIndex,
-    transition(startIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
-  );
-  const inertEndIndex = animationObservable(
-    endIndex,
-    transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
-  );
+  // const inertStartIndex = animationObservable(
+  //   startIndex,
+  //   transition(startIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
+  // );
+  const inertStartIndex = inert({
+    duration: VERY_FAST_TRANSITIONS_TIME,
+  })(startIndex);
+  // const inertEndIndex = animationObservable(
+  //   endIndex,
+  //   transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
+  // );
+  const inertEndIndex = inert({
+    duration: VERY_FAST_TRANSITIONS_TIME,
+  })(endIndex);
 
   const visibleMax = computeLazy(
     [startIndex, endIndex, enabledGraphNames],

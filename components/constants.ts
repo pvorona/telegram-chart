@@ -27,9 +27,10 @@ export const cursor = {
 
 export const MIN_VIEWBOX = 120;
 
+export const TOOLTIP_LINE_WIDTH = 1;
 export const DOT_BORDER_SIZE = 0;
 export const DOT_SIZE = 10;
-export const CENTER_OFFSET = -DOT_SIZE / 2 - DOT_BORDER_SIZE;
+export const DOT_CENTER_OFFSET = -DOT_SIZE / 2 - DOT_BORDER_SIZE;
 
 export const MIN_HEIGHT = 0;
 

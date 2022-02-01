@@ -1,7 +1,7 @@
 import { effect, computeLazy, Lambda } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
-import { floor, getTooltipDateText } from "../../util";
-import { DOT_SIZE, CENTER_OFFSET } from "../constants";
+// import { floor, getTooltipDateText } from "../../util";
+import { DOT_SIZE, DOT_CENTER_OFFSET } from "../constants";
 import { Component, Point } from "../types";
 
 export const Tooltip: Component<ChartOptions, ChartContext> = (
@@ -23,9 +23,9 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     tooltipCircles,
     tooltipLine,
     tooltip,
-    tooltipValues,
+    // tooltipValues,
     tooltipGraphInfo,
-    tooltipDate,
+    // tooltipDate,
   } = createDOM();
 
   // why lazy
@@ -54,6 +54,10 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     undefined;
   let updateTooltipGraphInfoEffectUnobserve: undefined | Lambda = undefined;
 
+  function distance(a: number, b: number): number {
+    return Math.abs(a - b);
+  }
+
   effect([isTooltipVisible], (isTooltipVisible) => {
     if (isTooltipVisible) {
       tooltipLine.style.visibility = "visible";
@@ -61,27 +65,40 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
 
       // Test if it makes sense to extract effect functions outside of this effect
       // can use binary search here
-      const tooltipIndex = computeLazy(
+      const tooltipIndexes = computeLazy(
         [mouseX, mainGraphPoints],
-        function tooltipIndexCompute(x, points) {
-          let closestPointIndex = 0;
-          for (let i = 1; i < points[options.graphNames[0]].length; i++) {
-            const distance = Math.abs(
-              points[options.graphNames[0]][i].x / devicePixelRatio - x
-            );
-            const closestDistance = Math.abs(
-              points[options.graphNames[0]][closestPointIndex].x /
-                devicePixelRatio -
-                x
-            );
-            if (distance < closestDistance) closestPointIndex = i;
+        function computeTooltipIndex(mouseX, mainGraphPoints) {
+          // Make a map by id
+          let closestPointIndexes = options.graphNames.map(() => 0);
+
+          for (
+            let graphIndex = 0;
+            graphIndex < options.graphNames.length;
+            graphIndex++
+          ) {
+            const graphName = options.graphNames[graphIndex];
+            const points = mainGraphPoints[graphName];
+
+            for (let i = 1; i < points.length; i++) {
+              const currentDistance = distance(
+                points[i].x / devicePixelRatio,
+                mouseX
+              );
+              const closestDistance = distance(
+                points[closestPointIndexes[graphIndex]].x / devicePixelRatio,
+                mouseX
+              );
+              if (currentDistance < closestDistance)
+                closestPointIndexes[graphIndex] = i;
+            }
           }
-          return closestPointIndex;
+
+          return closestPointIndexes;
         }
       );
 
       updateTooltipPositionAndTextEffectUnobserve = effect(
-        [mainGraphPoints, enabledGraphNames, tooltipIndex, startIndex],
+        [mainGraphPoints, enabledGraphNames, tooltipIndexes, startIndex],
         updateTooltipPositionAndText
       );
 
@@ -132,32 +149,53 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
   function updateTooltipPositionAndText(
     points: Record<string, Point[]>,
     enabledGraphNames: string[],
-    index: number,
-    startIndex: number
+    tooltipIndexes: number[]
+    // startIndex: number
   ) {
-    const { x } = points[enabledGraphNames[0]][index];
-    tooltipLine.style.transform = `translateX(${(x - 1) / devicePixelRatio}px)`;
-    const dataIndex = index + floor(startIndex);
-    for (let i = 0; i < enabledGraphNames.length; i++) {
-      const { x, y } = points[enabledGraphNames[i]][index];
-      tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
-        x / devicePixelRatio + CENTER_OFFSET
-      }px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`;
-      tooltipValues[enabledGraphNames[i]].innerText = String(
-        options.data[enabledGraphNames[i]][dataIndex]
-      );
-      // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
+    enabledGraphNames;
+
+    const { x } = points[options.graphNames[0]][tooltipIndexes[0]];
+
+    // Should be performed once outside of the loop
+    tooltipLine.style.transform = `translateX(${x / devicePixelRatio}px)`;
+
+    for (
+      let graphIndex = 0;
+      graphIndex < options.graphNames.length;
+      graphIndex++
+    ) {
+      const tooltipIndex = tooltipIndexes[graphIndex];
+      const graphName = options.graphNames[graphIndex];
+      const { x, y } = points[graphName][tooltipIndex];
+
+      tooltipCircles[graphName].style.transform = `translateX(${
+        x / devicePixelRatio + DOT_CENTER_OFFSET
+      }px) translateY(${y / devicePixelRatio + DOT_CENTER_OFFSET}px)`;
     }
-    tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-    tooltip.style.transform = `translateX(${
-      x / devicePixelRatio - tooltip.offsetWidth / 2
-    }px)`;
+
+    tooltip.style.transform = `translateX(calc(${
+      x / devicePixelRatio
+    }px - 50%))`;
+
+    // const { x } = points[enabledGraphNames[0]][tooltipIndex];
+    // const dataIndex = tooltipIndex + floor(startIndex);
+    // for (let i = 0; i < enabledGraphNames.length; i++) {
+    //   const { x, y } = points[enabledGraphNames[i]][tooltipIndex];
+    //   tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
+    //     x / devicePixelRatio + CENTER_OFFSET
+    //   }px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`;
+    // tooltipValues[enabledGraphNames[i]].innerText = String(
+    //   options.data[enabledGraphNames[i]][dataIndex]
+    // );
+    // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
+    // }
+    // tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
   }
 
   function createDOM() {
     const tooltip = document.createElement("div");
-    tooltip.style.backgroundColor = options.tooltip.backgroundColor
-    tooltip.style.color = options.tooltip.color
+    tooltip.style.backgroundColor = options.tooltip.backgroundColor;
+    tooltip.style.color = options.tooltip.color;
     tooltip.className = "tooltip";
 
     const tooltipDate = document.createElement("div");
@@ -165,7 +203,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     tooltip.appendChild(tooltipDate);
 
     const tooltipLegendContainer = document.createElement("div");
-    tooltipLegendContainer.className = "tooltip__legend";    
+    tooltipLegendContainer.className = "tooltip__legend";
     tooltip.appendChild(tooltipLegendContainer);
 
     const tooltipValues: { [key: string]: HTMLDivElement } = {};

@@ -19,7 +19,7 @@ function pushIfNew(
   const key = hash(x, y);
 
   if (!used[key]) {
-    used[key] = true;
+    used[key] = false;
     array.push({ x, y });
   }
 }
@@ -105,15 +105,15 @@ export function toScreenX(
   endIndex: number,
   currentIndex: number
 ) {
-  return floor(
-    interpolate(
+  // return floor(
+    return interpolate(
       getX(xs, startIndex),
       getX(xs, endIndex),
       0,
       width,
       getX(xs, currentIndex)
     )
-  );
+  // );
 }
 
 export function toScreenY(
@@ -123,9 +123,9 @@ export function toScreenY(
   height: number,
   currentIndex: number
 ) {
-  return floor(
-    interpolate(max, min, 0, height, interpolatePoint(currentIndex, ys))
-  );
+  // return floor(
+    return interpolate(max, min, 0, height, interpolatePoint(currentIndex, ys))
+  // );
 
   const value =
     (height / (max - min)) * (interpolatePoint(currentIndex, ys) - min);
