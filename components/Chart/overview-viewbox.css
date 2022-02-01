@@ -10,7 +10,6 @@
   transition: border-color 0.3s ease-in-out;
 }
 
-
 .overview__left,
 .overview__right {
   content: " ";
@@ -18,15 +17,14 @@
   position: absolute;
   top: -4px;
   bottom: -4px;
-  width: 100vw;
 }
 
 .overview__left {
-  right: 100%;
+  left: 0;
 }
 
 .overview__right {
-  left: 100%;
+  right: 0;
 }
 
 .theme-light .overview__left,

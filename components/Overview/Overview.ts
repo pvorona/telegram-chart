@@ -187,6 +187,14 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     viewBoxElement.style.right = `${width - right}px`;
   });
 
+  effect([left, width], (left, width) => {
+    leftSide.style.right = `${width - left}px`;
+  });
+
+  effect([right], (right) => {
+    rightSide.style.left = `${right}px`;
+  });
+
   effect([width], (width) => {
     graphs.canvas.width = width * window.devicePixelRatio;
     graphs.canvas.height = canvasCssHeight * window.devicePixelRatio;
@@ -402,10 +410,8 @@ function createDom({
   rightSide.style.backgroundColor = backdropColor;
   rightSide.className = "overview__right";
 
-  viewBoxElement.appendChild(leftSide);
   viewBoxElement.appendChild(resizerLeft);
   viewBoxElement.appendChild(resizerRight);
-  viewBoxElement.appendChild(rightSide);
 
   const graphs = createGraphs({
     width,
@@ -414,7 +420,9 @@ function createDom({
   graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
 
   element.appendChild(graphs.element);
+  element.appendChild(leftSide);
   element.appendChild(viewBoxElement);
+  element.appendChild(rightSide);
 
   // return html`
   //   <div ref="element" class="overview" style="height: ${height}px">
