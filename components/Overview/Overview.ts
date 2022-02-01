@@ -9,48 +9,28 @@ import {
 import { renderLineSeriesWithAreaGradient } from "../renderers";
 import { ChartContext, ChartOptions } from "../../types";
 import { easeInOutQuart, linear } from "../../easings";
-import {
-  handleDrag,
-  mapDataToCoords,
-  getMaxValue,
-  getMinValue,
-  ensureInBounds,
-  areNumbersClose,
-} from "../../util";
-import {
-  cursor,
-  FAST_TRANSITIONS_TIME,
-  LONG_TRANSITIONS_TIME,
-} from "../constants";
+import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
+import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../constants";
 import { Point, Component } from "../types";
 import { createGraphs } from "../Chart/createGraphs";
+import { RangeSlider } from "./RangeSlider";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
-const minimalPixelsBetweenResizeHandlers = 10;
 
 export const Overview: Component<ChartOptions, ChartContext> = (
   options,
-  {
+  context
+) => {
+  const {
     isDragging,
     isWheeling,
-    activeCursor,
-    startIndex,
-    endIndex,
     width,
     enabledGraphNames,
     inertOpacityStateByGraphName,
-  }
-) => {
+  } = context;
+
   const canvasCssHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
-
-  const left = observable(
-    (startIndex.get() / (options.total - 1)) * width.get()
-  );
-
-  const right = observable(
-    (endIndex.get() / (options.total - 1)) * width.get()
-  );
 
   const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
     if (enabledGraphNames.length === 0) return prevOverallMax.get();
@@ -110,41 +90,6 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     }
   );
 
-  observe([startIndex, width], (startIndex, width) => {
-    const newLeft = (startIndex / (options.total - 1)) * width;
-
-    if (!areNumbersClose(left.get(), newLeft)) {
-      left.set(newLeft);
-    }
-  });
-
-  observe([endIndex, width], (endIndex, width) => {
-    const newRight = (endIndex / (options.total - 1)) * width;
-
-    if (!areNumbersClose(right.get(), newRight)) {
-      right.set(newRight);
-    }
-  });
-
-  observe([left], (left) => {
-    const newStartIndex = (left / width.get()) * (options.total - 1);
-
-    if (!areNumbersClose(startIndex.get(), newStartIndex)) {
-      startIndex.set(newStartIndex);
-    }
-  });
-
-  observe([right], (right) => {
-    const newEndIndex = Math.min(
-      (right / width.get()) * (options.total - 1),
-      options.total - 1
-    );
-
-    if (!areNumbersClose(endIndex.get(), newEndIndex)) {
-      endIndex.set(newEndIndex);
-    }
-  });
-
   observe([isDragging, isWheeling], (isDragging, isWheeling) => {
     if (isDragging || isWheeling) {
       inertOverallMax.setTransition(
@@ -163,28 +108,12 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     }
   });
 
-  const {
-    element,
-    leftResizeHandler,
-    rightResizeHandler,
-    viewBoxElement,
-    graphs,
-    leftSide,
-    rightSide,
-  } = createDom({
+  const { element, graphs } = createDom({
     width: width.get(),
     height: options.overview.height,
     canvasCssHeight,
     edgeColor: options.overview.edgeColor,
     backdropColor: options.overview.overlayColor,
-  });
-
-  effect([left], (left) => {
-    viewBoxElement.style.left = `${left}px`;
-  });
-
-  effect([right, width], (right, width) => {
-    viewBoxElement.style.right = `${width - right}px`;
   });
 
   effect([width], (width) => {
@@ -226,119 +155,6 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     });
   }
 
-  const boundingRect = element.getBoundingClientRect(); // Does not work: capturing geometry before mounting
-
-  let cursorResizeHandlerDelta = 0;
-
-  leftSide.addEventListener("mousedown", onLeftSideClick);
-  rightSide.addEventListener("mousedown", onRightSideClick);
-
-  function onLeftSideClick(event: MouseEvent) {
-    const boundingRect = element.getBoundingClientRect();
-    const viewBoxWidth = right.get() - left.get();
-    const newLeft = ensureInBounds(
-      getX(event) - viewBoxWidth / 2 - boundingRect.left,
-      0,
-      width.get()
-    );
-    const newRight = newLeft + viewBoxWidth;
-
-    left.set(newLeft);
-    right.set(newRight);
-  }
-
-  function onRightSideClick(event: MouseEvent) {
-    const boundingRect = element.getBoundingClientRect();
-    const viewBoxWidth = right.get() - left.get();
-    const newRight = ensureInBounds(
-      getX(event) + viewBoxWidth / 2 - boundingRect.left,
-      0,
-      width.get()
-    );
-    const newLeft = newRight - viewBoxWidth;
-
-    left.set(newLeft);
-    right.set(newRight);
-  }
-
-  handleDrag(leftResizeHandler, {
-    onDragStart: onLeftResizeHandlerMouseDown,
-    onDragMove: onLeftResizeHandlerMouseMove,
-    onDragEnd: onDragEnd,
-  });
-  handleDrag(rightResizeHandler, {
-    onDragStart: onRightResizeHandlerMouseDown,
-    onDragMove: onRightResizeHandlerMouseMove,
-    onDragEnd: onDragEnd,
-  });
-  handleDrag(viewBoxElement, {
-    onDragStart: onViewBoxElementMouseDown,
-    onDragMove: onViewBoxElementMouseMove,
-    onDragEnd: onViewBoxElementMouseUp,
-  });
-
-  function onLeftResizeHandlerMouseDown(e: MouseEvent) {
-    isDragging.set(true);
-    activeCursor.set(cursor.resize);
-    cursorResizeHandlerDelta = getX(e) - (left.get() - boundingRect.left);
-  }
-
-  function onDragEnd() {
-    isDragging.set(false);
-    activeCursor.set(cursor.default);
-  }
-
-  function onLeftResizeHandlerMouseMove(e: MouseEvent) {
-    const leftVar = ensureInOverviewBounds(getX(e) - cursorResizeHandlerDelta);
-    left.set(
-      ensureInBounds(
-        leftVar,
-        0,
-        right.get() - minimalPixelsBetweenResizeHandlers
-      )
-    );
-  }
-
-  function onRightResizeHandlerMouseDown(e: MouseEvent) {
-    cursorResizeHandlerDelta = getX(e) - (right.get() - boundingRect.left);
-    isDragging.set(true);
-    activeCursor.set(cursor.resize);
-  }
-
-  function ensureInOverviewBounds(x: number) {
-    return ensureInBounds(x, 0, width.get());
-  }
-
-  function onViewBoxElementMouseDown(e: MouseEvent) {
-    cursorResizeHandlerDelta = getX(e) - (left.get() - boundingRect.left);
-    isDragging.set(true);
-    activeCursor.set(cursor.grabbing);
-  }
-
-  function onViewBoxElementMouseUp() {
-    isDragging.set(false);
-    activeCursor.set(cursor.default);
-  }
-
-  function onViewBoxElementMouseMove(e: MouseEvent) {
-    const widthVar = right.get() - left.get();
-    const nextLeft = getX(e) - cursorResizeHandlerDelta;
-    const stateLeft = ensureInBounds(nextLeft, 0, width.get() - widthVar);
-    left.set(stateLeft);
-    right.set(stateLeft + widthVar);
-  }
-
-  function onRightResizeHandlerMouseMove(e: MouseEvent) {
-    const rightVar = ensureInOverviewBounds(getX(e) - cursorResizeHandlerDelta);
-    right.set(
-      ensureInBounds(
-        rightVar,
-        left.get() + minimalPixelsBetweenResizeHandlers,
-        rightVar
-      )
-    );
-  }
-
   function getMaxValueInRange(
     startIndex: number,
     endIndex: number,
@@ -359,81 +175,48 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     return graphNames.map((graphName) => options.data[graphName]);
   }
 
-  function getX(event: MouseEvent) {
-    return event.clientX - boundingRect.left;
-  }
-
   return { element };
-};
 
-function createDom({
-  width,
-  height,
-  edgeColor,
-  backdropColor,
-  canvasCssHeight,
-}: {
-  width: number;
-  height: number;
-  canvasCssHeight: number;
-  edgeColor: string;
-  backdropColor: string;
-}) {
-  const containerClassName = "overview";
-  const element = document.createElement("div");
-  element.className = containerClassName;
-  element.style.height = `${height}px`;
-  // element.style.padding = `${2}px 0`;
-  const leftResizeHandler = document.createElement("div");
-  leftResizeHandler.style.backgroundColor = edgeColor;
-  leftResizeHandler.className =
-    "overview__resize-handler overview__resize-handler--left";
-  const rightResizeHandler = document.createElement("div");
-  rightResizeHandler.style.backgroundColor = edgeColor;
-  rightResizeHandler.className =
-    "overview__resize-handler overview__resize-handler--right";
-  const viewBoxElement = document.createElement("div");
-  viewBoxElement.style.borderColor = edgeColor;
-  viewBoxElement.className = "overview__viewbox";
-
-  const leftSide = document.createElement("div");
-  leftSide.style.backgroundColor = backdropColor;
-  leftSide.className = "overview__left";
-  const rightSide = document.createElement("div");
-  rightSide.style.backgroundColor = backdropColor;
-  rightSide.className = "overview__right";
-
-  viewBoxElement.appendChild(leftSide);
-  viewBoxElement.appendChild(rightSide);
-  viewBoxElement.appendChild(leftResizeHandler);
-  viewBoxElement.appendChild(rightResizeHandler);
-
-  const graphs = createGraphs({
+  function createDom({
     width,
-    height: canvasCssHeight,
-  });
-  graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
+    height,
+    canvasCssHeight,
+  }: {
+    width: number;
+    height: number;
+    canvasCssHeight: number;
+    edgeColor: string;
+    backdropColor: string;
+  }) {
+    const containerClassName = "overview";
+    const element = document.createElement("div");
+    element.className = containerClassName;
+    element.style.height = `${height}px`;
+    // element.style.padding = `${2}px 0`;
 
-  element.appendChild(graphs.element);
-  element.appendChild(viewBoxElement);
+    const graphs = createGraphs({
+      width,
+      height: canvasCssHeight,
+    });
+    graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
+    const rangeSlider = RangeSlider(options, context);
 
-  // return html`
-  //   <div ref="element" class="overview" style="height: ${height}px">
-  //     ${withRef('graphs', createGraphs({ width, height }))}
-  //     <div ref="viewbox" class="overview__viewbox">
-  //       <div ref="resizerLeft" class="overview__resize-handler overview__resize-handler--left"></div>
-  //       <div ref="resizerRight" class="overview__resize-handler overview__resize-handler--right"></div>
-  //     </div>
-  //   </div>
-  // `;
+    element.appendChild(graphs.element);
+    element.appendChild(rangeSlider.element);
 
-  return {
-    element,
-    leftResizeHandler,
-    rightResizeHandler,
-    viewBoxElement,
-    graphs,
-    leftSide,
-    rightSide,
-  };
-}
+    // return html`
+    //   <div ref="element" class="overview" style="height: ${height}px">
+    //     ${withRef('graphs', createGraphs({ width, height }))}
+    //     <div ref="viewbox" class="overview__viewbox">
+    //       <div ref="resizerLeft" class="overview__resize-handler overview__resize-handler--left"></div>
+    //       <div ref="resizerRight" class="overview__resize-handler overview__resize-handler--right"></div>
+    //     </div>
+    //   </div>
+    // `;
+
+    return {
+      element,
+      graphs,
+    };
+  }
+};
