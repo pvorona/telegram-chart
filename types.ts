@@ -15,6 +15,17 @@ export interface Data {
   [key: string]: number[];
 }
 
+const kind = Symbol("kind");
+
+type Nominal<Source, Label extends string> = Source & { [kind]: Label };
+
+export type CssPixel = Nominal<number, "CssPixel">;
+export type BitPixel = Nominal<number, "BitPixel">;
+
+// export function cssToBitMap(n: CssPixels): BitMapSize {
+//   return (n * devicePixelRatio) as BitMapSize;
+// }
+
 export interface ChartOptions {
   x: {
     color: string;
@@ -51,6 +62,9 @@ export interface ChartOptions {
   };
   colors: { [key: string]: string };
   data: Data;
+  lineJoin: {
+    [series: string]: CanvasLineJoin;
+  };
   total: number;
   visibilityState: VisibilityState;
   viewBox: {
@@ -63,5 +77,28 @@ export interface ChartOptions {
     color: string;
   };
 }
+
+// type Series = {
+//   title?: string
+//   series?: number[]
+//   color?: string
+//   isVisible?: boolean
+// }
+
+// const graphs = [{
+//   title: 'A',
+//   data: [1, 2],
+//   color: 'red',
+//   visible: true,
+// }]
+
+
+// type Series = {
+//   title?: string
+//   series?: number[]
+//   color?: string
+//   isVisible?: boolean
+
+// }
 
 export type ChartContext = ReturnType<typeof ChartContext>;

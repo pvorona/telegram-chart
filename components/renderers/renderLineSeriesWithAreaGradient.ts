@@ -3,14 +3,15 @@ import { hexToRGB } from "../../util";
 const MARGIN_OVERSHOOT = 2;
 const TRANSPARENT = `rgba(0,0,0,0)`;
 
-export function renderGraphs({
+export function renderLineSeriesWithAreaGradient({
   context,
   points,
   graphNames,
   lineWidth,
   strokeStyles,
   opacityState,
-
+  lineJoinByName: lineJoin,
+  width,
   height,
 }: {
   context: CanvasRenderingContext2D;
@@ -19,30 +20,34 @@ export function renderGraphs({
   lineWidth: number;
   strokeStyles: { [key: string]: string };
   opacityState: { [key: string]: number };
-
+  lineJoinByName: { [series: string]: CanvasLineJoin };
+  width: number;
   height: number;
 }) {
   for (let i = 0; i < graphNames.length; i++) {
-    const opacity = opacityState[graphNames[i]];
+    const graphName = graphNames[i]
+    const opacity = opacityState[graphName];
+
     if (opacity === 0) continue;
-    const color = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${opacity})`;
-    const gradientColorStart = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${
+
+    const color = `rgba(${hexToRGB(strokeStyles[graphName])},${opacity})`;
+    const gradientColorStart = `rgba(${hexToRGB(strokeStyles[graphName])},${
       opacity / 4
     })`;
-    const gradientColorStop = `rgba(${hexToRGB(strokeStyles[graphNames[i]])},${
+    const gradientColorStop = `rgba(${hexToRGB(strokeStyles[graphName])},${
       opacity / 32
     })`;
 
     context.strokeStyle = color;
     context.lineWidth = lineWidth * devicePixelRatio;
-    context.lineJoin = "round";
+    context.lineJoin = lineJoin[graphName];
     context.beginPath();
 
-    for (let j = 0; j < points[graphNames[i]].length; j++) {
-      const { x, y } = points[graphNames[i]][j];
+    for (let j = 0; j < points[graphName].length; j++) {
+      const { x, y } = points[graphName][j];
       context.lineTo(x, y);
 
-      if (j === points[graphNames[i]].length - 1) {
+      if (j === points[graphName].length - 1) {
         const gradient = context.createLinearGradient(
           0,
           0,
@@ -53,16 +58,16 @@ export function renderGraphs({
         gradient.addColorStop(0.5, gradientColorStop);
         gradient.addColorStop(1, TRANSPARENT);
 
-        context.lineTo(x + MARGIN_OVERSHOOT, y);
+        context.lineTo(width * devicePixelRatio + MARGIN_OVERSHOOT, y);
         context.lineTo(
-          x + MARGIN_OVERSHOOT,
+          width * devicePixelRatio + MARGIN_OVERSHOOT,
           height * devicePixelRatio + MARGIN_OVERSHOOT
         );
         context.lineTo(
-          -MARGIN_OVERSHOOT,
+          0 - MARGIN_OVERSHOOT,
           height * devicePixelRatio + MARGIN_OVERSHOOT
         );
-        context.lineTo(-MARGIN_OVERSHOOT, points[graphNames[i]][0].y);
+        context.lineTo(0 - MARGIN_OVERSHOOT, points[graphName][0].y);
         context.fillStyle = gradient;
         context.fill();
       }

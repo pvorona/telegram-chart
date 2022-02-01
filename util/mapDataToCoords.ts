@@ -1,9 +1,32 @@
-import { interpolatePoint } from "./interpolatePoint";
-import { ceil, floor } from "./math";
+import { Point } from "../components/types";
+import { interpolate, interpolatePoint } from "./interpolatePoint";
+import { floor, ceil } from "./math";
+import { measurePerformance } from "./measurePerformance";
+
+// Hashing breaks if data range is high
+const X_MUL = 100_000;
+
+function hash(x: number, y: number) {
+  return x * X_MUL + y;
+}
+
+function pushIfNew(
+  x: number,
+  y: number,
+  used: { [key: number]: boolean },
+  array: Point[]
+) {
+  const key = hash(x, y);
+
+  if (!used[key]) {
+    used[key] = true;
+    array.push({ x, y });
+  }
+}
 
 // h = H * w / W
 // O(n)
-export function mapDataToCoords(
+export const mapDataToCoords = measurePerformance(function mapDataToCoords(
   data: number[],
   domain: number[],
   max: number,
@@ -12,50 +35,99 @@ export function mapDataToCoords(
   { startIndex, endIndex }: { startIndex: number; endIndex: number },
   lineWidth: number,
   offsetBottom: number | undefined = 0
-): { x: number; y: number }[] {
+): Point[] {
   const height = availableHeight - lineWidth * 2;
-  const coords = [];
+  const coords: Point[] = [];
+  const used: { [key: number]: boolean } = {};
 
   if (!Number.isInteger(startIndex)) {
-    const value =
-      ((height - offsetBottom) / (max - min)) *
-      (interpolatePoint(startIndex, data) - min);
-    coords.push({
-      x: 0,
-      y: Math.floor(lineWidth + height - offsetBottom - value),
-    });
+    const x = 0;
+    const y = toScreenY(
+      data,
+      min,
+      max,
+      lineWidth + height - offsetBottom,
+      startIndex
+    );
+
+    pushIfNew(x, y, used, coords);
   }
 
-  for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
-    const value = ((height - offsetBottom) / (max - min)) * (data[i] - min);
-    coords.push({
-      x: Math.floor(
-        (width / (getTime(domain, endIndex) - getTime(domain, startIndex))) *
-          (getTime(domain, i) - getTime(domain, startIndex))
-      ),
-      y: Math.floor(lineWidth + height - offsetBottom - value),
-    });
+  for (
+    let currentIndex = ceil(startIndex);
+    currentIndex <= floor(endIndex);
+    currentIndex++
+  ) {
+    const x = toScreenX(domain, width, startIndex, endIndex, currentIndex);
+    const y = toScreenY(
+      data,
+      min,
+      max,
+      lineWidth + height - offsetBottom,
+      currentIndex
+    );
+
+    pushIfNew(x, y, used, coords);
   }
 
   if (!Number.isInteger(endIndex)) {
-    const value =
-      ((height - offsetBottom) / (max - min)) *
-      (interpolatePoint(endIndex, data) - min);
-    coords.push({
-      x: Math.floor(width),
-      y: Math.floor(lineWidth + height - offsetBottom - value),
-    });
-  }
-  return coords;
-}
+    const x = floor(width);
+    const y = toScreenY(
+      data,
+      min,
+      max,
+      lineWidth + height - offsetBottom,
+      endIndex
+    );
 
-function getTime(domain: number[], index: number): number {
+    pushIfNew(x, y, used, coords);
+  }
+
+  return coords;
+});
+
+// Gets x by fractional index
+function getX(domain: number[], index: number): number {
   if (Number.isInteger(index)) {
     return domain[index];
   }
 
   return (
-    (domain[Math.ceil(index)] - domain[Math.floor(index)]) * (index % 1) +
-    domain[Math.floor(index)]
+    (domain[ceil(index)] - domain[floor(index)]) * (index % 1) +
+    domain[floor(index)]
   );
+}
+
+export function toScreenX(
+  xs: number[],
+  width: number,
+  startIndex: number,
+  endIndex: number,
+  currentIndex: number
+) {
+  return floor(
+    interpolate(
+      getX(xs, startIndex),
+      getX(xs, endIndex),
+      0,
+      width,
+      getX(xs, currentIndex)
+    )
+  );
+}
+
+export function toScreenY(
+  ys: number[],
+  min: number,
+  max: number,
+  height: number,
+  currentIndex: number
+) {
+  return floor(
+    interpolate(max, min, 0, height, interpolatePoint(currentIndex, ys))
+  );
+
+  const value =
+    (height / (max - min)) * (interpolatePoint(currentIndex, ys) - min);
+  return floor(height - value);
 }

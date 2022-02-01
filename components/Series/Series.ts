@@ -1,5 +1,5 @@
 import { effect } from "@pvorona/observable";
-import { renderGraphs } from "../Graphs";
+import { renderLineSeriesWithAreaGradient } from "../renderers";
 import { ChartContext, ChartOptions } from "../../types";
 import { memoizeOne, ensureInBounds, handleDrag } from "../../util";
 import {
@@ -72,7 +72,7 @@ export const Series = (
     points: { [key: string]: Point[] },
     opacityState: { [key: string]: number },
   ) {
-    renderGraphs({
+    renderLineSeriesWithAreaGradient({
       points,
       opacityState,
       context: context,
@@ -80,6 +80,8 @@ export const Series = (
       lineWidth: chartOptions.lineWidth,
       strokeStyles: chartOptions.colors,
       height: canvasHeight.get(),
+      width:width.get(),
+      lineJoinByName: chartOptions.lineJoin,
     });
   }
 

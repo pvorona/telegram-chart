@@ -34,16 +34,6 @@ export const YAxis = (
       );
       context.beginPath();
 
-      // for (
-      //   let currentRealIndex =
-      //     Math.floor(inertStartIndex) +
-      //     factor -
-      //     (Math.floor(inertStartIndex) % factor);
-      //   currentRealIndex < Math.floor(inertStartIndex) + points.length;
-      //   currentRealIndex += factor
-      // ) {
-      // }
-
       for (let i = 1; i <= options.y.ticks; i++) {
         context.moveTo(0, yStep * i * devicePixelRatio);
         context.lineTo(width * devicePixelRatio, yStep * i * devicePixelRatio);

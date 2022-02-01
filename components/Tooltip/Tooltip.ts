@@ -1,6 +1,6 @@
 import { effect, computeLazy, Lambda } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
-import { getTooltipDateText } from "../../util";
+import { floor, getTooltipDateText } from "../../util";
 import { DOT_SIZE, CENTER_OFFSET } from "../constants";
 import { Component, Point } from "../types";
 
@@ -69,12 +69,12 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
             const distance = Math.abs(
               points[options.graphNames[0]][i].x / devicePixelRatio - x
             );
-            const closesDistance = Math.abs(
+            const closestDistance = Math.abs(
               points[options.graphNames[0]][closestPointIndex].x /
                 devicePixelRatio -
                 x
             );
-            if (distance < closesDistance) closestPointIndex = i;
+            if (distance < closestDistance) closestPointIndex = i;
           }
           return closestPointIndex;
         }
@@ -137,7 +137,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
   ) {
     const { x } = points[enabledGraphNames[0]][index];
     tooltipLine.style.transform = `translateX(${(x - 1) / devicePixelRatio}px)`;
-    const dataIndex = index + Math.floor(startIndex);
+    const dataIndex = index + floor(startIndex);
     for (let i = 0; i < enabledGraphNames.length; i++) {
       const { x, y } = points[enabledGraphNames[i]][index];
       tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
@@ -149,7 +149,6 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
       // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
     }
     tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-    // TODO: Force reflow
     tooltip.style.transform = `translateX(${
       x / devicePixelRatio - tooltip.offsetWidth / 2
     }px)`;
