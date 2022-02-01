@@ -1,5 +1,5 @@
 import { effect } from "@pvorona/observable";
-import { renderGraphs } from "../Graphs";
+import { renderLineSeriesWithAreaGradient } from "../renderers";
 import { ChartContext, ChartOptions } from "../../types";
 import { memoizeOne, ensureInBounds, handleDrag } from "../../util";
 import {
@@ -32,10 +32,7 @@ export const Series = (
 ) => {
   const { element, canvas, context } = createDom();
 
-  renderSeries(
-    mainGraphPoints.get(),
-    inertOpacityStateByGraphName.get(),
-  );
+  renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
 
   let wheelTimeoutId: number | undefined = undefined;
 
@@ -45,10 +42,7 @@ export const Series = (
       canvas.width = width * window.devicePixelRatio;
       canvas.height = height * window.devicePixelRatio;
 
-      renderSeries(
-        mainGraphPoints.get(),
-        inertOpacityStateByGraphName.get(),
-      );
+      renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
     },
     { fireImmediately: false }
   );
@@ -70,9 +64,9 @@ export const Series = (
 
   function renderSeries(
     points: { [key: string]: Point[] },
-    opacityState: { [key: string]: number },
+    opacityState: { [key: string]: number }
   ) {
-    renderGraphs({
+    renderLineSeriesWithAreaGradient({
       points,
       opacityState,
       context: context,
@@ -80,6 +74,8 @@ export const Series = (
       lineWidth: chartOptions.lineWidth,
       strokeStyles: chartOptions.colors,
       height: canvasHeight.get(),
+      width: width.get(),
+      lineJoinByName: chartOptions.lineJoin,
     });
   }
 

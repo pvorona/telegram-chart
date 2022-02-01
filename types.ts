@@ -62,6 +62,9 @@ export interface ChartOptions {
     backgroundColor: string;
     color: string;
   };
+  lineJoin: {
+    [series: string]: CanvasLineJoin;
+  };
 }
 
 // type Series = {

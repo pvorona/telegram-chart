@@ -1,7 +1,7 @@
 import { effect, computeLazy, Lambda } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
 import { getTooltipDateText } from "../../util";
-import { DOT_SIZE, CENTER_OFFSET } from "../constants";
+import { DOT_SIZE, CENTER_OFFSET as DOT_CENTER_OFFSET } from "../constants";
 import { Component, Point } from "../types";
 
 export const Tooltip: Component<ChartOptions, ChartContext> = (
@@ -136,29 +136,28 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     startIndex: number
   ) {
     const { x } = points[enabledGraphNames[0]][index];
-    tooltipLine.style.transform = `translateX(${(x - 1) / devicePixelRatio}px)`;
+    tooltipLine.style.transform = `translateX(${x / devicePixelRatio}px)`;
     const dataIndex = index + Math.floor(startIndex);
     for (let i = 0; i < enabledGraphNames.length; i++) {
       const { x, y } = points[enabledGraphNames[i]][index];
       tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
-        x / devicePixelRatio + CENTER_OFFSET
-      }px) translateY(${y / devicePixelRatio + CENTER_OFFSET}px)`;
+        x / devicePixelRatio + DOT_CENTER_OFFSET
+      }px) translateY(${y / devicePixelRatio + DOT_CENTER_OFFSET}px)`;
       tooltipValues[enabledGraphNames[i]].innerText = String(
         options.data[enabledGraphNames[i]][dataIndex]
       );
       // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
     }
     tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-    // TODO: Force reflow
-    tooltip.style.transform = `translateX(${
-      x / devicePixelRatio - tooltip.offsetWidth / 2
-    }px)`;
+    tooltip.style.transform = `translateX(calc(${
+      x / devicePixelRatio
+    }px - 50%))`;
   }
 
   function createDOM() {
     const tooltip = document.createElement("div");
-    tooltip.style.backgroundColor = options.tooltip.backgroundColor
-    tooltip.style.color = options.tooltip.color
+    tooltip.style.backgroundColor = options.tooltip.backgroundColor;
+    tooltip.style.color = options.tooltip.color;
     tooltip.className = "tooltip";
 
     const tooltipDate = document.createElement("div");
@@ -166,7 +165,7 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     tooltip.appendChild(tooltipDate);
 
     const tooltipLegendContainer = document.createElement("div");
-    tooltipLegendContainer.className = "tooltip__legend";    
+    tooltipLegendContainer.className = "tooltip__legend";
     tooltip.appendChild(tooltipLegendContainer);
 
     const tooltipValues: { [key: string]: HTMLDivElement } = {};
