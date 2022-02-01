@@ -26,7 +26,7 @@ import { Point, Component } from "../types";
 import { createGraphs } from "../Chart/createGraphs";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
-const minimalPixelsBetweenResizers = 10;
+const minimalPixelsBetweenResizeHandlers = 10;
 
 export const Overview: Component<ChartOptions, ChartContext> = (
   options,
@@ -165,8 +165,8 @@ export const Overview: Component<ChartOptions, ChartContext> = (
 
   const {
     element,
-    resizerLeft,
-    resizerRight,
+    leftResizeHandler,
+    rightResizeHandler,
     viewBoxElement,
     graphs,
     leftSide,
@@ -228,7 +228,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
 
   const boundingRect = element.getBoundingClientRect(); // Does not work: capturing geometry before mounting
 
-  let cursorResizerDelta = 0;
+  let cursorResizeHandlerDelta = 0;
 
   leftSide.addEventListener("mousedown", onLeftSideClick);
   rightSide.addEventListener("mousedown", onRightSideClick);
@@ -261,15 +261,15 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     right.set(newRight);
   }
 
-  handleDrag(resizerLeft, {
-    onDragStart: onLeftResizerMouseDown,
-    onDragMove: onLeftResizerMouseMove,
-    onDragEnd: removeLeftResizerListener,
+  handleDrag(leftResizeHandler, {
+    onDragStart: onLeftResizeHandlerMouseDown,
+    onDragMove: onLeftResizeHandlerMouseMove,
+    onDragEnd: onDragEnd,
   });
-  handleDrag(resizerRight, {
-    onDragStart: onRightResizerMouseDown,
-    onDragMove: onRightResizerMouseMove,
-    onDragEnd: removeRightResizerListener,
+  handleDrag(rightResizeHandler, {
+    onDragStart: onRightResizeHandlerMouseDown,
+    onDragMove: onRightResizeHandlerMouseMove,
+    onDragEnd: onDragEnd,
   });
   handleDrag(viewBoxElement, {
     onDragStart: onViewBoxElementMouseDown,
@@ -277,33 +277,32 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     onDragEnd: onViewBoxElementMouseUp,
   });
 
-  function onLeftResizerMouseDown(e: MouseEvent) {
+  function onLeftResizeHandlerMouseDown(e: MouseEvent) {
     isDragging.set(true);
     activeCursor.set(cursor.resize);
-    cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
+    cursorResizeHandlerDelta = getX(e) - (left.get() - boundingRect.left);
   }
 
-  function removeLeftResizerListener() {
+  function onDragEnd() {
     isDragging.set(false);
     activeCursor.set(cursor.default);
   }
 
-  function onLeftResizerMouseMove(e: MouseEvent) {
-    const leftVar = ensureInOverviewBounds(getX(e) - cursorResizerDelta);
+  function onLeftResizeHandlerMouseMove(e: MouseEvent) {
+    const leftVar = ensureInOverviewBounds(getX(e) - cursorResizeHandlerDelta);
     left.set(
-      ensureInBounds(leftVar, 0, right.get() - minimalPixelsBetweenResizers)
+      ensureInBounds(
+        leftVar,
+        0,
+        right.get() - minimalPixelsBetweenResizeHandlers
+      )
     );
   }
 
-  function onRightResizerMouseDown(e: MouseEvent) {
-    cursorResizerDelta = getX(e) - (right.get() - boundingRect.left);
+  function onRightResizeHandlerMouseDown(e: MouseEvent) {
+    cursorResizeHandlerDelta = getX(e) - (right.get() - boundingRect.left);
     isDragging.set(true);
     activeCursor.set(cursor.resize);
-  }
-
-  function removeRightResizerListener() {
-    isDragging.set(false);
-    activeCursor.set(cursor.default);
   }
 
   function ensureInOverviewBounds(x: number) {
@@ -311,7 +310,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
   }
 
   function onViewBoxElementMouseDown(e: MouseEvent) {
-    cursorResizerDelta = getX(e) - (left.get() - boundingRect.left);
+    cursorResizeHandlerDelta = getX(e) - (left.get() - boundingRect.left);
     isDragging.set(true);
     activeCursor.set(cursor.grabbing);
   }
@@ -323,18 +322,18 @@ export const Overview: Component<ChartOptions, ChartContext> = (
 
   function onViewBoxElementMouseMove(e: MouseEvent) {
     const widthVar = right.get() - left.get();
-    const nextLeft = getX(e) - cursorResizerDelta;
+    const nextLeft = getX(e) - cursorResizeHandlerDelta;
     const stateLeft = ensureInBounds(nextLeft, 0, width.get() - widthVar);
     left.set(stateLeft);
     right.set(stateLeft + widthVar);
   }
 
-  function onRightResizerMouseMove(e: MouseEvent) {
-    const rightVar = ensureInOverviewBounds(getX(e) - cursorResizerDelta);
+  function onRightResizeHandlerMouseMove(e: MouseEvent) {
+    const rightVar = ensureInOverviewBounds(getX(e) - cursorResizeHandlerDelta);
     right.set(
       ensureInBounds(
         rightVar,
-        left.get() + minimalPixelsBetweenResizers,
+        left.get() + minimalPixelsBetweenResizeHandlers,
         rightVar
       )
     );
@@ -385,12 +384,14 @@ function createDom({
   element.className = containerClassName;
   element.style.height = `${height}px`;
   // element.style.padding = `${2}px 0`;
-  const resizerLeft = document.createElement("div");
-  resizerLeft.style.backgroundColor = edgeColor;
-  resizerLeft.className = "overview__resizer overview__resizer--left";
-  const resizerRight = document.createElement("div");
-  resizerRight.style.backgroundColor = edgeColor;
-  resizerRight.className = "overview__resizer overview__resizer--right";
+  const leftResizeHandler = document.createElement("div");
+  leftResizeHandler.style.backgroundColor = edgeColor;
+  leftResizeHandler.className =
+    "overview__resize-handler overview__resize-handler--left";
+  const rightResizeHandler = document.createElement("div");
+  rightResizeHandler.style.backgroundColor = edgeColor;
+  rightResizeHandler.className =
+    "overview__resize-handler overview__resize-handler--right";
   const viewBoxElement = document.createElement("div");
   viewBoxElement.style.borderColor = edgeColor;
   viewBoxElement.className = "overview__viewbox";
@@ -404,8 +405,8 @@ function createDom({
 
   viewBoxElement.appendChild(leftSide);
   viewBoxElement.appendChild(rightSide);
-  viewBoxElement.appendChild(resizerLeft);
-  viewBoxElement.appendChild(resizerRight);
+  viewBoxElement.appendChild(leftResizeHandler);
+  viewBoxElement.appendChild(rightResizeHandler);
 
   const graphs = createGraphs({
     width,
@@ -420,16 +421,16 @@ function createDom({
   //   <div ref="element" class="overview" style="height: ${height}px">
   //     ${withRef('graphs', createGraphs({ width, height }))}
   //     <div ref="viewbox" class="overview__viewbox">
-  //       <div ref="resizerLeft" class="overview__resizer overview__resizer--left"></div>
-  //       <div ref="resizerRight" class="overview__resizer overview__resizer--right"></div>
+  //       <div ref="resizerLeft" class="overview__resize-handler overview__resize-handler--left"></div>
+  //       <div ref="resizerRight" class="overview__resize-handler overview__resize-handler--right"></div>
   //     </div>
   //   </div>
   // `;
 
   return {
     element,
-    resizerLeft,
-    resizerRight,
+    leftResizeHandler,
+    rightResizeHandler,
     viewBoxElement,
     graphs,
     leftSide,

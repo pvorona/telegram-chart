@@ -1,4 +1,4 @@
-.overview__resizer {
+.overview__resize-handler {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -9,10 +9,10 @@
   cursor: ew-resize;
 }
 
-.overview__resizer--left {
+.overview__resize-handler--left {
   left: -10px;
 }
 
-.overview__resizer--right {
+.overview__resize-handler--right {
   right: -10px;
 }
