@@ -1,8 +1,11 @@
 import { effect, observable, observe } from "@pvorona/observable";
-import { ChartContext, ChartOptions } from "../../types";
-import { handleDrag, ensureInBounds, areNumbersClose } from "../../util";
-import { cursor } from "../constants";
-import { Component } from "../types";
+import { ChartContext, ChartOptions } from "../../../types";
+import { handleDrag, ensureInBounds, areNumbersClose } from "../../../util";
+import { cursor } from "../../constants";
+import { Component } from "../../types";
+
+import "./overview-resize-handler.css";
+import "./overview-viewbox.css";
 
 const minimalPixelsBetweenResizeHandlers = 10;
 

@@ -1,7 +1,9 @@
-import { ChartContext, ChartOptions } from "../../types";
-import { Component } from "../types";
-import { OverviewGraphs } from "./OverviewGraphs";
-import { RangeSlider } from "./RangeSlider";
+import { ChartContext, ChartOptions } from "../../../types";
+import { Component } from "../../types";
+import { Graphs } from "../Graphs";
+import { RangeSlider } from "../RangeSlider";
+
+import "./overview.css";
 
 export const Overview: Component<ChartOptions, ChartContext> = (
   options,
@@ -18,7 +20,7 @@ export const Overview: Component<ChartOptions, ChartContext> = (
     element.className = containerClassName;
     element.style.height = `${options.overview.height}px`;
 
-    const graphs = OverviewGraphs(options, context);
+    const graphs = Graphs(options, context);
     const rangeSlider = RangeSlider(options, context);
 
     element.appendChild(graphs.element);

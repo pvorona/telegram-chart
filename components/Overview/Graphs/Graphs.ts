@@ -6,17 +6,17 @@ import {
   observe,
   transition,
 } from "@pvorona/observable";
-import { renderLineSeriesWithAreaGradient } from "../renderers";
-import { ChartContext, ChartOptions } from "../../types";
-import { easeInOutQuart, linear } from "../../easings";
-import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
-import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../constants";
-import { Point, Component } from "../types";
-import { createGraphs } from "../Chart/createGraphs";
+import { renderLineSeriesWithAreaGradient } from "../../renderers";
+import { ChartContext, ChartOptions } from "../../../types";
+import { easeInOutQuart, linear } from "../../../easings";
+import { mapDataToCoords, getMaxValue, getMinValue } from "../../../util";
+import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
+import { Point, Component } from "../../types";
+import { createGraphs } from "../../Chart/createGraphs";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
-export const OverviewGraphs: Component<ChartOptions, ChartContext> = (
+export const Graphs: Component<ChartOptions, ChartContext> = (
   options,
   context
 ) => {

@@ -10,7 +10,6 @@
   transition: border-color 0.3s ease-in-out;
 }
 
-
 .overview__left,
 .overview__right {
   content: " ";
@@ -27,16 +26,4 @@
 
 .overview__right {
   left: 100%;
-}
-
-.theme-light .overview__left,
-.theme-light .overview__right {
-  background-color: hsla(197, 47%, 97%, 0.8);
-}
-
-.theme-dark .overview__left,
-.theme-dark .overview__right {
-  background-color: hsla(214, 30%, 14%, 0.7);
-  background-color: hsla(240, 5%, 10%, 0.7);
-  background-color: var(--overview-backdrop-cl);
 }
