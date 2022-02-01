@@ -15,6 +15,7 @@ import {
   getMaxValue,
   getMinValue,
   ensureInBounds,
+  areNumbersClose,
 } from "../../util";
 import {
   cursor,
@@ -434,8 +435,4 @@ function createDom({
     leftSide,
     rightSide,
   };
-}
-
-function areNumbersClose(a: number, b: number, epsilon = 1e-3) {
-  return Math.abs(a - b) <= epsilon;
 }
