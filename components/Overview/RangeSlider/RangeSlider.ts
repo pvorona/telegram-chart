@@ -1,7 +1,13 @@
 import { effect, observable, observe } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../../types";
 import { handleDrag, ensureInBounds, areNumbersClose } from "../../../util";
-import { cursor } from "../../constants";
+import {
+  cursor,
+  DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
+  MIN_VIEWBOX,
+  WHEEL_CLEAR_TIMEOUT,
+  WHEEL_MULTIPLIER,
+} from "../../constants";
 import { Component } from "../../types";
 
 import "./overview-resize-handler.css";
@@ -13,7 +19,8 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   options,
   context
 ) => {
-  const { startIndex, endIndex, width, isDragging, activeCursor } = context;
+  const { startIndex, endIndex, width, isDragging, activeCursor, isWheeling } =
+    context;
 
   const {
     viewBoxElement,
@@ -125,6 +132,8 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
     onDragEnd: onViewBoxElementMouseUp,
   });
 
+  viewBoxElement.addEventListener("wheel", onWheel);
+
   function onLeftResizeHandlerMouseDown(event: MouseEvent) {
     isDragging.set(true);
     activeCursor.set(cursor.resize);
@@ -192,6 +201,103 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
         rightVar
       )
     );
+  }
+
+  let wheelTimeoutId: undefined | number;
+
+  // Exact copy of Series#onWheel
+  function onWheel(e: WheelEvent) {
+    e.preventDefault();
+    isWheeling.set(true);
+    if (wheelTimeoutId) {
+      clearTimeout(wheelTimeoutId);
+    }
+    wheelTimeoutId = window.setTimeout(function stopWheel() {
+      isWheeling.set(false);
+    }, WHEEL_CLEAR_TIMEOUT);
+
+    const angle = (Math.atan(e.deltaY / e.deltaX) * 180) / Math.PI;
+
+    const viewBoxWidth = endIndex.get() - startIndex.get();
+    const dynamicFactor = (viewBoxWidth / MIN_VIEWBOX) * WHEEL_MULTIPLIER;
+
+    if (
+      (angle < -(90 - DEVIATION_FROM_STRAIGHT_LINE_DEGREES) && angle >= -90) || // top right, bottom left
+      (angle > 90 - DEVIATION_FROM_STRAIGHT_LINE_DEGREES && angle <= 90) // top left, bottom right
+    ) {
+      const deltaY = e.deltaY;
+
+      if (
+        deltaY < 0 &&
+        endIndex.get() -
+          startIndex.get() -
+          2 * Math.abs(deltaY * dynamicFactor) <
+          MIN_VIEWBOX
+      ) {
+        const center = (endIndex.get() + startIndex.get()) / 2;
+        startIndex.set(
+          ensureInBounds(
+            center - MIN_VIEWBOX / 2,
+            0,
+            options.total - 1 - MIN_VIEWBOX
+          )
+        );
+        endIndex.set(
+          ensureInBounds(
+            center + MIN_VIEWBOX / 2,
+            MIN_VIEWBOX,
+            options.total - 1
+          )
+        );
+      } else {
+        startIndex.set(
+          ensureInBounds(
+            startIndex.get() - deltaY * dynamicFactor,
+            0,
+            options.total - 1 - MIN_VIEWBOX
+          )
+        );
+        endIndex.set(
+          ensureInBounds(
+            endIndex.get() + deltaY * dynamicFactor,
+            startIndex.get() + MIN_VIEWBOX,
+            options.total - 1
+          )
+        );
+      }
+    } else if (
+      angle >= -DEVIATION_FROM_STRAIGHT_LINE_DEGREES &&
+      angle <= DEVIATION_FROM_STRAIGHT_LINE_DEGREES // left, right
+    ) {
+      startIndex.set(
+        ensureInBounds(
+          startIndex.get() + e.deltaX * dynamicFactor,
+          0,
+          options.total - 1 - viewBoxWidth
+        )
+      );
+      endIndex.set(
+        ensureInBounds(
+          startIndex.get() + viewBoxWidth,
+          MIN_VIEWBOX,
+          options.total - 1
+        )
+      );
+    } else {
+      // if (
+      //   (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
+      //   || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
+      // ) {
+      //   if (
+      //     (e.deltaX <= 0 && e.deltaY <= 0)
+      //     || (e.deltaX > 0 && e.deltaY > 0)
+      //   ) {
+      //     left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
+      //   } else {
+      //     right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
+      //   }
+      // }
+    }
   }
 
   return { element: viewBoxElement };
