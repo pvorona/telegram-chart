@@ -41,7 +41,7 @@ export const ChartContext = (options: ChartOptions) => {
     options.graphNames.reduce(
       (state, graphName) => ({
         ...state,
-        [graphName]: true,
+        [graphName]: options.visibility[graphName],
       }),
       {} as EnabledGraphNames
     )
@@ -147,7 +147,7 @@ export const ChartContext = (options: ChartOptions) => {
       options.graphNames.reduce(
         (state, graphName) => ({
           ...state,
-          [graphName]: transition(1, LONG_TRANSITIONS_TIME, easeInOutQuart),
+          [graphName]: transition(opacityStateByGraphName.get()[graphName], LONG_TRANSITIONS_TIME, easeInOutQuart),
         }),
         {} as { [key: string]: Transition<number> }
       )

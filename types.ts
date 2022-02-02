@@ -52,7 +52,7 @@ export interface ChartOptions {
   colors: { [key: string]: string };
   data: Data;
   total: number;
-  visibilityState: VisibilityState;
+  visibility: VisibilityState;
   viewBox: {
     startIndex: number;
     endIndex: number;

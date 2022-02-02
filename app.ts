@@ -179,7 +179,7 @@ async function startApp() {
         },
         colors: { A: theme.series[0], B: theme.series[1] },
         total: data1.length,
-        visibilityState: {
+        visibility: {
           A: true,
           B: true,
         },
