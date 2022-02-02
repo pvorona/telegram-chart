@@ -1,3 +1,5 @@
+import { CssPixel } from "../../types";
+import { cssToBitMap } from "../../util/cssToBitMap";
 import "./Graphs.css";
 
 export function createGraphs({
@@ -6,10 +8,10 @@ export function createGraphs({
   containerHeight,
   containerMinHeight,
 }: {
-  width: number;
-  height: number;
-  containerHeight?: number;
-  containerMinHeight?: number;
+  width: CssPixel;
+  height: CssPixel;
+  containerHeight?: CssPixel;
+  containerMinHeight?: CssPixel;
 }) {
   const containerClassName = "graphs";
   const element = document.createElement("div");
@@ -22,8 +24,8 @@ export function createGraphs({
   canvas.style.position = "absolute";
   canvas.style.width = `100%`;
   canvas.style.height = `100%`;
-  canvas.width = width * devicePixelRatio;
-  canvas.height = height * devicePixelRatio;
+  canvas.width = cssToBitMap(width);
+  canvas.height = cssToBitMap(height);
   const context = canvas.getContext("2d") as CanvasRenderingContext2D;
   element.appendChild(canvas);
 

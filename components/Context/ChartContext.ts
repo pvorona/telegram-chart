@@ -9,7 +9,7 @@ import {
   Transition,
   resetWhenInactive,
 } from "@pvorona/observable";
-import { ChartOptions } from "../../types";
+import { ChartOptions, CssPixel } from "../../types";
 import {
   Cursor,
   cursor,
@@ -24,12 +24,12 @@ import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
 export const ChartContext = (options: ChartOptions) => {
-  const width = observable(options.width);
-  const height = observable(options.height);
-  const canvasHeight = observable(computeCanvasHeight(height.get()));
+  const width = observable(options.width as CssPixel);
+  const height = observable(options.height as CssPixel);
+  const canvasHeight = observable(computeCanvasHeight(height.get()) as CssPixel);
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
-  const mouseX = observable(0);
+  const mouseX = observable(0 as CssPixel);
   const isHovering = observable(false);
   const isDragging = observable(false);
   const isWheeling = resetWhenInactive({ delay: WHEEL_CLEAR_TIMEOUT })(
@@ -57,7 +57,7 @@ export const ChartContext = (options: ChartOptions) => {
         options.x.marginBottom -
         options.x.marginTop,
       MIN_HEIGHT
-    );
+    ) as CssPixel;
   }
 
   observe([height], (height) => {
@@ -180,11 +180,11 @@ export const ChartContext = (options: ChartOptions) => {
             max,
             min,
             {
-              width: width * devicePixelRatio,
-              height: canvasHeight * devicePixelRatio,
+              width: (width),
+              height: (canvasHeight),
             },
             { startIndex, endIndex },
-            options.lineWidth * devicePixelRatio
+            (options.lineWidth as CssPixel)
           ),
         }),
         {} as { [key: string]: Point[] }

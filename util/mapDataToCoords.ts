@@ -1,4 +1,5 @@
 import { Point } from "../components/types";
+import { CssPixel } from "../types";
 import { interpolate, interpolatePoint } from "./interpolatePoint";
 import { ceil } from "./math";
 
@@ -7,23 +8,16 @@ export function mapDataToCoords(
   domain: number[],
   max: number,
   min: number,
-  { width, height: availableHeight }: { width: number; height: number },
+  { width, height: availableHeight }: { width: CssPixel; height: CssPixel },
   { startIndex, endIndex }: { startIndex: number; endIndex: number },
-  lineWidth: number,
-  offsetBottom: number | undefined = 0
+  lineWidth: CssPixel
 ): Point[] {
-  const height = availableHeight - lineWidth * 2;
+  const height = (availableHeight - lineWidth * 2) as CssPixel;
   const coords: Point[] = [];
 
   if (!Number.isInteger(startIndex)) {
-    const x = 0;
-    const y = toScreenY(
-      data,
-      min,
-      max,
-      lineWidth + height - offsetBottom,
-      startIndex
-    );
+    const x = 0 as CssPixel;
+    const y = toScreenY(data, min, max, height, startIndex);
 
     coords.push({ x, y });
   }
@@ -34,26 +28,14 @@ export function mapDataToCoords(
     currentIndex++
   ) {
     const x = toScreenX(domain, width, startIndex, endIndex, currentIndex);
-    const y = toScreenY(
-      data,
-      min,
-      max,
-      lineWidth + height - offsetBottom,
-      currentIndex
-    );
+    const y = toScreenY(data, min, max, height, currentIndex);
 
     coords.push({ x, y });
   }
 
   if (!Number.isInteger(endIndex)) {
-    const x = Math.floor(width);
-    const y = toScreenY(
-      data,
-      min,
-      max,
-      lineWidth + height - offsetBottom,
-      endIndex
-    );
+    const x = width as CssPixel;
+    const y = toScreenY(data, min, max, height, endIndex);
 
     coords.push({ x, y });
   }
@@ -75,7 +57,7 @@ function getX(domain: number[], index: number): number {
 
 export function toScreenX(
   xs: number[],
-  width: number,
+  width: CssPixel,
   startIndex: number,
   endIndex: number,
   currentIndex: number
@@ -83,7 +65,7 @@ export function toScreenX(
   return interpolate(
     getX(xs, startIndex),
     getX(xs, endIndex),
-    0,
+    0 as CssPixel,
     width,
     getX(xs, currentIndex)
   );
@@ -93,8 +75,14 @@ export function toScreenY(
   ys: number[],
   min: number,
   max: number,
-  height: number,
+  height: CssPixel,
   currentIndex: number
 ) {
-  return interpolate(max, min, 0, height, interpolatePoint(currentIndex, ys));
+  return interpolate(
+    max,
+    min,
+    0 as CssPixel,
+    height,
+    interpolatePoint(currentIndex, ys)
+  );
 }

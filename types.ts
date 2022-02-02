@@ -97,4 +97,11 @@ export interface ChartOptions {
 //   lineStyle?: LineStyle
 // };
 
+export type Nominal<Source, Label extends string> = Source & {
+  __kind__: Label;
+};
+
+export type CssPixel = Nominal<number, "CssPixel">;
+export type BitMapPixel = Nominal<number, "BitMapPixel">;
+
 export type ChartContext = ReturnType<typeof ChartContext>;

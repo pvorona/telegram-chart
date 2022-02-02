@@ -1,5 +1,5 @@
 import { Controls } from "../Controls";
-import { ChartOptions } from "../../types";
+import { ChartOptions, CssPixel } from "../../types";
 import { Overview } from "../Overview";
 import { XAxis } from "../XAxis";
 // import { YAxis } from "../YAxisV2";
@@ -14,8 +14,8 @@ export const Chart = (options: ChartOptions) => {
   const { element } = createDom();
 
   const resizeListener = createScheduleTaskWithCleanup(function measureSize() {
-    width.set(element.offsetWidth);
-    height.set(element.offsetHeight);
+    width.set(element.offsetWidth as CssPixel);
+    height.set(element.offsetHeight as CssPixel);
   }, PRIORITY.READ);
 
   window.addEventListener("resize", resizeListener);

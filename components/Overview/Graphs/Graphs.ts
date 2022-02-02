@@ -7,12 +7,13 @@ import {
   transition,
 } from "@pvorona/observable";
 import { renderLineSeriesWithAreaGradient } from "../../renderers";
-import { ChartContext, ChartOptions } from "../../../types";
+import { ChartContext, ChartOptions, CssPixel } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
 import { mapDataToCoords, getMaxValue, getMinValue } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
+import { cssToBitMap } from "../../../util/cssToBitMap";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
@@ -28,8 +29,8 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     inertOpacityStateByGraphName,
   } = context;
 
-  const canvasCssHeight =
-    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
+  const canvasCssHeight = (options.overview.height -
+    2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH) as CssPixel;
 
   const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
     if (enabledGraphNames.length === 0) return prevOverallMax.get();
@@ -77,11 +78,11 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
             inertOverallMax,
             inertOverallMin,
             {
-              width: width * devicePixelRatio,
-              height: canvasCssHeight * devicePixelRatio,
+              width: width,
+              height: canvasCssHeight,
             },
             { startIndex: 0, endIndex: options.total - 1 },
-            options.lineWidth * devicePixelRatio
+            options.lineWidth as CssPixel
           ),
         }),
         {} as { [key: string]: Point[] }
@@ -110,8 +111,8 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   const graphs = createDOM();
 
   effect([width], (width) => {
-    graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = canvasCssHeight * window.devicePixelRatio;
+    graphs.canvas.width = cssToBitMap(width);
+    graphs.canvas.height = cssToBitMap(canvasCssHeight);
 
     updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
@@ -122,8 +123,8 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
       graphs.context.clearRect(
         0,
         0,
-        width.get() * devicePixelRatio,
-        canvasCssHeight * devicePixelRatio
+        cssToBitMap(width.get()),
+        cssToBitMap(canvasCssHeight)
       );
 
       updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
@@ -139,7 +140,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
       points: overviewGraphPoints,
       context: graphs.context,
       graphNames: options.graphNames,
-      lineWidth: options.overview.lineWidth,
+      lineWidth: options.overview.lineWidth as CssPixel,
       strokeStyles: options.colors,
       height: canvasCssHeight,
       width: width.get(),

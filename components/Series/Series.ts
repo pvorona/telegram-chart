@@ -1,7 +1,12 @@
 import { effect } from "@pvorona/observable";
 import { renderLineSeriesWithAreaGradient } from "../renderers";
-import { ChartContext, ChartOptions } from "../../types";
-import { memoizeOne, ensureInBounds, handleDrag } from "../../util";
+import {
+  ChartContext,
+  ChartOptions,
+  CssPixel,
+  CssPixel as CSSPixel,
+} from "../../types";
+import { ensureInBounds, handleDrag } from "../../util";
 import {
   MIN_VIEWBOX,
   WHEEL_MULTIPLIER,
@@ -12,9 +17,10 @@ import {
 import { Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
 import { interpolate } from "../../util/interpolatePoint";
+import { cssToBitMap } from "../../util/cssToBitMap";
 
 export const Series = (
-  chartOptions: ChartOptions,
+  options: ChartOptions,
   {
     width,
     mainGraphPoints,
@@ -36,8 +42,8 @@ export const Series = (
   effect(
     [width, canvasHeight],
     (width, height) => {
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
+      canvas.width = cssToBitMap(width);
+      canvas.height = cssToBitMap(height);
 
       renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
     },
@@ -50,8 +56,8 @@ export const Series = (
       context.clearRect(
         0,
         0,
-        width.get() * devicePixelRatio,
-        canvasHeight.get() * devicePixelRatio
+        cssToBitMap(width.get()),
+        cssToBitMap(canvasHeight.get())
       );
 
       renderSeries(mainGraphPoints, inertOpacityStateByGraphName);
@@ -67,12 +73,12 @@ export const Series = (
       points,
       opacityState,
       context: context,
-      graphNames: chartOptions.graphNames,
-      lineWidth: chartOptions.lineWidth,
-      strokeStyles: chartOptions.colors,
+      graphNames: options.graphNames,
+      lineWidth: options.lineWidth as CssPixel,
+      strokeStyles: options.colors,
       height: canvasHeight.get(),
       width: width.get(),
-      lineJoinByName: chartOptions.lineJoin,
+      lineJoinByName: options.lineJoin,
     });
   }
 
@@ -86,18 +92,18 @@ export const Series = (
 
   initDragListeners();
 
-  const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect() {
-    return element.getBoundingClientRect();
-  });
+  // const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect() {
+  //   return element.getBoundingClientRect();
+  // });
 
   return { element };
 
   function createDom() {
     return createGraphs({
-      width: chartOptions.width,
+      width: options.width as CSSPixel,
       height: canvasHeight.get(),
       containerHeight: canvasHeight.get(),
-      containerMinHeight: MIN_HEIGHT,
+      containerMinHeight: MIN_HEIGHT as CSSPixel,
     });
   }
 
@@ -106,13 +112,14 @@ export const Series = (
 
     element.addEventListener("mouseenter", function (e) {
       isHovering.set(true);
-      mouseX.set(e.clientX - getGraphsBoundingRect().left);
+      // mouseX.set(e.clientX - getGraphsBoundingRect().left);
+      mouseX.set(e.clientX as CSSPixel);
     });
     element.addEventListener("mouseleave", function () {
       isHovering.set(false);
     });
     element.addEventListener("mousemove", function (e) {
-      mouseX.set(e.clientX - getGraphsBoundingRect().left);
+      mouseX.set(e.clientX as CSSPixel);
     });
 
     let prevMouseX = 0;
@@ -128,17 +135,13 @@ export const Series = (
       );
 
       startIndex.set(
-        ensureInBounds(
-          newStartIndex,
-          0,
-          chartOptions.total - 1 - visibleIndexRange
-        )
+        ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
       );
       endIndex.set(
         ensureInBounds(
           startIndex.get() + visibleIndexRange,
           0,
-          chartOptions.total - 1
+          options.total - 1
         )
       );
 
@@ -189,14 +192,14 @@ export const Series = (
           ensureInBounds(
             center - MIN_VIEWBOX / 2,
             0,
-            chartOptions.total - 1 - MIN_VIEWBOX
+            options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
           ensureInBounds(
             center + MIN_VIEWBOX / 2,
             MIN_VIEWBOX,
-            chartOptions.total - 1
+            options.total - 1
           )
         );
       } else {
@@ -204,14 +207,14 @@ export const Series = (
           ensureInBounds(
             startIndex.get() - deltaY * dynamicFactor,
             0,
-            chartOptions.total - 1 - MIN_VIEWBOX
+            options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
           ensureInBounds(
             endIndex.get() + deltaY * dynamicFactor,
             startIndex.get() + MIN_VIEWBOX,
-            chartOptions.total - 1
+            options.total - 1
           )
         );
       }
@@ -223,14 +226,14 @@ export const Series = (
         ensureInBounds(
           startIndex.get() + e.deltaX * dynamicFactor,
           0,
-          chartOptions.total - 1 - viewBoxWidth
+          options.total - 1 - viewBoxWidth
         )
       );
       endIndex.set(
         ensureInBounds(
           startIndex.get() + viewBoxWidth,
           MIN_VIEWBOX,
-          chartOptions.total - 1
+          options.total - 1
         )
       );
     } else {
