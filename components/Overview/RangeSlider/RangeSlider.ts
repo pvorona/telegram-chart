@@ -86,10 +86,8 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   rightSide.addEventListener("mousedown", onRightSideClick);
 
   function onLeftSideClick(event: MouseEvent) {
-    // const boundingRect = element.getBoundingClientRect();
     const viewBoxWidth = right.get() - left.get();
     const newLeft = ensureInBounds(
-      // getX(event) - viewBoxWidth / 2 - boundingRect.left,
       event.clientX - viewBoxWidth / 2,
       0,
       width.get()
@@ -101,10 +99,8 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   }
 
   function onRightSideClick(event: MouseEvent) {
-    // const boundingRect = element.getBoundingClientRect();
     const viewBoxWidth = right.get() - left.get();
     const newRight = ensureInBounds(
-      // getX(event) + viewBoxWidth / 2 - boundingRect.left,
       event.clientX + viewBoxWidth / 2,
       0,
       width.get()
@@ -136,7 +132,6 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   function onLeftResizeHandlerMouseDown(event: MouseEvent) {
     isDragging.set(true);
     activeCursor.set(cursor.resize);
-    // cursorResizeHandlerDelta = getX(e) - (left.get() - boundingRect.left);
     cursorResizeHandlerDelta = event.clientX - left.get();
   }
 
@@ -159,7 +154,6 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   }
 
   function onRightResizeHandlerMouseDown(event: MouseEvent) {
-    // cursorResizeHandlerDelta = getX(e) - (right.get() - boundingRect.left);
     cursorResizeHandlerDelta = event.clientX - right.get();
     isDragging.set(true);
     activeCursor.set(cursor.resize);
@@ -170,7 +164,6 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   }
 
   function onViewBoxElementMouseDown(event: MouseEvent) {
-    // cursorResizeHandlerDelta = getX(e) - (left.get() - boundingRect.left);
     cursorResizeHandlerDelta = event.clientX - left.get();
     isDragging.set(true);
     activeCursor.set(cursor.grabbing);
