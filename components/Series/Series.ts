@@ -10,7 +10,7 @@ import {
   MIN_HEIGHT,
 } from "../constants";
 import { Point } from "../types";
-import { createGraphs } from "../Chart/createGraphs";
+import { createGraphs } from "../Graphs/createGraphs";
 import { interpolate } from "../../util/interpolatePoint";
 
 export const Series = (

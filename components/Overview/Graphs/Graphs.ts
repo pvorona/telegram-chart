@@ -12,7 +12,7 @@ import { easeInOutQuart, linear } from "../../../easings";
 import { mapDataToCoords, getMaxValue, getMinValue } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
-import { createGraphs } from "../../Chart/createGraphs";
+import { createGraphs } from "../../Graphs/createGraphs";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 

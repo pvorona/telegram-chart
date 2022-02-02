@@ -1,3 +1,5 @@
+import "./Graphs.css";
+
 export function createGraphs({
   width,
   height,
@@ -11,7 +13,9 @@ export function createGraphs({
 }) {
   const containerClassName = "graphs";
   const element = document.createElement("div");
-  element.style.height = containerHeight ? `${containerHeight}px` : `${height}px`;
+  element.style.height = containerHeight
+    ? `${containerHeight}px`
+    : `${height}px`;
   if (containerMinHeight) element.style.minHeight = `${containerMinHeight}px`;
   element.className = containerClassName;
   const canvas = document.createElement("canvas");
