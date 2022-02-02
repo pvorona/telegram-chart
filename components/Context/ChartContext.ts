@@ -7,6 +7,7 @@ import {
   transition,
   groupTransition,
   Transition,
+  resetWhenInactive,
 } from "@pvorona/observable";
 import { ChartOptions } from "../../types";
 import {
@@ -16,6 +17,7 @@ import {
   LONG_TRANSITIONS_TIME,
   MIN_HEIGHT,
   VERY_FAST_TRANSITIONS_TIME,
+  WHEEL_CLEAR_TIMEOUT,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
@@ -30,7 +32,9 @@ export const ChartContext = (options: ChartOptions) => {
   const mouseX = observable(0);
   const isHovering = observable(false);
   const isDragging = observable(false);
-  const isWheeling = observable(false);
+  const isWheeling = resetWhenInactive({ delay: WHEEL_CLEAR_TIMEOUT })(
+    observable(false)
+  );
   const isGrabbingGraphs = observable(false);
   const activeCursor = observable<Cursor>(cursor.default);
   const enabledStateByGraphName = observable(

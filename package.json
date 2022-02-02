@@ -14,7 +14,7 @@
     "typescript": "4.5.5"
   },
   "dependencies": {
-    "@pvorona/observable": "2.0.7",
+    "@pvorona/observable": "2.0.8",
     "@pvorona/scheduling": "0.0.3"
   }
 }

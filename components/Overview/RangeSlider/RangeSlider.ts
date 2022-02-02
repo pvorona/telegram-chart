@@ -5,7 +5,6 @@ import {
   cursor,
   DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
   MIN_VIEWBOX,
-  WHEEL_CLEAR_TIMEOUT,
   WHEEL_MULTIPLIER,
 } from "../../constants";
 import { Component } from "../../types";
@@ -203,18 +202,10 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
     );
   }
 
-  let wheelTimeoutId: undefined | number;
-
   // Exact copy of Series#onWheel
   function onWheel(e: WheelEvent) {
     e.preventDefault();
     isWheeling.set(true);
-    if (wheelTimeoutId) {
-      clearTimeout(wheelTimeoutId);
-    }
-    wheelTimeoutId = window.setTimeout(function stopWheel() {
-      isWheeling.set(false);
-    }, WHEEL_CLEAR_TIMEOUT);
 
     const angle = (Math.atan(e.deltaY / e.deltaX) * 180) / Math.PI;
 

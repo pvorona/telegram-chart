@@ -4,7 +4,6 @@ import { ChartContext, ChartOptions } from "../../types";
 import { memoizeOne, ensureInBounds, handleDrag } from "../../util";
 import {
   MIN_VIEWBOX,
-  WHEEL_CLEAR_TIMEOUT,
   WHEEL_MULTIPLIER,
   DEVIATION_FROM_STRAIGHT_LINE_DEGREES,
   cursor,
@@ -33,8 +32,6 @@ export const Series = (
   const { element, canvas, context } = createDom();
 
   renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
-
-  let wheelTimeoutId: number | undefined = undefined;
 
   effect(
     [width, canvasHeight],
@@ -168,12 +165,6 @@ export const Series = (
   function onWheel(e: WheelEvent) {
     e.preventDefault();
     isWheeling.set(true);
-    if (wheelTimeoutId) {
-      clearTimeout(wheelTimeoutId);
-    }
-    wheelTimeoutId = window.setTimeout(function stopWheel() {
-      isWheeling.set(false);
-    }, WHEEL_CLEAR_TIMEOUT);
 
     const angle = (Math.atan(e.deltaY / e.deltaX) * 180) / Math.PI;
 
