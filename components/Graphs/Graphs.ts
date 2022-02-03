@@ -5,38 +5,61 @@ import {
   observable,
   observe,
   transition,
+  Observable,
+  Gettable,
 } from "@pvorona/observable";
-import { renderLineSeriesWithAreaGradient } from "../../renderers";
-import { ChartContext, ChartOptions } from "../../../types";
-import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, getMaxValue, getMinValue } from "../../../util";
-import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
-import { Point, Component } from "../../types";
-import { createGraphs } from "../../Graphs/createGraphs";
+import { easeInOutQuart, linear } from "../../easings";
+import { getMaxValue, getMinValue, mapDataToCoords } from "../../util";
+import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../constants";
+import { createGraphs } from ".";
+import { renderLineSeriesWithAreaGradient } from "../renderers";
+import { Point } from "../types";
 
-const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
+type Inputs = {
+  width: Observable<number> & Gettable<number>;
+  height: Observable<number> & Gettable<number>;
+  isDragging: Observable<boolean> & Gettable<boolean>;
+  isWheeling: Observable<boolean> & Gettable<boolean>;
+  enabledGraphNames: Observable<string[]> & Gettable<string[]>;
+  inertOpacityStateByGraphName: Observable<{ [key: string]: number }> &
+    Gettable<{ [key: string]: number }>;
+  graphNames: string[];
+  domain: number[];
+  data: { [key: string]: number[] };
+  lineWidth: number;
+  lineJoinByName: { [key: string]: CanvasLineJoin };
+  colors: { [key: string]: string };
 
-export const Graphs: Component<ChartOptions, ChartContext> = (
-  options,
-  context
-) => {
+  startIndex: Observable<number> & Gettable<number>;
+  endIndex: Observable<number> & Gettable<number>;
+};
+
+export const Graphs = (options: Inputs) => {
   const {
+    width,
+    height,
+    lineWidth,
+    lineJoinByName,
     isDragging,
     isWheeling,
-    width,
     enabledGraphNames,
     inertOpacityStateByGraphName,
-  } = context;
+    graphNames,
+    domain,
+    data,
+    colors,
+    startIndex,
+    endIndex,
+  } = options;
 
-  const canvasCssHeight =
-    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
+  const overallMax = computeLazy(
+    [enabledGraphNames, startIndex, endIndex],
+    (enabledGraphNames, startIndex, endIndex) => {
+      if (enabledGraphNames.length === 0) return prevOverallMax.get();
 
-  const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    if (enabledGraphNames.length === 0) return prevOverallMax.get();
-
-    // can remove unnecessary abstraction
-    return getMaxValueInRange(0, options.total - 1, enabledGraphNames);
-  });
+      return getMaxValueInRange(startIndex, endIndex, enabledGraphNames);
+    }
+  );
 
   const prevOverallMax = observable(Infinity);
 
@@ -44,11 +67,14 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     prevOverallMax.set(overallMax);
   });
 
-  const overallMin = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    if (enabledGraphNames.length === 0) return prevOverallMin.get();
+  const overallMin = computeLazy(
+    [enabledGraphNames, startIndex, endIndex],
+    (enabledGraphNames, startIndex, endIndex) => {
+      if (enabledGraphNames.length === 0) return prevOverallMin.get();
 
-    return getMinValueInRange(0, options.total - 1, enabledGraphNames);
-  });
+      return getMinValueInRange(startIndex, endIndex, enabledGraphNames);
+    }
+  );
 
   const prevOverallMin = observable(-Infinity);
 
@@ -66,22 +92,22 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   );
 
   const overviewGraphPoints = computeLazy(
-    [inertOverallMax, inertOverallMin, width],
-    (inertOverallMax, inertOverallMin, width) => {
-      return options.graphNames.reduce(
+    [inertOverallMax, inertOverallMin, width, height, startIndex, endIndex],
+    (inertOverallMax, inertOverallMin, width, height, startIndex, endIndex) => {
+      return graphNames.reduce(
         (points, graphName) => ({
           ...points,
           [graphName]: mapDataToCoords(
-            options.data[graphName],
-            options.domain,
+            data[graphName],
+            domain,
             inertOverallMax,
             inertOverallMin,
             {
               width: width * devicePixelRatio,
-              height: canvasCssHeight * devicePixelRatio,
+              height: height * devicePixelRatio,
             },
-            { startIndex: 0, endIndex: options.total - 1 },
-            options.lineWidth * devicePixelRatio
+            { startIndex, endIndex },
+            lineWidth * devicePixelRatio
           ),
         }),
         {} as { [key: string]: Point[] }
@@ -109,9 +135,9 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
 
   const graphs = createDOM();
 
-  effect([width], (width) => {
+  effect([width, height], (width, height) => {
     graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = canvasCssHeight * window.devicePixelRatio;
+    graphs.canvas.height = height * window.devicePixelRatio;
 
     updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
   });
@@ -123,7 +149,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
         0,
         0,
         width.get() * devicePixelRatio,
-        canvasCssHeight * devicePixelRatio
+        height.get() * devicePixelRatio
       );
 
       updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
@@ -138,16 +164,17 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
       opacityState: inertOpacityStateByGraphName,
       points: overviewGraphPoints,
       context: graphs.context,
-      graphNames: options.graphNames,
-      lineWidth: options.overview.lineWidth,
-      strokeStyles: options.colors,
-      height: canvasCssHeight,
+      graphNames: graphNames,
+      lineWidth,
+      strokeStyles: colors,
+      height: height.get(),
       width: width.get(),
       // Use `miter` line join in overview?
-      lineJoinByName: options.lineJoin,
+      lineJoinByName: lineJoinByName,
     });
   }
 
+  // COMBINE THESE 2
   function getMaxValueInRange(
     startIndex: number,
     endIndex: number,
@@ -165,7 +192,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   }
 
   function getValues(graphNames: string[]) {
-    return graphNames.map((graphName) => options.data[graphName]);
+    return graphNames.map((graphName) => data[graphName]);
   }
 
   return { element: graphs.element };
@@ -173,9 +200,9 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   function createDOM() {
     const graphs = createGraphs({
       width: width.get(),
-      height: canvasCssHeight,
+      height: height.get(),
     });
-    graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
+    // graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
 
     return graphs;
   }

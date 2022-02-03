@@ -32,7 +32,7 @@ export const ChartContext = (options: ChartOptions) => {
   const mouseX = observable(0);
   const isHovering = observable(false);
   const isDragging = observable(false);
-  const isWheeling = resetWhenInactive({ delay: WHEEL_CLEAR_TIMEOUT })(
+  const isWheeling = resetWhenInactive<boolean>({ delay: WHEEL_CLEAR_TIMEOUT })(
     observable(false)
   );
   const isGrabbingGraphs = observable(false);
