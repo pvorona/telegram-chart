@@ -13,10 +13,13 @@ export const Chart = (options: ChartOptions) => {
   const { width, height } = context;
   const { element } = createDom();
 
-  const resizeListener = createScheduleTaskWithCleanup(function measureSize() {
-    width.set(element.offsetWidth);
-    height.set(element.offsetHeight);
-  }, PRIORITY.READ);
+  const resizeListener = createScheduleTaskWithCleanup(
+    function measureContainerSize() {
+      width.set(element.offsetWidth);
+      height.set(element.offsetHeight);
+    },
+    PRIORITY.READ
+  );
 
   window.addEventListener("resize", resizeListener);
 
@@ -28,8 +31,10 @@ export const Chart = (options: ChartOptions) => {
 
   function createDom() {
     const element = document.createElement("div");
+
     element.style.display = "flex";
     element.style.flexDirection = "column";
+
     const series = Series(options, context);
     const overview = Overview(options, context);
     const controls = Controls(options, context);
