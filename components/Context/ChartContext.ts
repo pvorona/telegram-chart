@@ -20,7 +20,7 @@ import {
   WHEEL_CLEAR_TIMEOUT,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
-import { mapDataToCoords, getMaxValue, getMinValue } from "../../util";
+import { mapDataToCoords, getMinMax, max, min } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
 export const ChartContext = (options: ChartOptions) => {
@@ -87,28 +87,63 @@ export const ChartContext = (options: ChartOptions) => {
     transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
   );
 
-  const visibleMax = computeLazy(
+  // A. min + max
+  // B. { min, max }
+  // C. { Graph1: { min, max }, Graph2: { min, max } } - useful for gradient
+
+  // C1
+  const visibleMinMaxByGraphName = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
     (startIndex, endIndex, enabledGraphNames) => {
+      const result: { [graphName: string]: { min: number; max: number } } = {};
+
+      for (let i = 0; i < enabledGraphNames.length; i++) {
+        const graphName = enabledGraphNames[i];
+
+        result[graphName] = getMinMax(
+          startIndex,
+          endIndex,
+          options.data[graphName]
+        );
+      }
+
+      return result;
+    }
+  );
+
+  const visibleMax = computeLazy(
+    [visibleMinMaxByGraphName, enabledGraphNames],
+    (visibleMinMaxByGraphName, enabledGraphNames) => {
       if (enabledGraphNames.length === 0) return prevVisibleMax.get();
 
-      return getMaxValueInRange(startIndex, endIndex, enabledGraphNames);
+      let result = -Infinity;
+
+      for (const graphName of enabledGraphNames) {
+        result = max(result, visibleMinMaxByGraphName[graphName].max);
+      }
+
+      return result;
     }
-    // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
-  );
-  const inertVisibleMax = animationObservable(
-    visibleMax,
-    transition(visibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   const visibleMin = computeLazy(
-    [startIndex, endIndex, enabledGraphNames],
-    (startIndex, endIndex, enabledGraphNames) => {
+    [visibleMinMaxByGraphName, enabledGraphNames],
+    (visibleMinMaxByGraphName, enabledGraphNames) => {
       if (enabledGraphNames.length === 0) return prevVisibleMin.get();
 
-      return getMinValueInRange(startIndex, endIndex, enabledGraphNames);
+      let result = +Infinity;
+
+      for (const graphName of enabledGraphNames) {
+        result = min(result, visibleMinMaxByGraphName[graphName].min);
+      }
+
+      return result;
     }
-    // (startIndex, endIndex, enabledGraphNames) => beautifyNumber(getMaxValueInRange(startIndex, endIndex, enabledGraphNames))
+  );
+
+  const inertVisibleMax = animationObservable(
+    visibleMax,
+    transition(visibleMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   const inertVisibleMin = animationObservable(
@@ -147,7 +182,11 @@ export const ChartContext = (options: ChartOptions) => {
       options.graphNames.reduce(
         (state, graphName) => ({
           ...state,
-          [graphName]: transition(opacityStateByGraphName.get()[graphName], LONG_TRANSITIONS_TIME, easeInOutQuart),
+          [graphName]: transition(
+            opacityStateByGraphName.get()[graphName],
+            LONG_TRANSITIONS_TIME,
+            easeInOutQuart
+          ),
         }),
         {} as { [key: string]: Transition<number> }
       )
@@ -245,6 +284,7 @@ export const ChartContext = (options: ChartOptions) => {
     enabledGraphNames,
     isAnyGraphEnabled,
     mainGraphPoints,
+    visibleMinMaxByGraphName,
     startIndex,
     endIndex,
     inertStartIndex,
@@ -259,24 +299,57 @@ export const ChartContext = (options: ChartOptions) => {
     canvasHeight,
     height,
   };
-
-  function getMaxValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMaxValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getMinValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMinValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getValues(graphNames: string[]) {
-    return graphNames.map((graphName) => options.data[graphName]);
-  }
 };
+
+function createMinMaxViewByGraphName(startIndex, endIndex, enabledGraphNames) {
+  const visibleMinMaxByGraphName = computeLazy(
+    [startIndex, endIndex, enabledGraphNames],
+    (startIndex, endIndex, enabledGraphNames) => {
+      const result: { [graphName: string]: { min: number; max: number } } = {};
+
+      for (let i = 0; i < enabledGraphNames.length; i++) {
+        const graphName = enabledGraphNames[i];
+
+        result[graphName] = getMinMax(
+          startIndex,
+          endIndex,
+          options.data[graphName]
+        );
+      }
+
+      return result;
+    }
+  );
+
+  const visibleMax = computeLazy(
+    [visibleMinMaxByGraphName, enabledGraphNames],
+    (visibleMinMaxByGraphName, enabledGraphNames) => {
+      if (enabledGraphNames.length === 0) return prevVisibleMax.get();
+
+      let result = -Infinity;
+
+      for (const graphName of enabledGraphNames) {
+        result = max(result, visibleMinMaxByGraphName[graphName].max);
+      }
+
+      return result;
+    }
+  );
+
+  const visibleMin = computeLazy(
+    [visibleMinMaxByGraphName, enabledGraphNames],
+    (visibleMinMaxByGraphName, enabledGraphNames) => {
+      if (enabledGraphNames.length === 0) return prevVisibleMin.get();
+
+      let result = +Infinity;
+
+      for (const graphName of enabledGraphNames) {
+        result = min(result, visibleMinMaxByGraphName[graphName].min);
+      }
+
+      return result;
+    }
+  );
+
+  return { visibleMinMaxByGraphName, visibleMin, visibleMax };
+}

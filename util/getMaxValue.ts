@@ -2,6 +2,28 @@ import { max, min, ceil } from "./math";
 import { interpolatePoint } from "./interpolatePoint";
 import { calculateOrderOfMagnitude } from "./calculateOrderOfMagnitude";
 
+export function getMinMax(
+  startIndex: number,
+  endIndex: number,
+  values: number[]
+): { min: number; max: number } {
+  let minValue = min(
+    interpolatePoint(startIndex, values),
+    interpolatePoint(endIndex, values)
+  );
+  let maxValue = max(
+    interpolatePoint(startIndex, values),
+    interpolatePoint(endIndex, values)
+  );
+
+  for (let i = ceil(startIndex); i <= endIndex; i++) {
+    minValue = min(values[i], minValue);
+    maxValue = max(values[i], maxValue);
+  }
+
+  return { min: minValue, max: maxValue };
+}
+
 export function getMaxValue(
   { startIndex, endIndex }: { startIndex: number; endIndex: number },
   values: number[][]
@@ -20,13 +42,6 @@ export function getMaxValue(
   return maxValue;
 }
 
-export function beautifyNumber(number: number): number {
-  const magnitude = calculateOrderOfMagnitude(number);
-  if (number % magnitude === 0) return number;
-  if (number % (magnitude / 2) === 0) return number;
-  return number + (magnitude / 2 - (number % (magnitude / 2)));
-}
-
 export function getMinValue(
   { startIndex, endIndex }: { startIndex: number; endIndex: number },
   values: number[][]
@@ -43,4 +58,11 @@ export function getMinValue(
     }
   }
   return minValue;
+}
+
+export function beautifyNumber(number: number): number {
+  const magnitude = calculateOrderOfMagnitude(number);
+  if (number % magnitude === 0) return number;
+  if (number % (magnitude / 2) === 0) return number;
+  return number + (magnitude / 2 - (number % (magnitude / 2)));
 }
