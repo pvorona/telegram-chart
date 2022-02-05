@@ -1,6 +1,6 @@
 import {
+  UncheckedChartOptions,
   ChartOptions,
-  ChartOptionsValidated,
   ColorsOptions,
   ColorsOptionsValidated,
   OverviewOptions,
@@ -20,7 +20,7 @@ import { validateNonNegativeInt } from "./validateNonNegativeInt";
 
 // - [ ] Check for non existent graph name or missing options for some graph names
 
-export function validateConfig(options: ChartOptions): ChartOptionsValidated {
+export function validateConfig(options: UncheckedChartOptions): ChartOptions {
   return {
     x: validateXOptions(options.x),
     y: validateYOptions(options.y),

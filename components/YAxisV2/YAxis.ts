@@ -2,10 +2,10 @@ import {
   // computeLazy,
   effect,
 } from "@pvorona/observable";
-import { ChartContext, ChartOptions } from "../../types";
+import { ChartContext, UncheckedChartOptions } from "../../types";
 
 export const YAxis = (
-  options: ChartOptions,
+  options: UncheckedChartOptions,
   { width, canvasHeight: height, visibleMin, visibleMax }: ChartContext
 ) => {
   const { element, context } = createDOM(

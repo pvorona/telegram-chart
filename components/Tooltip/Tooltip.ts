@@ -1,5 +1,5 @@
 import { effect, computeLazy, Lambda } from "@pvorona/observable";
-import { ChartContext, ChartOptionsValidated } from "../../types";
+import { ChartContext, ChartOptions } from "../../types";
 import { getTooltipDateText } from "../../util";
 import { DOT_SIZE, CENTER_OFFSET as DOT_CENTER_OFFSET } from "../constants";
 import { Component, Point } from "../types";
@@ -8,7 +8,7 @@ import "./TooltipLine.css";
 import "./Title.css";
 import "./Tooltip.css";
 
-export const Tooltip: Component<ChartOptionsValidated, ChartContext> = (
+export const Tooltip: Component<ChartOptions, ChartContext> = (
   options,
   {
     isHovering,

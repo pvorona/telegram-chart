@@ -11,7 +11,7 @@ import {
   renderLineSeriesWithAreaGradient,
   setCanvasSize,
 } from "../../renderers";
-import { ChartContext, ChartOptionsValidated } from "../../../types";
+import { ChartContext, ChartOptions } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
 import { mapDataToCoords, createMinMaxView, toBitMapSize } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
@@ -21,7 +21,7 @@ import { validateNonNegativeNumber } from "../../../config";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
-export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
+export const Graphs: Component<ChartOptions, ChartContext> = (
   options,
   context
 ) => {

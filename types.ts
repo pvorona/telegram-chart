@@ -107,7 +107,7 @@ export type LineJoinOptions = {
   [series: string]: CanvasLineJoin;
 };
 
-export type ChartOptionsValidated = Readonly<{
+export type ChartOptions = Readonly<{
   x: XOptionsValidated;
   y: YOptionsValidated;
   overview: OverviewOptionsValidated;
@@ -126,7 +126,7 @@ export type ChartOptionsValidated = Readonly<{
   graphNames: string[];
 }>;
 
-export type ChartOptions = Readonly<{
+export type UncheckedChartOptions = Readonly<{
   x: XOptions;
   y: YOptions;
   overview: OverviewOptions;

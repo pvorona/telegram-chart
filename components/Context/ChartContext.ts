@@ -9,7 +9,7 @@ import {
   Transition,
   resetWhenInactive,
 } from "@pvorona/observable";
-import { ChartOptionsValidated } from "../../types";
+import { ChartOptions } from "../../types";
 import {
   Cursor,
   cursor,
@@ -23,7 +23,7 @@ import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
-export const ChartContext = (options: ChartOptionsValidated) => {
+export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
   const height = observable(options.height);
   const canvasHeight = observable(computeCanvasHeight(height.get()));

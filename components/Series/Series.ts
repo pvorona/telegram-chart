@@ -4,7 +4,7 @@ import {
   renderLineSeriesWithAreaGradient,
   setCanvasSize,
 } from "../renderers";
-import { ChartContext, ChartOptionsValidated } from "../../types";
+import { ChartContext, ChartOptions } from "../../types";
 import {
   ensureInBounds,
   handleDrag,
@@ -22,7 +22,7 @@ import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
 import { validateNonNegativeNumber } from "../../config";
 
-export const Series: Component<ChartOptionsValidated, ChartContext> = (
+export const Series: Component<ChartOptions, ChartContext> = (
   options,
   {
     width,
