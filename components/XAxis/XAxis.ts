@@ -1,7 +1,7 @@
 import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptionsValidated, CSSPixel } from "../../types";
-import { createCache } from "../../util/createCache";
-import { toScreenX, cssToBitMap } from "../../util";
+import { toScreenX, cssToBitMap, createCache } from "../../util";
+import { clearRect, setCanvasSize } from "../renderers";
 import { Component } from "../types";
 
 // - Rsi realStartIndex
@@ -62,9 +62,8 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
   effect(
     [width],
     (width) => {
-      setCanvasSize(canvas, width, height);
+      setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
       setCanvasStyle(context);
-
       renderLabels(inertStartIndex.get(), inertEndIndex.get(), factor.get());
     },
     { fireImmediately: false }
@@ -73,13 +72,11 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
   effect(
     [inertStartIndex, inertEndIndex, factor],
     (inertStartIndex, inertEndIndex, factor) => {
-      context.clearRect(
-        0,
-        0,
+      clearRect(
+        context,
         cssToBitMap(width.get()),
         cssToBitMap(height as CSSPixel)
       );
-
       renderLabels(inertStartIndex, inertEndIndex, factor);
     },
     { fireImmediately: false }
@@ -133,26 +130,21 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
     canvas.style.marginTop = `${marginTop}px`;
     canvas.style.width = `100%`;
     canvas.style.height = `${height}px`;
-    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const context = canvas.getContext("2d");
 
-    setCanvasSize(canvas, width.get(), height);
+    if (context === null) {
+      throw new Error("Failed to acquire context");
+    }
+
+    setCanvasSize(canvas, cssToBitMap(width.get()), cssToBitMap(height));
     setCanvasStyle(context);
 
     return { element: canvas, canvas, context };
   }
 
-  function setCanvasSize(
-    canvas: HTMLCanvasElement,
-    width: CSSPixel,
-    height: CSSPixel
-  ) {
-    canvas.width = cssToBitMap(width);
-    canvas.height = cssToBitMap(height);
-  }
-
   function setCanvasStyle(context: CanvasRenderingContext2D) {
     context.fillStyle = color;
-    context.font = `${cssToBitMap(fontSize as CSSPixel)}px ${fontFamily}`;
+    context.font = `${cssToBitMap(fontSize)}px ${fontFamily}`;
     context.textBaseline = "top";
     context.textAlign = "center";
     context.strokeStyle = color;

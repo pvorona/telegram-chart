@@ -37,7 +37,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
   const globalEndIndex = observable(
     validateNonNegativeNumber(options.total - 1)
   );
-  const canvasCssHeight = validateCSSPixel(
+  const canvasHeight = validateCSSPixel(
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH
   );
   const { max: globalMax, min: globalMin } = createMinMaxView(
@@ -75,7 +75,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
             inertOverallMin,
             {
               width: width,
-              height: canvasCssHeight,
+              height: canvasHeight,
             },
             { startIndex: globalStartIndex, endIndex: globalEndIndex },
             options.lineWidth
@@ -106,7 +106,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
 
   const graphs = createDOM();
 
-  updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
+  renderPoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
 
   effect(
     [width],
@@ -114,9 +114,9 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
       setCanvasSize(
         graphs.canvas,
         cssToBitMap(width),
-        cssToBitMap(canvasCssHeight)
+        cssToBitMap(canvasHeight)
       );
-      updatePoints(
+      renderPoints(
         overviewGraphPoints.get(),
         inertOpacityStateByGraphName.get()
       );
@@ -130,14 +130,14 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
       clearRect(
         graphs.context,
         cssToBitMap(width.get()),
-        cssToBitMap(canvasCssHeight)
+        cssToBitMap(canvasHeight)
       );
-      updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
+      renderPoints(overviewGraphPoints, inertOpacityStateByGraphName);
     },
     { fireImmediately: false }
   );
 
-  function updatePoints(
+  function renderPoints(
     overviewGraphPoints: { [key: string]: Point[] },
     inertOpacityStateByGraphName: { [key: string]: number }
   ) {
@@ -148,7 +148,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
       graphNames: options.graphNames,
       lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
-      height: canvasCssHeight,
+      height: canvasHeight,
       width: width.get(),
       // Use `miter` line join in overview?
       lineJoinByName: options.lineJoin,
@@ -160,7 +160,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
   function createDOM() {
     const graphs = createGraphs({
       width: width.get(),
-      height: canvasCssHeight,
+      height: canvasHeight,
     });
     graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
 

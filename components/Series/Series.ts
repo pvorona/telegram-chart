@@ -44,13 +44,13 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
 ) => {
   const { element, canvas, context } = createDOM();
 
-  renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
+  renderPoints(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
 
   effect(
     [width, canvasHeight],
     (width, height) => {
       setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
-      renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
+      renderPoints(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
     },
     { fireImmediately: false }
   );
@@ -63,12 +63,12 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
         cssToBitMap(width.get()),
         cssToBitMap(canvasHeight.get())
       );
-      renderSeries(mainGraphPoints, inertOpacityStateByGraphName);
+      renderPoints(mainGraphPoints, inertOpacityStateByGraphName);
     },
     { fireImmediately: false }
   );
 
-  function renderSeries(
+  function renderPoints(
     points: { [key: string]: Point[] },
     opacityState: { [key: string]: number }
   ) {

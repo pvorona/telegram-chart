@@ -31,10 +31,12 @@ export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
   } = createDOM();
 
   const left = observable(
+    // interpolate
     (startIndex.get() / (options.total - 1)) * width.get()
   );
 
   const right = observable(
+    // interpolate
     (endIndex.get() / (options.total - 1)) * width.get()
   );
 
@@ -47,6 +49,7 @@ export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
   });
 
   observe([startIndex, width], (startIndex, width) => {
+    // interpolate
     const newLeft = (startIndex / (options.total - 1)) * width;
 
     if (!areNumbersClose(left.get(), newLeft)) {
@@ -55,6 +58,7 @@ export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
   });
 
   observe([endIndex, width], (endIndex, width) => {
+    // interpolate
     const newRight = (endIndex / (options.total - 1)) * width;
 
     if (!areNumbersClose(right.get(), newRight)) {
@@ -63,6 +67,7 @@ export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
   });
 
   observe([left], (left) => {
+    // interpolate
     const newStartIndex = validateNonNegativeNumber(
       (left / width.get()) * (options.total - 1)
     );
@@ -73,6 +78,7 @@ export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
   });
 
   observe([right], (right) => {
+    // interpolate
     const newEndIndex = validateNonNegativeNumber(
       Math.min((right / width.get()) * (options.total - 1), options.total - 1)
     );
@@ -281,20 +287,6 @@ export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
           )
         )
       );
-    } else {
-      // if (
-      //   (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
-      //   || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
-      // ) {
-      //   if (
-      //     (e.deltaX <= 0 && e.deltaY <= 0)
-      //     || (e.deltaX > 0 && e.deltaY > 0)
-      //   ) {
-      //     left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
-      //   } else {
-      //     right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
-      //   }
-      // }
     }
   }
 

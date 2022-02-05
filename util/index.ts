@@ -18,3 +18,4 @@ export * from "./beautifyNumber";
 export * from "./createMinMaxView";
 export * from "./cssToBitMap";
 export * from "./interpolatePoint";
+export * from "./createCache";
