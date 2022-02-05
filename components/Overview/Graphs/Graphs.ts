@@ -9,7 +9,7 @@ import {
 import { renderLineSeriesWithAreaGradient } from "../../renderers";
 import { ChartContext, ChartOptions } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, getMaxValue, getMinValue } from "../../../util";
+import { mapDataToCoords, createMinMaxView } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
@@ -28,46 +28,36 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     inertOpacityStateByGraphName,
   } = context;
 
+  const globalStartIndex = observable(0);
+  const globalEndIndex = observable(options.total - 1);
   const canvasCssHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
-  const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    if (enabledGraphNames.length === 0) return prevOverallMax.get();
-
-    // can remove unnecessary abstraction
-    return getMaxValueInRange(0, options.total - 1, enabledGraphNames);
-  });
-
-  const prevOverallMax = observable(Infinity);
-
-  effect([overallMax], (overallMax) => {
-    prevOverallMax.set(overallMax);
-  });
-
-  const overallMin = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    if (enabledGraphNames.length === 0) return prevOverallMin.get();
-
-    return getMinValueInRange(0, options.total - 1, enabledGraphNames);
-  });
-
-  const prevOverallMin = observable(-Infinity);
-
-  effect([overallMin], (overallMin) => {
-    prevOverallMin.set(overallMin);
-  });
+  const { max: globalMax, min: globalMin } = createMinMaxView(
+    globalStartIndex,
+    globalEndIndex,
+    enabledGraphNames,
+    options.data
+  );
 
   const inertOverallMax = animationObservable(
-    overallMax,
-    transition(overallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+    globalMax,
+    transition(globalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
   const inertOverallMin = animationObservable(
-    overallMin,
-    transition(overallMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+    globalMin,
+    transition(globalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   const overviewGraphPoints = computeLazy(
-    [inertOverallMax, inertOverallMin, width],
-    (inertOverallMax, inertOverallMin, width) => {
+    [globalStartIndex, globalEndIndex, inertOverallMax, inertOverallMin, width],
+    (
+      globalStartIndex,
+      globalEndIndex,
+      inertOverallMax,
+      inertOverallMin,
+      width
+    ) => {
       return options.graphNames.reduce(
         (points, graphName) => ({
           ...points,
@@ -80,7 +70,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
               width: width * devicePixelRatio,
               height: canvasCssHeight * devicePixelRatio,
             },
-            { startIndex: 0, endIndex: options.total - 1 },
+            { startIndex: globalStartIndex, endIndex: globalEndIndex },
             options.lineWidth * devicePixelRatio
           ),
         }),
@@ -146,26 +136,6 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
       // Use `miter` line join in overview?
       lineJoinByName: options.lineJoin,
     });
-  }
-
-  function getMaxValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMaxValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getMinValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMinValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getValues(graphNames: string[]) {
-    return graphNames.map((graphName) => options.data[graphName]);
   }
 
   return { element: graphs.element };
