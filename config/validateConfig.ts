@@ -43,8 +43,8 @@ export function validateXOptions(options: XOptions): XOptionsValidated {
     color: assertColor(options.color),
     ticks: assertNonNegativeInt(options.ticks),
     tick: {
-      height: assertNonNegativeNumber(options.tick.height), // positive?
-      margin: assertNonNegativeNumber(options.tick.margin), // positive?
+      height: assertNonNegativeNumber(options.tick.height), 
+      margin: assertNonNegativeNumber(options.tick.margin), 
     },
     label: {
       fontSize: assertNonNegativeNumber(options.label.fontSize),
