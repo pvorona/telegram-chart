@@ -9,7 +9,7 @@ import {
   Transition,
   resetWhenInactive,
 } from "@pvorona/observable";
-import { ChartOptionsValidated, CssPixel } from "../../types";
+import { ChartOptionsValidated } from "../../types";
 import {
   Cursor,
   cursor,
