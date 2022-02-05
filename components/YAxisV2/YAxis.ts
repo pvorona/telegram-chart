@@ -2,10 +2,10 @@ import {
   // computeLazy,
   effect,
 } from "@pvorona/observable";
-import { ChartContext, UncheckedChartOptions } from "../../types";
+import { ChartContext, ChartOptions } from "../../types";
 
 export const YAxis = (
-  options: UncheckedChartOptions,
+  options: ChartOptions,
   { width, canvasHeight: height, visibleMin, visibleMax }: ChartContext
 ) => {
   const { element, context } = createDOM(
@@ -22,8 +22,8 @@ export const YAxis = (
   effect(
     [height, width, visibleMin, visibleMax],
     (height, width, visibleMin, visibleMax) => {
-      const valueRange = overallMax - overallMin
-      
+      // const valueRange = overallMax - overallMin;
+
       const yStep = (visibleMax - visibleMin) / options.y.ticks;
 
       context.clearRect(
