@@ -24,6 +24,8 @@ import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
 export const ChartContext = (options: ChartOptions) => {
+  const globalStartIndex = observable(0);
+  const globalEndIndex = observable(options.total - 1);
   const width = observable(options.width);
   const height = observable(options.height);
   const canvasHeight = observable(computeCanvasHeight(height.get()));
@@ -101,6 +103,22 @@ export const ChartContext = (options: ChartOptions) => {
   const inertVisibleMin = animationObservable(
     visibleMin,
     transition(visibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+  );
+
+  const { max: globalMax, min: globalMin } = createMinMaxView(
+    globalStartIndex,
+    globalEndIndex,
+    enabledGraphNames,
+    options.data
+  );
+
+  const inertGlobalMax = animationObservable(
+    globalMax,
+    transition(globalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+  );
+  const inertGlobalMin = animationObservable(
+    globalMin,
+    transition(globalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   // why lazy
@@ -236,5 +254,11 @@ export const ChartContext = (options: ChartOptions) => {
     width,
     canvasHeight,
     height,
+    globalMax,
+    globalMin,
+    inertGlobalMax,
+    inertGlobalMin,
+    globalStartIndex,
+    globalEndIndex,
   };
 };

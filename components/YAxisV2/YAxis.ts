@@ -19,6 +19,8 @@ export const YAxis = (
   //   (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
   // );
 
+  // const TOTAL_STEPS = 1000
+  
   effect(
     [height, width, visibleMin, visibleMax],
     (height, width, visibleMin, visibleMax) => {
