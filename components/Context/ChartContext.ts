@@ -20,8 +20,9 @@ import {
   WHEEL_CLEAR_TIMEOUT,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
-import { mapDataToCoords, getMinMax, max, min } from "../../util";
+import { mapDataToCoords } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
+import { createMinMaxView } from "../../util/createMinMaxView";
 
 export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);
@@ -87,58 +88,11 @@ export const ChartContext = (options: ChartOptions) => {
     transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
   );
 
-  // A. min + max
-  // B. { min, max }
-  // C. { Graph1: { min, max }, Graph2: { min, max } } - useful for gradient
-
-  // C1
-  const visibleMinMaxByGraphName = computeLazy(
-    [startIndex, endIndex, enabledGraphNames],
-    (startIndex, endIndex, enabledGraphNames) => {
-      const result: { [graphName: string]: { min: number; max: number } } = {};
-
-      for (let i = 0; i < enabledGraphNames.length; i++) {
-        const graphName = enabledGraphNames[i];
-
-        result[graphName] = getMinMax(
-          startIndex,
-          endIndex,
-          options.data[graphName]
-        );
-      }
-
-      return result;
-    }
-  );
-
-  const visibleMax = computeLazy(
-    [visibleMinMaxByGraphName, enabledGraphNames],
-    (visibleMinMaxByGraphName, enabledGraphNames) => {
-      if (enabledGraphNames.length === 0) return prevVisibleMax.get();
-
-      let result = -Infinity;
-
-      for (const graphName of enabledGraphNames) {
-        result = max(result, visibleMinMaxByGraphName[graphName].max);
-      }
-
-      return result;
-    }
-  );
-
-  const visibleMin = computeLazy(
-    [visibleMinMaxByGraphName, enabledGraphNames],
-    (visibleMinMaxByGraphName, enabledGraphNames) => {
-      if (enabledGraphNames.length === 0) return prevVisibleMin.get();
-
-      let result = +Infinity;
-
-      for (const graphName of enabledGraphNames) {
-        result = min(result, visibleMinMaxByGraphName[graphName].min);
-      }
-
-      return result;
-    }
+  const { visibleMinMaxByGraphName, visibleMin, visibleMax } = createMinMaxView(
+    startIndex,
+    endIndex,
+    enabledGraphNames,
+    options.data
   );
 
   const inertVisibleMax = animationObservable(
@@ -150,18 +104,6 @@ export const ChartContext = (options: ChartOptions) => {
     visibleMin,
     transition(visibleMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
-
-  const prevVisibleMax = observable(+Infinity);
-
-  effect([visibleMax], (visibleMax) => {
-    prevVisibleMax.set(visibleMax);
-  });
-
-  const prevVisibleMin = observable(-Infinity);
-
-  effect([visibleMin], (visibleMin) => {
-    prevVisibleMin.set(visibleMin);
-  });
 
   // why lazy
   const opacityStateByGraphName = computeLazy(
@@ -293,63 +235,8 @@ export const ChartContext = (options: ChartOptions) => {
     inertOpacityStateByGraphName,
     visibleMax,
     visibleMin,
-    prevVisibleMax,
-    prevVisibleMin,
     width,
     canvasHeight,
     height,
   };
 };
-
-function createMinMaxViewByGraphName(startIndex, endIndex, enabledGraphNames) {
-  const visibleMinMaxByGraphName = computeLazy(
-    [startIndex, endIndex, enabledGraphNames],
-    (startIndex, endIndex, enabledGraphNames) => {
-      const result: { [graphName: string]: { min: number; max: number } } = {};
-
-      for (let i = 0; i < enabledGraphNames.length; i++) {
-        const graphName = enabledGraphNames[i];
-
-        result[graphName] = getMinMax(
-          startIndex,
-          endIndex,
-          options.data[graphName]
-        );
-      }
-
-      return result;
-    }
-  );
-
-  const visibleMax = computeLazy(
-    [visibleMinMaxByGraphName, enabledGraphNames],
-    (visibleMinMaxByGraphName, enabledGraphNames) => {
-      if (enabledGraphNames.length === 0) return prevVisibleMax.get();
-
-      let result = -Infinity;
-
-      for (const graphName of enabledGraphNames) {
-        result = max(result, visibleMinMaxByGraphName[graphName].max);
-      }
-
-      return result;
-    }
-  );
-
-  const visibleMin = computeLazy(
-    [visibleMinMaxByGraphName, enabledGraphNames],
-    (visibleMinMaxByGraphName, enabledGraphNames) => {
-      if (enabledGraphNames.length === 0) return prevVisibleMin.get();
-
-      let result = +Infinity;
-
-      for (const graphName of enabledGraphNames) {
-        result = min(result, visibleMinMaxByGraphName[graphName].min);
-      }
-
-      return result;
-    }
-  );
-
-  return { visibleMinMaxByGraphName, visibleMin, visibleMax };
-}
