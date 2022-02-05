@@ -18,7 +18,7 @@ import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
 import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
-import { validateCssPixel } from "../../../config/validateCssPixel";
+import { validateCSSPixel } from "../../../config/validateCSSPixel";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
@@ -38,7 +38,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
   const globalEndIndex = observable(
     validateNonNegativeNumber(options.total - 1)
   );
-  const canvasCssHeight = validateCssPixel(
+  const canvasCssHeight = validateCSSPixel(
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH
   );
   const { max: globalMax, min: globalMin } = createMinMaxView(

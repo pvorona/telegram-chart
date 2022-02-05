@@ -8,7 +8,7 @@ import { Series } from "../Series";
 import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
 import { validate } from "../../config";
-import { validateCssPixel } from "../../config/validateCssPixel";
+import { validateCSSPixel } from "../../config/validateCSSPixel";
 
 export const Chart = (options: ChartOptions) => {
   const validatedOptions = validate(options);
@@ -18,8 +18,8 @@ export const Chart = (options: ChartOptions) => {
 
   const resizeListener = createScheduleTaskWithCleanup(
     function measureContainerSize() {
-      width.set(validateCssPixel(element.offsetWidth));
-      height.set(validateCssPixel(element.offsetHeight));
+      width.set(validateCSSPixel(element.offsetWidth));
+      height.set(validateCSSPixel(element.offsetHeight));
     },
     PRIORITY.READ
   );

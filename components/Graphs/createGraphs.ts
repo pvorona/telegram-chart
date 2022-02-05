@@ -1,5 +1,6 @@
 import { CSSPixel } from "../../types";
 import { cssToBitMap } from "../../util";
+import { setCanvasSize } from "../renderers";
 import "./Graphs.css";
 
 export function createGraphs({
@@ -24,8 +25,7 @@ export function createGraphs({
   canvas.style.position = "absolute";
   canvas.style.width = `100%`;
   canvas.style.height = `100%`;
-  canvas.width = cssToBitMap(width);
-  canvas.height = cssToBitMap(height);
+  setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
   const context = canvas.getContext("2d");
   element.appendChild(canvas);
 

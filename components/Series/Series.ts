@@ -25,7 +25,7 @@ import {
 import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
 import { validateNonNegativeNumber } from "../../config/validateNonNegativeNumber";
-import { validateCssPixel } from "../../config/validateCssPixel";
+import { validateCSSPixel } from "../../config/validateCSSPixel";
 
 export const Series: Component<ChartOptionsValidated, ChartContext> = (
   options,
@@ -112,13 +112,13 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
 
     element.addEventListener("mouseenter", function (e) {
       isHovering.set(true);
-      mouseX.set(validateCssPixel(e.clientX));
+      mouseX.set(validateCSSPixel(e.clientX));
     });
     element.addEventListener("mouseleave", function () {
       isHovering.set(false);
     });
     element.addEventListener("mousemove", function (e) {
-      mouseX.set(validateCssPixel(e.clientX));
+      mouseX.set(validateCSSPixel(e.clientX));
     });
 
     let prevMouseX = 0;

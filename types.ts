@@ -179,7 +179,7 @@ export type Nominal<Source, Label extends string> = Source & {
   __kind__: Label;
 };
 
-export type CSSPixel = Nominal<number, "CssPixel">;
+export type CSSPixel = Nominal<number, "CSSPixel">;
 export type BitMapPixel = Nominal<number, "BitMapPixel">;
 export type Color = Nominal<string, "Color">;
 export type PositiveInt = Nominal<number, "PositiveInt">;
