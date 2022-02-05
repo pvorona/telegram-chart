@@ -20,9 +20,8 @@ import {
   WHEEL_CLEAR_TIMEOUT,
 } from "../constants";
 import { OpacityState, Point, EnabledGraphNames } from "../types";
-import { mapDataToCoords } from "../../util";
+import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
-import { createMinMaxView } from "../../util/createMinMaxView";
 
 export const ChartContext = (options: ChartOptions) => {
   const width = observable(options.width);

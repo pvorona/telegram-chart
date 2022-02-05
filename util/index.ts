@@ -15,3 +15,4 @@ export * from "./keepInBounds";
 export * from "./getTooltipDateText";
 export * from "./areNumbersClose";
 export * from "./beautifyNumber";
+export * from "./createMinMaxView";
