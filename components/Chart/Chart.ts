@@ -9,9 +9,9 @@ import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
 import { validateConfig } from "../../config";
 
-export const Chart = (options: ChartOptions) => {
-  const validatedOptions = validateConfig(options);
-  const context = ChartContext(validatedOptions);
+export const Chart = (uncheckedOptions: ChartOptions) => {
+  const options = validateConfig(uncheckedOptions);
+  const context = ChartContext(options);
   const { width, height } = context;
   const { element } = createDOM();
 
@@ -37,11 +37,11 @@ export const Chart = (options: ChartOptions) => {
     element.style.display = "flex";
     element.style.flexDirection = "column";
 
-    const series = Series(validatedOptions, context);
-    const overview = Overview(validatedOptions, context);
-    const controls = Controls(validatedOptions, context);
-    const tooltip = Tooltip(validatedOptions, context);
-    const xAxis = XAxis(validatedOptions, context);
+    const series = Series(options, context);
+    const overview = Overview(options, context);
+    const controls = Controls(options, context);
+    const tooltip = Tooltip(options, context);
+    const xAxis = XAxis(options, context);
     // const yAxis = YAxis(validatedOptions, context);
 
     series.element.appendChild(tooltip.element);
