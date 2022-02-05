@@ -1,9 +1,8 @@
 import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptions, CssPixel } from "../../types";
 import { createCache } from "../../util/createCache";
-import { toScreenX } from "../../util";
+import { toScreenX, cssToBitMap } from "../../util";
 import { Component } from "../types";
-import { cssToBitMap } from "../../util/cssToBitMap";
 
 // - Rsi realStartIndex
 // - Si startIndex

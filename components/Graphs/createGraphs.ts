@@ -1,5 +1,5 @@
 import { CssPixel } from "../../types";
-import { cssToBitMap } from "../../util/cssToBitMap";
+import { cssToBitMap } from "../../util";
 import "./Graphs.css";
 
 export function createGraphs({

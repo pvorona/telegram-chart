@@ -16,3 +16,5 @@ export * from "./getTooltipDateText";
 export * from "./areNumbersClose";
 export * from "./beautifyNumber";
 export * from "./createMinMaxView";
+export * from "./cssToBitMap";
+export * from "./interpolatePoint";

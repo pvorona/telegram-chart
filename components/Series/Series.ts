@@ -6,7 +6,12 @@ import {
   CssPixel,
   CssPixel as CSSPixel,
 } from "../../types";
-import { ensureInBounds, handleDrag } from "../../util";
+import {
+  ensureInBounds,
+  handleDrag,
+  interpolate,
+  cssToBitMap,
+} from "../../util";
 import {
   MIN_VIEWBOX,
   WHEEL_MULTIPLIER,
@@ -16,8 +21,6 @@ import {
 } from "../constants";
 import { Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
-import { interpolate } from "../../util/interpolatePoint";
-import { cssToBitMap } from "../../util/cssToBitMap";
 import { validateNonNegativeNumber } from "../../config/validateNonNegativeNumber";
 
 export const Series = (

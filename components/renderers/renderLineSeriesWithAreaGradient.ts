@@ -1,6 +1,5 @@
 import { CssPixel } from "../../types";
-import { hexToRGB } from "../../util";
-import { cssToBitMap } from "../../util/cssToBitMap";
+import { hexToRGB, cssToBitMap } from "../../util";
 import { Point } from "../types";
 
 const MARGIN_OVERSHOOT = 1 as CssPixel;

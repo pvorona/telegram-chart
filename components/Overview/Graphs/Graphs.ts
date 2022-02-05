@@ -9,11 +9,10 @@ import {
 import { renderLineSeriesWithAreaGradient } from "../../renderers";
 import { ChartContext, ChartOptions, CssPixel } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, createMinMaxView } from "../../../util";
+import { mapDataToCoords, createMinMaxView, cssToBitMap } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
-import { cssToBitMap } from "../../../util/cssToBitMap";
 import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
