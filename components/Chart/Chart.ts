@@ -38,12 +38,12 @@ export const Chart = (options: ChartOptions) => {
     element.style.display = "flex";
     element.style.flexDirection = "column";
 
-    const series = Series(options, context);
-    const overview = Overview(options, context);
-    const controls = Controls(options, context);
-    const tooltip = Tooltip(options, context);
-    const xAxis = XAxis(options, context);
-    // const yAxis = YAxis(options, context);
+    const series = Series(validatedOptions, context);
+    const overview = Overview(validatedOptions, context);
+    const controls = Controls(validatedOptions, context);
+    const tooltip = Tooltip(validatedOptions, context);
+    const xAxis = XAxis(validatedOptions, context);
+    // const yAxis = YAxis(validatedOptions, context);
 
     series.element.appendChild(tooltip.element);
     // element.appendChild(yAxis.element);
