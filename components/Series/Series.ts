@@ -24,8 +24,7 @@ import {
 } from "../constants";
 import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
-import { validateNonNegativeNumber } from "../../config/validateNonNegativeNumber";
-import { validateCSSPixel } from "../../config/validateCSSPixel";
+import { validateNonNegativeNumber, validateCSSPixel } from "../../config";
 
 export const Series: Component<ChartOptionsValidated, ChartContext> = (
   options,

@@ -17,11 +17,11 @@ import {
 import { validateColor } from "./validateColor";
 import { validateCSSPixel } from "./validateCSSPixel";
 import { validateNonNegativeNumber } from "./validateNonNegativeNumber";
-import { validateNonNegativeInt } from "./validateNotNegativeInt";
+import { validateNonNegativeInt } from "./validateNonNegativeInt";
 
 // - [ ] Check for non existent graph name or missing options for some graph names
 
-export function validate(options: ChartOptions): ChartOptionsValidated {
+export function validateConfig(options: ChartOptions): ChartOptionsValidated {
   return {
     x: validateXOptions(options.x),
     y: validateYOptions(options.y),

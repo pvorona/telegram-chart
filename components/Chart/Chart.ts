@@ -7,11 +7,10 @@ import { Tooltip } from "../Tooltip";
 import { Series } from "../Series";
 import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
-import { validate } from "../../config";
-import { validateCSSPixel } from "../../config/validateCSSPixel";
+import { validateConfig,validateCSSPixel } from "../../config";
 
 export const Chart = (options: ChartOptions) => {
-  const validatedOptions = validate(options);
+  const validatedOptions = validateConfig(options);
   const context = ChartContext(validatedOptions);
   const { width, height } = context;
   const { element } = createDOM();

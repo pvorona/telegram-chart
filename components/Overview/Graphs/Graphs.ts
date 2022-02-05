@@ -17,8 +17,7 @@ import { mapDataToCoords, createMinMaxView, cssToBitMap } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
-import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
-import { validateCSSPixel } from "../../../config/validateCSSPixel";
+import { validateNonNegativeNumber, validateCSSPixel } from "../../../config";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 

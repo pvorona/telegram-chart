@@ -22,7 +22,7 @@ import {
 import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
-import { validateCSSPixel } from "../../config/validateCSSPixel";
+import { validateCSSPixel } from "../../config";
 
 export const ChartContext = (options: ChartOptionsValidated) => {
   const width = observable(options.width);

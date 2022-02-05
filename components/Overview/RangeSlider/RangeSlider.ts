@@ -1,5 +1,5 @@
 import { effect, observable, observe } from "@pvorona/observable";
-import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
+import { validateNonNegativeNumber } from "../../../config";
 import { ChartContext, ChartOptionsValidated } from "../../../types";
 import { handleDrag, ensureInBounds, areNumbersClose } from "../../../util";
 import {
