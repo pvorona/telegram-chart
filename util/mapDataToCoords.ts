@@ -9,21 +9,14 @@ export function mapDataToCoords(
   min: number,
   { width, height: availableHeight }: { width: number; height: number },
   { startIndex, endIndex }: { startIndex: number; endIndex: number },
-  lineWidth: number,
-  offsetBottom: number | undefined = 0
+  lineWidth: number
 ): Point[] {
   const height = availableHeight - lineWidth * 2;
   const coords: Point[] = [];
 
   if (!Number.isInteger(startIndex)) {
     const x = 0;
-    const y = toScreenY(
-      data,
-      min,
-      max,
-      lineWidth + height - offsetBottom,
-      startIndex
-    );
+    const y = toScreenY(data, min, max, height, startIndex);
 
     coords.push({ x, y });
   }
@@ -34,26 +27,14 @@ export function mapDataToCoords(
     currentIndex++
   ) {
     const x = toScreenX(domain, width, startIndex, endIndex, currentIndex);
-    const y = toScreenY(
-      data,
-      min,
-      max,
-      lineWidth + height - offsetBottom,
-      currentIndex
-    );
+    const y = toScreenY(data, min, max, height, currentIndex);
 
     coords.push({ x, y });
   }
 
   if (!Number.isInteger(endIndex)) {
-    const x = Math.floor(width);
-    const y = toScreenY(
-      data,
-      min,
-      max,
-      lineWidth + height - offsetBottom,
-      endIndex
-    );
+    const x = width;
+    const y = toScreenY(data, min, max, height, endIndex);
 
     coords.push({ x, y });
   }

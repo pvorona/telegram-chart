@@ -6,10 +6,14 @@ import {
   observe,
   transition,
 } from "@pvorona/observable";
-import { renderLineSeriesWithAreaGradient } from "../../renderers";
+import {
+  clearRect,
+  renderLineSeriesWithAreaGradient,
+  setCanvasSize,
+} from "../../renderers";
 import { ChartContext, ChartOptions } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, createMinMaxView } from "../../../util";
+import { mapDataToCoords, createMinMaxView, toBitMapSize } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
@@ -30,9 +34,8 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
 
   const globalStartIndex = observable(0);
   const globalEndIndex = observable(options.total - 1);
-  const canvasCssHeight =
+  const canvasHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
-
   const { max: globalMax, min: globalMin } = createMinMaxView(
     globalStartIndex,
     globalEndIndex,
@@ -40,17 +43,17 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     options.data
   );
 
-  const inertOverallMax = animationObservable(
+  const inertGlobalMax = animationObservable(
     globalMax,
     transition(globalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
-  const inertOverallMin = animationObservable(
+  const inertGlobalMin = animationObservable(
     globalMin,
     transition(globalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   const overviewGraphPoints = computeLazy(
-    [globalStartIndex, globalEndIndex, inertOverallMax, inertOverallMin, width],
+    [globalStartIndex, globalEndIndex, inertGlobalMax, inertGlobalMin, width],
     (
       globalStartIndex,
       globalEndIndex,
@@ -67,11 +70,11 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
             inertOverallMax,
             inertOverallMin,
             {
-              width: width * devicePixelRatio,
-              height: canvasCssHeight * devicePixelRatio,
+              width: width,
+              height: canvasHeight,
             },
             { startIndex: globalStartIndex, endIndex: globalEndIndex },
-            options.lineWidth * devicePixelRatio
+            options.lineWidth
           ),
         }),
         {} as { [key: string]: Point[] }
@@ -81,46 +84,56 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
 
   observe([isDragging, isWheeling], (isDragging, isWheeling) => {
     if (isDragging || isWheeling) {
-      inertOverallMax.setTransition(
-        transition(inertOverallMax.get(), FAST_TRANSITIONS_TIME, linear)
+      inertGlobalMax.setTransition(
+        transition(inertGlobalMax.get(), FAST_TRANSITIONS_TIME, linear)
       );
-      inertOverallMin.setTransition(
-        transition(inertOverallMin.get(), FAST_TRANSITIONS_TIME, linear)
+      inertGlobalMin.setTransition(
+        transition(inertGlobalMin.get(), FAST_TRANSITIONS_TIME, linear)
       );
     } else {
-      inertOverallMax.setTransition(
-        transition(inertOverallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+      inertGlobalMax.setTransition(
+        transition(inertGlobalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
       );
-      inertOverallMin.setTransition(
-        transition(inertOverallMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+      inertGlobalMin.setTransition(
+        transition(inertGlobalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
       );
     }
   });
 
   const graphs = createDOM();
 
-  effect([width], (width) => {
-    graphs.canvas.width = width * window.devicePixelRatio;
-    graphs.canvas.height = canvasCssHeight * window.devicePixelRatio;
+  renderPoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
 
-    updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
-  });
+  effect(
+    [width],
+    (width) => {
+      setCanvasSize(
+        graphs.canvas,
+        toBitMapSize(width),
+        toBitMapSize(canvasHeight)
+      );
+      renderPoints(
+        overviewGraphPoints.get(),
+        inertOpacityStateByGraphName.get()
+      );
+    },
+    { fireImmediately: false }
+  );
 
   effect(
     [overviewGraphPoints, inertOpacityStateByGraphName],
     (overviewGraphPoints, inertOpacityStateByGraphName) => {
-      graphs.context.clearRect(
-        0,
-        0,
-        width.get() * devicePixelRatio,
-        canvasCssHeight * devicePixelRatio
+      clearRect(
+        graphs.context,
+        toBitMapSize(width.get()),
+        toBitMapSize(canvasHeight)
       );
-
-      updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
-    }
+      renderPoints(overviewGraphPoints, inertOpacityStateByGraphName);
+    },
+    { fireImmediately: false }
   );
 
-  function updatePoints(
+  function renderPoints(
     overviewGraphPoints: { [key: string]: Point[] },
     inertOpacityStateByGraphName: { [key: string]: number }
   ) {
@@ -131,7 +144,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
       graphNames: options.graphNames,
       lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
-      height: canvasCssHeight,
+      height: canvasHeight,
       width: width.get(),
       // Use `miter` line join in overview?
       lineJoinByName: options.lineJoin,
@@ -143,7 +156,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   function createDOM() {
     const graphs = createGraphs({
       width: width.get(),
-      height: canvasCssHeight,
+      height: canvasHeight,
     });
     graphs.element.style.marginTop = `${VIEWBOX_TOP_BOTTOM_BORDER_WIDTH}px`;
 

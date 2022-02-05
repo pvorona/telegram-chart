@@ -1,6 +1,8 @@
-import { hexToRGB } from "../../util";
+import { hexToRGB, toBitMapSize } from "../../util";
+import { Point } from "../types";
+import { lineTo } from "./lineTo";
 
-const MARGIN_OVERSHOOT = 2;
+const MARGIN_OVERSHOOT = 1;
 const TRANSPARENT = `rgba(0,0,0,0)`;
 
 export function renderLineSeriesWithAreaGradient({
@@ -15,7 +17,7 @@ export function renderLineSeriesWithAreaGradient({
   height,
 }: {
   context: CanvasRenderingContext2D;
-  points: { [key: string]: { x: number; y: number }[] };
+  points: { [key: string]: Point[] };
   graphNames: string[];
   lineWidth: number;
   strokeStyles: { [key: string]: string };
@@ -39,35 +41,46 @@ export function renderLineSeriesWithAreaGradient({
     })`;
 
     context.strokeStyle = color;
-    context.lineWidth = lineWidth * devicePixelRatio;
+    context.lineWidth = toBitMapSize(lineWidth);
     context.lineJoin = lineJoinByName[graphName];
     context.beginPath();
 
     for (let j = 0; j < points[graphName].length; j++) {
       const { x, y } = points[graphName][j];
-      context.lineTo(x, y);
+
+      lineTo(context, toBitMapSize(x), toBitMapSize(y));
 
       if (j === points[graphName].length - 1) {
         const gradient = context.createLinearGradient(
           0,
           0,
           0,
-          height * devicePixelRatio
+          toBitMapSize(height)
         );
         gradient.addColorStop(0, gradientColorStart);
         gradient.addColorStop(0.5, gradientColorStop);
         gradient.addColorStop(1, TRANSPARENT);
 
-        context.lineTo(width * devicePixelRatio + MARGIN_OVERSHOOT, y);
-        context.lineTo(
-          width * devicePixelRatio + MARGIN_OVERSHOOT,
-          height * devicePixelRatio + MARGIN_OVERSHOOT
+        lineTo(
+          context,
+          toBitMapSize(width + MARGIN_OVERSHOOT),
+          toBitMapSize(y)
         );
-        context.lineTo(
-          0 - MARGIN_OVERSHOOT,
-          height * devicePixelRatio + MARGIN_OVERSHOOT
+        lineTo(
+          context,
+          toBitMapSize(width + MARGIN_OVERSHOOT),
+          toBitMapSize(height + MARGIN_OVERSHOOT)
         );
-        context.lineTo(0 - MARGIN_OVERSHOOT, points[graphName][0].y);
+        lineTo(
+          context,
+          toBitMapSize(0 - MARGIN_OVERSHOOT),
+          toBitMapSize(height + MARGIN_OVERSHOOT)
+        );
+        lineTo(
+          context,
+          toBitMapSize(0 - MARGIN_OVERSHOOT),
+          toBitMapSize(points[graphName][0].y)
+        );
         context.fillStyle = gradient;
         context.fill();
       }

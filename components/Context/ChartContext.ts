@@ -159,11 +159,11 @@ export const ChartContext = (options: ChartOptions) => {
             max,
             min,
             {
-              width: width * devicePixelRatio,
-              height: canvasHeight * devicePixelRatio,
+              width: width,
+              height: canvasHeight,
             },
             { startIndex, endIndex },
-            options.lineWidth * devicePixelRatio
+            options.lineWidth
           ),
         }),
         {} as { [key: string]: Point[] }

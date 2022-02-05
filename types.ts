@@ -11,61 +11,75 @@ export interface VisibilityState {
   [key: string]: boolean;
 }
 
-export interface Data {
+export interface DataByGraphName {
   [key: string]: number[];
 }
 
-export interface ChartOptions {
-  x: {
-    color: string;
-    ticks: number;
-    tick: {
-      height: number;
-      margin: number;
-    };
-    label: {
-      fontSize: number;
-      fontFamily: string;
-    };
-    marginBottom: number;
-    marginTop: number;
+export type XOptions = {
+  color: string;
+  ticks: number;
+  tick: {
+    height: number;
+    margin: number;
   };
-  y: {
-    color: string;
-    ticks: number;
-    label: {
-      fontSize: number;
-      fontFamily: string;
-    };
+  label: {
+    fontSize: number;
+    fontFamily: string;
   };
-  domain: number[];
-  graphNames: string[];
+  marginBottom: number;
+  marginTop: number;
+};
+
+export type YOptions = {
+  color: string;
+  ticks: number;
+  label: {
+    fontSize: number;
+    fontFamily: string;
+  };
+};
+
+export type OverviewOptions = {
+  height: number;
+  lineWidth: number;
+  overlayColor: string;
+  edgeColor: string;
+};
+
+export type TooltipOptions = {
+  lineColor: string;
+  backgroundColor: string;
+  color: string;
+};
+
+export type ViewBoxOptions = {
+  startIndex: number;
+  endIndex: number;
+};
+
+export type ColorsOptions = { [key: string]: string };
+
+export type LineJoinOptions = {
+  [series: string]: CanvasLineJoin;
+};
+
+export type ChartOptions = Readonly<{
+  x: XOptions;
+  y: YOptions;
+  overview: OverviewOptions;
+  tooltip: TooltipOptions;
+  viewBox: ViewBoxOptions;
+  visibility: VisibilityState;
+  total: number;
   width: number;
   height: number;
   lineWidth: number;
-  overview: {
-    height: number;
-    lineWidth: number;
-    overlayColor: string;
-    edgeColor: string;
-  };
-  colors: { [key: string]: string };
-  data: Data;
-  total: number;
-  visibility: VisibilityState;
-  viewBox: {
-    startIndex: number;
-    endIndex: number;
-  };
-  tooltip: {
-    lineColor: string;
-    backgroundColor: string;
-    color: string;
-  };
-  lineJoin: {
-    [series: string]: CanvasLineJoin;
-  };
-}
+  colors: ColorsOptions;
+  data: DataByGraphName;
+  lineJoin: LineJoinOptions;
+  domain: number[];
+  graphNames: string[];
+}>;
 
 // type Series = {
 //   title?: string
@@ -96,5 +110,11 @@ export interface ChartOptions {
 //   lineWidth: LineWidth;
 //   lineStyle?: LineStyle
 // };
+
+export type Nominal<Source, Label extends string> = Source & {
+  __kind__: Label;
+};
+
+export type BitMapSize = Nominal<number, "BitMapSize">;
 
 export type ChartContext = ReturnType<typeof ChartContext>;

@@ -1,7 +1,7 @@
 import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
-import { createCache } from "../../util/createCache";
-import { toScreenX } from "../../util";
+import { toScreenX, toBitMapSize, createCache } from "../../util";
+import { clearRect, setCanvasSize } from "../renderers";
 import { Component } from "../types";
 
 // - Rsi realStartIndex
@@ -62,9 +62,8 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   effect(
     [width],
     (width) => {
-      setCanvasSize(canvas, width, height);
+      setCanvasSize(canvas, toBitMapSize(width), toBitMapSize(height));
       setCanvasStyle(context);
-
       renderLabels(inertStartIndex.get(), inertEndIndex.get(), factor.get());
     },
     { fireImmediately: false }
@@ -73,13 +72,7 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
   effect(
     [inertStartIndex, inertEndIndex, factor],
     (inertStartIndex, inertEndIndex, factor) => {
-      context.clearRect(
-        0,
-        0,
-        width.get() * devicePixelRatio,
-        height * devicePixelRatio
-      );
-
+      clearRect(context, toBitMapSize(width.get()), toBitMapSize(height));
       renderLabels(inertStartIndex, inertEndIndex, factor);
     },
     { fireImmediately: false }
@@ -100,18 +93,20 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
       i <= Math.floor(inertEndIndex);
       i += factor
     ) {
-      const screenX = toScreenX(
-        options.domain,
-        width.get() * devicePixelRatio,
-        inertStartIndex,
-        inertEndIndex,
-        i
+      const screenX = toBitMapSize(
+        toScreenX(
+          options.domain,
+          width.get(),
+          inertStartIndex,
+          inertEndIndex,
+          i
+        )
       );
       const label = labels.get(options.domain[i]);
       const { width: labelWidth } = context.measureText(label);
 
       if (screenX < labelWidth / 2) continue;
-      if (width.get() * devicePixelRatio - screenX < labelWidth / 2) continue;
+      if (toBitMapSize(width.get()) - screenX < labelWidth / 2) continue;
 
       context.fillText(label, screenX, 0);
     }
@@ -131,26 +126,21 @@ export const XAxis: Component<ChartOptions, ChartContext> = (
     canvas.style.marginTop = `${marginTop}px`;
     canvas.style.width = `100%`;
     canvas.style.height = `${height}px`;
-    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const context = canvas.getContext("2d");
 
-    setCanvasSize(canvas, width.get(), height);
+    if (context === null) {
+      throw new Error("Failed to acquire context");
+    }
+
+    setCanvasSize(canvas, toBitMapSize(width.get()), toBitMapSize(height));
     setCanvasStyle(context);
 
     return { element: canvas, canvas, context };
   }
 
-  function setCanvasSize(
-    canvas: HTMLCanvasElement,
-    width: number,
-    height: number
-  ) {
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
-  }
-
   function setCanvasStyle(context: CanvasRenderingContext2D) {
     context.fillStyle = color;
-    context.font = `${fontSize * devicePixelRatio}px ${fontFamily}`;
+    context.font = `${toBitMapSize(fontSize)}px ${fontFamily}`;
     context.textBaseline = "top";
     context.textAlign = "center";
     context.strokeStyle = color;

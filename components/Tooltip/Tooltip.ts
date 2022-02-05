@@ -70,13 +70,9 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
         function tooltipIndexCompute(x, points) {
           let closestPointIndex = 0;
           for (let i = 1; i < points[options.graphNames[0]].length; i++) {
-            const distance = Math.abs(
-              points[options.graphNames[0]][i].x / devicePixelRatio - x
-            );
+            const distance = Math.abs(points[options.graphNames[0]][i].x - x);
             const closesDistance = Math.abs(
-              points[options.graphNames[0]][closestPointIndex].x /
-                devicePixelRatio -
-                x
+              points[options.graphNames[0]][closestPointIndex].x - x
             );
             if (distance < closesDistance) closestPointIndex = i;
           }
@@ -140,22 +136,20 @@ export const Tooltip: Component<ChartOptions, ChartContext> = (
     startIndex: number
   ) {
     const { x } = points[enabledGraphNames[0]][index];
-    tooltipLine.style.transform = `translateX(${x / devicePixelRatio}px)`;
+    tooltipLine.style.transform = `translateX(${x}px)`;
     const dataIndex = index + Math.floor(startIndex);
     for (let i = 0; i < enabledGraphNames.length; i++) {
       const { x, y } = points[enabledGraphNames[i]][index];
       tooltipCircles[enabledGraphNames[i]].style.transform = `translateX(${
-        x / devicePixelRatio + DOT_CENTER_OFFSET
-      }px) translateY(${y / devicePixelRatio + DOT_CENTER_OFFSET}px)`;
+        x + DOT_CENTER_OFFSET
+      }px) translateY(${y + DOT_CENTER_OFFSET}px)`;
       tooltipValues[enabledGraphNames[i]].innerText = String(
         options.data[enabledGraphNames[i]][dataIndex]
       );
       // tooltipValues[enabledGraphNames[i]].innerText = getShortNumber(options.data[enabledGraphNames[i]][dataIndex])
     }
     tooltipDate.innerText = getTooltipDateText(options.domain[dataIndex]);
-    tooltip.style.transform = `translateX(calc(${
-      x / devicePixelRatio
-    }px - 50%))`;
+    tooltip.style.transform = `translateX(calc(${x}px - 50%))`;
   }
 
   function createDOM() {

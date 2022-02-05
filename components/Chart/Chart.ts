@@ -7,11 +7,13 @@ import { Tooltip } from "../Tooltip";
 import { Series } from "../Series";
 import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
+import { validateConfig } from "../../config";
 
-export const Chart = (options: ChartOptions) => {
+export const Chart = (uncheckedOptions: ChartOptions) => {
+  const options = validateConfig(uncheckedOptions);
   const context = ChartContext(options);
   const { width, height } = context;
-  const { element } = createDom();
+  const { element } = createDOM();
 
   const resizeListener = createScheduleTaskWithCleanup(
     function measureContainerSize() {
@@ -29,7 +31,7 @@ export const Chart = (options: ChartOptions) => {
     window.removeEventListener("resize", resizeListener);
   }
 
-  function createDom() {
+  function createDOM() {
     const element = document.createElement("div");
 
     element.style.display = "flex";

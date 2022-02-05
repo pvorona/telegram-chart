@@ -1,3 +1,5 @@
+import { toBitMapSize } from "../../util";
+import { setCanvasSize } from "../renderers";
 import "./Graphs.css";
 
 export function createGraphs({
@@ -22,10 +24,13 @@ export function createGraphs({
   canvas.style.position = "absolute";
   canvas.style.width = `100%`;
   canvas.style.height = `100%`;
-  canvas.width = width * devicePixelRatio;
-  canvas.height = height * devicePixelRatio;
-  const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+  setCanvasSize(canvas, toBitMapSize(width), toBitMapSize(height));
+  const context = canvas.getContext("2d");
   element.appendChild(canvas);
+
+  if (context === null) {
+    throw new Error("Failed to acquire canvas context");
+  }
 
   return { element, context, canvas };
 }

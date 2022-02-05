@@ -1,7 +1,16 @@
 import { effect } from "@pvorona/observable";
-import { renderLineSeriesWithAreaGradient } from "../renderers";
+import {
+  clearRect,
+  renderLineSeriesWithAreaGradient,
+  setCanvasSize,
+} from "../renderers";
 import { ChartContext, ChartOptions } from "../../types";
-import { memoizeOne, ensureInBounds, handleDrag } from "../../util";
+import {
+  ensureInBounds,
+  handleDrag,
+  interpolate,
+  toBitMapSize,
+} from "../../util";
 import {
   MIN_VIEWBOX,
   WHEEL_MULTIPLIER,
@@ -9,12 +18,11 @@ import {
   cursor,
   MIN_HEIGHT,
 } from "../constants";
-import { Point } from "../types";
+import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
-import { interpolate } from "../../util/interpolatePoint";
 
-export const Series = (
-  chartOptions: ChartOptions,
+export const Series: Component<ChartOptions, ChartContext> = (
+  options,
   {
     width,
     mainGraphPoints,
@@ -27,19 +35,17 @@ export const Series = (
     mouseX,
     isWheeling,
     canvasHeight,
-  }: ChartContext
+  }
 ) => {
-  const { element, canvas, context } = createDom();
+  const { element, canvas, context } = createDOM();
 
-  renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
+  renderPoints(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
 
   effect(
     [width, canvasHeight],
     (width, height) => {
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
-
-      renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
+      setCanvasSize(canvas, toBitMapSize(width), toBitMapSize(height));
+      renderPoints(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
     },
     { fireImmediately: false }
   );
@@ -47,19 +53,17 @@ export const Series = (
   effect(
     [mainGraphPoints, inertOpacityStateByGraphName],
     (mainGraphPoints, inertOpacityStateByGraphName) => {
-      context.clearRect(
-        0,
-        0,
-        width.get() * devicePixelRatio,
-        canvasHeight.get() * devicePixelRatio
+      clearRect(
+        context,
+        toBitMapSize(width.get()),
+        toBitMapSize(canvasHeight.get())
       );
-
-      renderSeries(mainGraphPoints, inertOpacityStateByGraphName);
+      renderPoints(mainGraphPoints, inertOpacityStateByGraphName);
     },
     { fireImmediately: false }
   );
 
-  function renderSeries(
+  function renderPoints(
     points: { [key: string]: Point[] },
     opacityState: { [key: string]: number }
   ) {
@@ -67,12 +71,12 @@ export const Series = (
       points,
       opacityState,
       context: context,
-      graphNames: chartOptions.graphNames,
-      lineWidth: chartOptions.lineWidth,
-      strokeStyles: chartOptions.colors,
+      graphNames: options.graphNames,
+      lineWidth: options.lineWidth,
+      strokeStyles: options.colors,
       height: canvasHeight.get(),
       width: width.get(),
-      lineJoinByName: chartOptions.lineJoin,
+      lineJoinByName: options.lineJoin,
     });
   }
 
@@ -86,15 +90,11 @@ export const Series = (
 
   initDragListeners();
 
-  const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect() {
-    return element.getBoundingClientRect();
-  });
-
   return { element };
 
-  function createDom() {
+  function createDOM() {
     return createGraphs({
-      width: chartOptions.width,
+      width: options.width,
       height: canvasHeight.get(),
       containerHeight: canvasHeight.get(),
       containerMinHeight: MIN_HEIGHT,
@@ -106,13 +106,13 @@ export const Series = (
 
     element.addEventListener("mouseenter", function (e) {
       isHovering.set(true);
-      mouseX.set(e.clientX - getGraphsBoundingRect().left);
+      mouseX.set(e.clientX);
     });
     element.addEventListener("mouseleave", function () {
       isHovering.set(false);
     });
     element.addEventListener("mousemove", function (e) {
-      mouseX.set(e.clientX - getGraphsBoundingRect().left);
+      mouseX.set(e.clientX);
     });
 
     let prevMouseX = 0;
@@ -128,17 +128,13 @@ export const Series = (
       );
 
       startIndex.set(
-        ensureInBounds(
-          newStartIndex,
-          0,
-          chartOptions.total - 1 - visibleIndexRange
-        )
+        ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
       );
       endIndex.set(
         ensureInBounds(
           startIndex.get() + visibleIndexRange,
           0,
-          chartOptions.total - 1
+          options.total - 1
         )
       );
 
@@ -189,14 +185,14 @@ export const Series = (
           ensureInBounds(
             center - MIN_VIEWBOX / 2,
             0,
-            chartOptions.total - 1 - MIN_VIEWBOX
+            options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
           ensureInBounds(
             center + MIN_VIEWBOX / 2,
             MIN_VIEWBOX,
-            chartOptions.total - 1
+            options.total - 1
           )
         );
       } else {
@@ -204,14 +200,14 @@ export const Series = (
           ensureInBounds(
             startIndex.get() - deltaY * dynamicFactor,
             0,
-            chartOptions.total - 1 - MIN_VIEWBOX
+            options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
           ensureInBounds(
             endIndex.get() + deltaY * dynamicFactor,
             startIndex.get() + MIN_VIEWBOX,
-            chartOptions.total - 1
+            options.total - 1
           )
         );
       }
@@ -223,30 +219,16 @@ export const Series = (
         ensureInBounds(
           startIndex.get() + e.deltaX * dynamicFactor,
           0,
-          chartOptions.total - 1 - viewBoxWidth
+          options.total - 1 - viewBoxWidth
         )
       );
       endIndex.set(
         ensureInBounds(
           startIndex.get() + viewBoxWidth,
           MIN_VIEWBOX,
-          chartOptions.total - 1
+          options.total - 1
         )
       );
-    } else {
-      // if (
-      //   (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
-      //   || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
-      // ) {
-      //   if (
-      //     (e.deltaX <= 0 && e.deltaY <= 0)
-      //     || (e.deltaX > 0 && e.deltaY > 0)
-      //   ) {
-      //     left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
-      //   } else {
-      //     right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
-      //   }
-      // }
     }
   }
 };
