@@ -28,12 +28,14 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     inertOpacityStateByGraphName,
   } = context;
 
+  const globalStartIndex = observable(0);
+  const globalEndIndex = observable(options.total - 1);
   const canvasCssHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
   const { max, min } = createMinMaxView(
-    observable(0),
-    observable(options.total - 1),
+    globalStartIndex,
+    globalEndIndex,
     enabledGraphNames,
     options.data
   );
@@ -48,8 +50,14 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   );
 
   const overviewGraphPoints = computeLazy(
-    [inertOverallMax, inertOverallMin, width],
-    (inertOverallMax, inertOverallMin, width) => {
+    [globalStartIndex, globalEndIndex, inertOverallMax, inertOverallMin, width],
+    (
+      globalStartIndex,
+      globalEndIndex,
+      inertOverallMax,
+      inertOverallMin,
+      width
+    ) => {
       return options.graphNames.reduce(
         (points, graphName) => ({
           ...points,
@@ -62,7 +70,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
               width: width * devicePixelRatio,
               height: canvasCssHeight * devicePixelRatio,
             },
-            { startIndex: 0, endIndex: options.total - 1 },
+            { startIndex: globalStartIndex, endIndex: globalEndIndex },
             options.lineWidth * devicePixelRatio
           ),
         }),
