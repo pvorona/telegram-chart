@@ -34,8 +34,11 @@ export type YOptions = {
   color: string;
   ticks: number;
   label: {
+    color: string;
     fontSize: number;
     fontFamily: string;
+    marginBottom: number;
+    marginLeft: number;
   };
 };
 

@@ -260,5 +260,7 @@ export const ChartContext = (options: ChartOptions) => {
     inertGlobalMin,
     globalStartIndex,
     globalEndIndex,
+    inertVisibleMax,
+    inertVisibleMin
   };
 };

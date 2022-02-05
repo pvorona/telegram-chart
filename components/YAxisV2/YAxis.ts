@@ -1,12 +1,24 @@
 import {
+  compute,
   // computeLazy,
   effect,
 } from "@pvorona/observable";
-import { ChartContext, ChartOptions } from "../../types";
+import { BitMapSize, ChartContext, ChartOptions } from "../../types";
+import {
+  getClosestGreaterOrEqualDivisibleInt,
+  interpolate,
+  toBitMapSize,
+} from "../../util";
+import { clearRect, line, setCanvasSize } from "../renderers";
 
 export const YAxis = (
   options: ChartOptions,
-  { width, canvasHeight: height, visibleMin, visibleMax }: ChartContext
+  {
+    width,
+    canvasHeight: height,
+    inertVisibleMin,
+    inertVisibleMax,
+  }: ChartContext
 ) => {
   const { element, context } = createDOM(
     width.get(),
@@ -14,74 +26,92 @@ export const YAxis = (
     options.y.color
   );
 
-  // const factor = computeLazy(
-  //   [visibleMin, visibleMax],
-  //   (visibleMin, visibleMax) => computeScaleFactor(visibleMin - visibleMax)
-  // );
+  const factor = compute(
+    [inertVisibleMin, inertVisibleMax],
+    (inertVisibleMin, inertVisibleMax) => {
+      const yRange = inertVisibleMax - inertVisibleMin;
 
-  // const TOTAL_STEPS = 1000
-  
+      return computeScaleFactor(yRange, options.y.ticks);
+    }
+  );
+
   effect(
-    [height, width, visibleMin, visibleMax],
-    (height, width, visibleMin, visibleMax) => {
-      // const valueRange = overallMax - overallMin;
+    [height, width, inertVisibleMin, inertVisibleMax, factor],
+    (height, width, inertVisibleMin, inertVisibleMax, factor) => {
+      clearRect(context, toBitMapSize(width), toBitMapSize(height));
 
-      const yStep = (visibleMax - visibleMin) / options.y.ticks;
-
-      context.clearRect(
-        0,
-        0,
-        width * devicePixelRatio,
-        height * devicePixelRatio
-      );
       context.beginPath();
+      for (
+        let i = getClosestGreaterOrEqualDivisibleInt(inertVisibleMin, factor);
+        i <= inertVisibleMax;
+        i += factor
+      ) {
+        const screenY = toBitMapSize(
+          interpolate(inertVisibleMin, inertVisibleMax, height, 0, i)
+        );
+        const x1 = 0 as BitMapSize;
+        const y1 = screenY;
+        const x2 = toBitMapSize(width);
+        const y2 = screenY;
 
-      // for (
-      //   let currentRealIndex =
-      //     Math.floor(inertStartIndex) +
-      //     factor -
-      //     (Math.floor(inertStartIndex) % factor);
-      //   currentRealIndex < Math.floor(inertStartIndex) + points.length;
-      //   currentRealIndex += factor
-      // ) {
-      // }
-
-      for (let i = 1; i <= options.y.ticks; i++) {
-        context.moveTo(0, yStep * i * devicePixelRatio);
-        context.lineTo(width * devicePixelRatio, yStep * i * devicePixelRatio);
+        context.fillText(
+          `${i}`,
+          toBitMapSize(options.y.label.marginLeft),
+          screenY - toBitMapSize(options.y.label.marginBottom)
+        );
+        line(context, x1, y1, x2, y2);
       }
       context.stroke();
     }
   );
 
   return { element };
+
+  function createDOM(width: number, height: number, color: string) {
+    const element = document.createElement("canvas");
+    const context = element.getContext("2d");
+
+    if (!context) throw Error("Cannot acquire context");
+
+    element.style.height = `${height}px`;
+    element.style.position = "absolute";
+    element.style.width = `100%`;
+    setCanvasSize(element, toBitMapSize(width), toBitMapSize(height));
+    setCanvasStyle(
+      context,
+      options.y.label.color,
+      options.y.color,
+      options.y.label.fontSize,
+      options.y.label.fontFamily
+    );
+
+    context.strokeStyle = color;
+
+    return { element, context };
+  }
+
+  function setCanvasStyle(
+    context: CanvasRenderingContext2D,
+    fillColor: string,
+    strokeColor: string,
+    fontSize: number,
+    fontFamily: string
+  ) {
+    context.fillStyle = fillColor;
+    context.font = `${toBitMapSize(fontSize)}px ${fontFamily}`;
+    context.textBaseline = "bottom";
+    context.textAlign = "left";
+    context.strokeStyle = strokeColor;
+  }
 };
 
-function createDOM(width: number, height: number, color: string) {
-  const element = document.createElement("canvas");
-  const context = element.getContext("2d");
-
-  if (!context) throw Error("Cannot acquire context");
-
-  element.style.height = `${height}px`;
-  element.style.position = "absolute";
-  element.style.width = `100%`;
-  element.style.height = `100%`;
-  element.width = width * devicePixelRatio;
-  element.height = height * devicePixelRatio;
-
-  context.strokeStyle = color;
-
-  return { element, context };
+function computeScaleFactor(number: number, ticks: number) {
+  let factor = 1;
+  while (true) {
+    if (number / factor <= ticks) {
+      break;
+    }
+    factor *= 2;
+  }
+  return factor;
 }
-
-// function computeScaleFactor(number: number) {
-//   let factor = 1;
-//   while (true) {
-//     if (number / factor <= 8) {
-//       break;
-//     }
-//     factor *= 2;
-//   }
-//   return factor;
-// }
