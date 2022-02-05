@@ -1,4 +1,4 @@
-import { max, min, ceil } from "./math";
+import { max, min, ceil, floor } from "./math";
 import { interpolatePoint } from "./interpolatePoint";
 
 export function getMinMax(
@@ -6,16 +6,13 @@ export function getMinMax(
   endIndex: number,
   values: number[]
 ): { min: number; max: number } {
-  let minValue = min(
-    interpolatePoint(startIndex, values),
-    interpolatePoint(endIndex, values)
-  );
-  let maxValue = max(
-    interpolatePoint(startIndex, values),
-    interpolatePoint(endIndex, values)
-  );
+  const firstValue = interpolatePoint(startIndex, values);
+  const lastValue = interpolatePoint(endIndex, values);
 
-  for (let i = ceil(startIndex); i <= endIndex; i++) {
+  let minValue = min(firstValue, lastValue);
+  let maxValue = max(firstValue, lastValue);
+
+  for (let i = ceil(startIndex); i <= floor(endIndex); i++) {
     minValue = min(values[i], minValue);
     maxValue = max(values[i], maxValue);
   }
