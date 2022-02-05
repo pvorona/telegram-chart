@@ -1,4 +1,4 @@
 export * from "./validateConfig";
-export * from "./validateColor";
-export * from "./validateNonNegativeInt";
-export * from "./validateNonNegativeNumber";
+export * from "./assertColor";
+export * from "./assertNonNegativeInt";
+export * from "./assertNonNegativeNumber";
