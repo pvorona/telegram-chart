@@ -1,24 +1,17 @@
 import {
-  UncheckedChartOptions,
   ChartOptions,
   ColorsOptions,
-  ColorsOptionsValidated,
   OverviewOptions,
-  OverviewOptionsValidated,
   TooltipOptions,
-  TooltipOptionsValidated,
   ViewBoxOptions,
-  ViewBoxOptionsValidated,
   XOptions,
-  XOptionsValidated,
   YOptions,
-  YOptionsValidated,
 } from "../types";
 import { assertColor } from "./assertColor";
 import { assertNonNegativeNumber } from "./assertNonNegativeNumber";
 import { assertNonNegativeInt } from "./assertNonNegativeInt";
 
-export function validateConfig(options: UncheckedChartOptions): ChartOptions {
+export function validateConfig(options: ChartOptions): ChartOptions {
   return {
     x: validateXOptions(options.x),
     y: validateYOptions(options.y),
@@ -38,13 +31,13 @@ export function validateConfig(options: UncheckedChartOptions): ChartOptions {
   };
 }
 
-export function validateXOptions(options: XOptions): XOptionsValidated {
+export function validateXOptions(options: XOptions): XOptions {
   return {
     color: assertColor(options.color),
     ticks: assertNonNegativeInt(options.ticks),
     tick: {
-      height: assertNonNegativeNumber(options.tick.height), 
-      margin: assertNonNegativeNumber(options.tick.margin), 
+      height: assertNonNegativeNumber(options.tick.height),
+      margin: assertNonNegativeNumber(options.tick.margin),
     },
     label: {
       fontSize: assertNonNegativeNumber(options.label.fontSize),
@@ -55,7 +48,7 @@ export function validateXOptions(options: XOptions): XOptionsValidated {
   };
 }
 
-export function validateYOptions(options: YOptions): YOptionsValidated {
+export function validateYOptions(options: YOptions): YOptions {
   return {
     color: assertColor(options.color),
     ticks: assertNonNegativeInt(options.ticks),
@@ -68,7 +61,7 @@ export function validateYOptions(options: YOptions): YOptionsValidated {
 
 export function validateOverviewOptions(
   options: OverviewOptions
-): OverviewOptionsValidated {
+): OverviewOptions {
   return {
     height: assertNonNegativeNumber(options.height),
     lineWidth: assertNonNegativeInt(options.lineWidth),
@@ -79,7 +72,7 @@ export function validateOverviewOptions(
 
 export function validateTooltipOptions(
   options: TooltipOptions
-): TooltipOptionsValidated {
+): TooltipOptions {
   return {
     lineColor: assertColor(options.lineColor),
     backgroundColor: assertColor(options.backgroundColor),
@@ -89,17 +82,15 @@ export function validateTooltipOptions(
 
 export function validateViewBoxOptions(
   options: ViewBoxOptions
-): ViewBoxOptionsValidated {
+): ViewBoxOptions {
   return {
     startIndex: assertNonNegativeNumber(options.startIndex),
     endIndex: assertNonNegativeNumber(options.endIndex),
   };
 }
 
-export function validateColorsOptions(
-  options: ColorsOptions
-): ColorsOptionsValidated {
-  const result = {} as ColorsOptionsValidated;
+export function validateColorsOptions(options: ColorsOptions): ColorsOptions {
+  const result = {} as ColorsOptions;
 
   for (const graphName in options) {
     result[graphName] = assertColor(options[graphName]);

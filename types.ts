@@ -11,7 +11,7 @@ export interface VisibilityState {
   [key: string]: boolean;
 }
 
-export interface Data {
+export interface DataByGraphName {
   [key: string]: number[];
 }
 
@@ -30,32 +30,8 @@ export type XOptions = {
   marginTop: number;
 };
 
-export type XOptionsValidated = {
-  color: Color;
-  ticks: number;
-  tick: {
-    height: number; // positive?
-    margin: number; // positive?
-  };
-  label: {
-    fontSize: number;
-    fontFamily: string;
-  };
-  marginBottom: number;
-  marginTop: number;
-};
-
 export type YOptions = {
   color: string;
-  ticks: number;
-  label: {
-    fontSize: number;
-    fontFamily: string;
-  };
-};
-
-export type YOptionsValidated = {
-  color: Color;
   ticks: number;
   label: {
     fontSize: number;
@@ -70,23 +46,10 @@ export type OverviewOptions = {
   edgeColor: string;
 };
 
-export type OverviewOptionsValidated = {
-  height: number; // positive
-  lineWidth: number;
-  overlayColor: Color;
-  edgeColor: Color;
-};
-
 export type TooltipOptions = {
   lineColor: string;
   backgroundColor: string;
   color: string;
-};
-
-export type TooltipOptionsValidated = {
-  lineColor: Color;
-  backgroundColor: Color;
-  color: Color;
 };
 
 export type ViewBoxOptions = {
@@ -94,39 +57,13 @@ export type ViewBoxOptions = {
   endIndex: number;
 };
 
-export type ViewBoxOptionsValidated = {
-  startIndex: number;
-  endIndex: number;
-};
-
 export type ColorsOptions = { [key: string]: string };
-
-export type ColorsOptionsValidated = { [key: string]: Color };
 
 export type LineJoinOptions = {
   [series: string]: CanvasLineJoin;
 };
 
 export type ChartOptions = Readonly<{
-  x: XOptionsValidated;
-  y: YOptionsValidated;
-  overview: OverviewOptionsValidated;
-  tooltip: TooltipOptionsValidated;
-  viewBox: ViewBoxOptionsValidated;
-  visibility: VisibilityState;
-  total: number;
-  width: number;
-  height: number;
-  lineWidth: number;
-  colors: ColorsOptionsValidated;
-
-  data: Data;
-  lineJoin: LineJoinOptions;
-  domain: number[];
-  graphNames: string[];
-}>;
-
-export type UncheckedChartOptions = Readonly<{
   x: XOptions;
   y: YOptions;
   overview: OverviewOptions;
@@ -138,9 +75,8 @@ export type UncheckedChartOptions = Readonly<{
   height: number;
   lineWidth: number;
   colors: ColorsOptions;
-  data: Data;
+  data: DataByGraphName;
   lineJoin: LineJoinOptions;
-
   domain: number[];
   graphNames: string[];
 }>;
@@ -180,6 +116,5 @@ export type Nominal<Source, Label extends string> = Source & {
 };
 
 export type BitMapSize = Nominal<number, "BitMapSize">;
-export type Color = Nominal<string, "Color">;
 
 export type ChartContext = ReturnType<typeof ChartContext>;

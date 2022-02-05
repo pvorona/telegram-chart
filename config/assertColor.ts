@@ -1,7 +1,5 @@
-import { Color } from "../types";
-
-export const assertColor = (string: string): Color => {
+export const assertColor = (string: string) => {
   // throw new Error("Not implemented");
 
-  return string as Color;
+  return string;
 };

@@ -1,5 +1,5 @@
 import { Chart } from "./components";
-import { UncheckedChartOptions } from "./types";
+import { ChartOptions } from "./types";
 import "./css/styles.css";
 
 type DataEntry = { timestamp: number; value: number };
@@ -131,7 +131,7 @@ async function startApp() {
         Math.floor(data1O.length * 0.6)
       );
       const chartContainer = document.getElementById("chart")!;
-      const options: UncheckedChartOptions = {
+      const options: ChartOptions = {
         x: {
           color: theme.x,
           marginBottom: 7,

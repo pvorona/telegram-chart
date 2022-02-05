@@ -1,5 +1,5 @@
 import { Controls } from "../Controls";
-import { UncheckedChartOptions } from "../../types";
+import { ChartOptions } from "../../types";
 import { Overview } from "../Overview";
 import { XAxis } from "../XAxis";
 // import { YAxis } from "../YAxisV2";
@@ -9,7 +9,7 @@ import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
 import { validateConfig } from "../../config";
 
-export const Chart = (uncheckedOptions: UncheckedChartOptions) => {
+export const Chart = (uncheckedOptions: ChartOptions) => {
   const options = validateConfig(uncheckedOptions);
   const context = ChartContext(options);
   const { width, height } = context;
