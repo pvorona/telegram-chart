@@ -6,16 +6,11 @@ import {
   observable,
   effect,
 } from "@pvorona/observable";
-import { NonNegativeNumber } from "../types";
 import { getMinMax } from "./getMinMax";
 
 export function createMinMaxView(
-  startIndex: Observable<NonNegativeNumber> &
-    Gettable<NonNegativeNumber> &
-    Settable<NonNegativeNumber>,
-  endIndex: Observable<NonNegativeNumber> &
-    Gettable<NonNegativeNumber> &
-    Settable<NonNegativeNumber>,
+  startIndex: Observable<number> & Gettable<number> & Settable<number>,
+  endIndex: Observable<number> & Gettable<number> & Settable<number>,
   enabledGraphNames: Observable<string[]> & Gettable<string[]>,
   dataByGraphName: { [graphName: string]: number[] }
 ) {

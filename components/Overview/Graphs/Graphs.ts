@@ -13,11 +13,11 @@ import {
 } from "../../renderers";
 import { ChartContext, ChartOptionsValidated } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, createMinMaxView, cssToBitMap } from "../../../util";
+import { mapDataToCoords, createMinMaxView, toBitMapSize } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
-import { validateNonNegativeNumber, validateCSSPixel } from "../../../config";
+import { validateNonNegativeNumber } from "../../../config";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
@@ -37,9 +37,8 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
   const globalEndIndex = observable(
     validateNonNegativeNumber(options.total - 1)
   );
-  const canvasHeight = validateCSSPixel(
-    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH
-  );
+  const canvasHeight =
+    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
   const { max: globalMax, min: globalMin } = createMinMaxView(
     globalStartIndex,
     globalEndIndex,
@@ -113,8 +112,8 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
     (width) => {
       setCanvasSize(
         graphs.canvas,
-        cssToBitMap(width),
-        cssToBitMap(canvasHeight)
+        toBitMapSize(width),
+        toBitMapSize(canvasHeight)
       );
       renderPoints(
         overviewGraphPoints.get(),
@@ -129,8 +128,8 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
     (overviewGraphPoints, inertOpacityStateByGraphName) => {
       clearRect(
         graphs.context,
-        cssToBitMap(width.get()),
-        cssToBitMap(canvasHeight)
+        toBitMapSize(width.get()),
+        toBitMapSize(canvasHeight)
       );
       renderPoints(overviewGraphPoints, inertOpacityStateByGraphName);
     },

@@ -1,9 +1,9 @@
-import { BitMapPixel } from "../../types";
+import { BitMapSize } from "../../types";
 
 export function clearRect(
   context: CanvasRenderingContext2D,
-  width: BitMapPixel,
-  height: BitMapPixel
+  width: BitMapSize,
+  height: BitMapSize
 ) {
   context.clearRect(0, 0, width, height);
 }

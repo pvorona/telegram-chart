@@ -22,7 +22,6 @@ import {
 import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
-import { validateCSSPixel } from "../../config";
 
 export const ChartContext = (options: ChartOptionsValidated) => {
   const width = observable(options.width);
@@ -30,7 +29,7 @@ export const ChartContext = (options: ChartOptionsValidated) => {
   const canvasHeight = observable(computeCanvasHeight(height.get()));
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
-  const mouseX = observable(validateCSSPixel(0));
+  const mouseX = observable(0);
   const isHovering = observable(false);
   const isDragging = observable(false);
   const isWheeling = resetWhenInactive({ delay: WHEEL_CLEAR_TIMEOUT })(
@@ -49,17 +48,15 @@ export const ChartContext = (options: ChartOptionsValidated) => {
   );
 
   function computeCanvasHeight(containerHeight: number) {
-    return validateCSSPixel(
-      Math.max(
-        containerHeight -
-          options.overview.height -
-          options.x.tick.height -
-          options.x.tick.margin -
-          options.x.label.fontSize -
-          options.x.marginBottom -
-          options.x.marginTop,
-        MIN_HEIGHT
-      )
+    return Math.max(
+      containerHeight -
+        options.overview.height -
+        options.x.tick.height -
+        options.x.tick.margin -
+        options.x.label.fontSize -
+        options.x.marginBottom -
+        options.x.marginTop,
+      MIN_HEIGHT
     );
   }
 

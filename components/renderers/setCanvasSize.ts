@@ -1,9 +1,9 @@
-import { BitMapPixel } from "../../types";
+import { BitMapSize } from "../../types";
 
 export function setCanvasSize(
   canvas: HTMLCanvasElement,
-  width: BitMapPixel,
-  height: BitMapPixel
+  width: BitMapSize,
+  height: BitMapSize
 ) {
   canvas.width = width;
   canvas.height = height;

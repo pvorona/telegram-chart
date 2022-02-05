@@ -1,5 +1,4 @@
-import { CSSPixel } from "../../types";
-import { cssToBitMap } from "../../util";
+import { toBitMapSize } from "../../util";
 import { setCanvasSize } from "../renderers";
 import "./Graphs.css";
 
@@ -9,10 +8,10 @@ export function createGraphs({
   containerHeight,
   containerMinHeight,
 }: {
-  width: CSSPixel;
-  height: CSSPixel;
-  containerHeight?: CSSPixel;
-  containerMinHeight?: CSSPixel;
+  width: number;
+  height: number;
+  containerHeight?: number;
+  containerMinHeight?: number;
 }) {
   const containerClassName = "graphs";
   const element = document.createElement("div");
@@ -25,7 +24,7 @@ export function createGraphs({
   canvas.style.position = "absolute";
   canvas.style.width = `100%`;
   canvas.style.height = `100%`;
-  setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
+  setCanvasSize(canvas, toBitMapSize(width), toBitMapSize(height));
   const context = canvas.getContext("2d");
   element.appendChild(canvas);
 

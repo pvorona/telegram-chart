@@ -1,6 +1,6 @@
 import { computeLazy, effect } from "@pvorona/observable";
-import { ChartContext, ChartOptionsValidated, CSSPixel } from "../../types";
-import { toScreenX, cssToBitMap, createCache } from "../../util";
+import { ChartContext, ChartOptionsValidated } from "../../types";
+import { toScreenX, toBitMapSize, createCache } from "../../util";
 import { clearRect, setCanvasSize } from "../renderers";
 import { Component } from "../types";
 
@@ -45,7 +45,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
       label: { fontSize, fontFamily },
     },
   } = options;
-  const height = (fontSize + tickHeight + tickMargin) as CSSPixel;
+  const height = fontSize + tickHeight + tickMargin;
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
     (inertStartIndex, inertEndIndex) =>
@@ -62,7 +62,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
   effect(
     [width],
     (width) => {
-      setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
+      setCanvasSize(canvas, toBitMapSize(width), toBitMapSize(height));
       setCanvasStyle(context);
       renderLabels(inertStartIndex.get(), inertEndIndex.get(), factor.get());
     },
@@ -72,11 +72,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
   effect(
     [inertStartIndex, inertEndIndex, factor],
     (inertStartIndex, inertEndIndex, factor) => {
-      clearRect(
-        context,
-        cssToBitMap(width.get()),
-        cssToBitMap(height as CSSPixel)
-      );
+      clearRect(context, toBitMapSize(width.get()), toBitMapSize(height));
       renderLabels(inertStartIndex, inertEndIndex, factor);
     },
     { fireImmediately: false }
@@ -97,7 +93,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
       i <= Math.floor(inertEndIndex);
       i += factor
     ) {
-      const screenX = cssToBitMap(
+      const screenX = toBitMapSize(
         toScreenX(
           options.domain,
           width.get(),
@@ -110,7 +106,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
       const { width: labelWidth } = context.measureText(label);
 
       if (screenX < labelWidth / 2) continue;
-      if (cssToBitMap(width.get()) - screenX < labelWidth / 2) continue;
+      if (toBitMapSize(width.get()) - screenX < labelWidth / 2) continue;
 
       context.fillText(label, screenX, 0);
     }
@@ -121,7 +117,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
     marginBottom,
     marginTop,
   }: {
-    height: CSSPixel;
+    height: number;
     marginBottom: number;
     marginTop: number;
   }) {
@@ -136,7 +132,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
       throw new Error("Failed to acquire context");
     }
 
-    setCanvasSize(canvas, cssToBitMap(width.get()), cssToBitMap(height));
+    setCanvasSize(canvas, toBitMapSize(width.get()), toBitMapSize(height));
     setCanvasStyle(context);
 
     return { element: canvas, canvas, context };
@@ -144,7 +140,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
 
   function setCanvasStyle(context: CanvasRenderingContext2D) {
     context.fillStyle = color;
-    context.font = `${cssToBitMap(fontSize)}px ${fontFamily}`;
+    context.font = `${toBitMapSize(fontSize)}px ${fontFamily}`;
     context.textBaseline = "top";
     context.textAlign = "center";
     context.strokeStyle = color;

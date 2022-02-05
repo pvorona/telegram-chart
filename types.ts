@@ -32,17 +32,17 @@ export type XOptions = {
 
 export type XOptionsValidated = {
   color: Color;
-  ticks: NonNegativeInt;
+  ticks: number;
   tick: {
-    height: CSSPixel; // positive?
-    margin: CSSPixel; // positive?
+    height: number; // positive?
+    margin: number; // positive?
   };
   label: {
-    fontSize: CSSPixel;
+    fontSize: number;
     fontFamily: string;
   };
-  marginBottom: CSSPixel;
-  marginTop: CSSPixel;
+  marginBottom: number;
+  marginTop: number;
 };
 
 export type YOptions = {
@@ -56,9 +56,9 @@ export type YOptions = {
 
 export type YOptionsValidated = {
   color: Color;
-  ticks: NonNegativeInt;
+  ticks: number;
   label: {
-    fontSize: CSSPixel;
+    fontSize: number;
     fontFamily: string;
   };
 };
@@ -71,8 +71,8 @@ export type OverviewOptions = {
 };
 
 export type OverviewOptionsValidated = {
-  height: CSSPixel; // positive
-  lineWidth: CSSPixel;
+  height: number; // positive
+  lineWidth: number;
   overlayColor: Color;
   edgeColor: Color;
 };
@@ -95,8 +95,8 @@ export type ViewBoxOptions = {
 };
 
 export type ViewBoxOptionsValidated = {
-  startIndex: NonNegativeNumber;
-  endIndex: NonNegativeNumber;
+  startIndex: number;
+  endIndex: number;
 };
 
 export type ColorsOptions = { [key: string]: string };
@@ -114,10 +114,10 @@ export type ChartOptionsValidated = Readonly<{
   tooltip: TooltipOptionsValidated;
   viewBox: ViewBoxOptionsValidated;
   visibility: VisibilityState;
-  total: NonNegativeInt;
-  width: CSSPixel;
-  height: CSSPixel;
-  lineWidth: CSSPixel;
+  total: number;
+  width: number;
+  height: number;
+  lineWidth: number;
   colors: ColorsOptionsValidated;
 
   data: Data;
@@ -179,12 +179,7 @@ export type Nominal<Source, Label extends string> = Source & {
   __kind__: Label;
 };
 
-export type CSSPixel = Nominal<number, "CSSPixel">;
-export type BitMapPixel = Nominal<number, "BitMapPixel">;
+export type BitMapSize = Nominal<number, "BitMapSize">;
 export type Color = Nominal<string, "Color">;
-export type PositiveInt = Nominal<number, "PositiveInt">;
-export type NonNegativeInt = Nominal<number, "NotNegativeInt">;
-export type NonNegativeNumber = Nominal<number, "NonNegativeNumber">;
-export type PositiveNumber = Nominal<number, "PositiveNumber">;
 
 export type ChartContext = ReturnType<typeof ChartContext>;

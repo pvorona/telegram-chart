@@ -15,7 +15,6 @@ import {
   YOptionsValidated,
 } from "../types";
 import { validateColor } from "./validateColor";
-import { validateCSSPixel } from "./validateCSSPixel";
 import { validateNonNegativeNumber } from "./validateNonNegativeNumber";
 import { validateNonNegativeInt } from "./validateNonNegativeInt";
 
@@ -30,13 +29,12 @@ export function validateConfig(options: ChartOptions): ChartOptionsValidated {
     viewBox: validateViewBoxOptions(options.viewBox),
     visibility: options.visibility,
     total: validateNonNegativeInt(options.total),
-    width: validateCSSPixel(options.width),
-    height: validateCSSPixel(options.height),
-    lineWidth: validateCSSPixel(options.lineWidth),
+    width: validateNonNegativeNumber(options.width),
+    height: validateNonNegativeNumber(options.height),
+    lineWidth: validateNonNegativeInt(options.lineWidth),
     colors: validateColorsOptions(options.colors),
     data: options.data,
     lineJoin: options.lineJoin,
-
     domain: options.domain,
     graphNames: options.graphNames,
   };
@@ -47,15 +45,15 @@ export function validateXOptions(options: XOptions): XOptionsValidated {
     color: validateColor(options.color),
     ticks: validateNonNegativeInt(options.ticks),
     tick: {
-      height: validateCSSPixel(options.tick.height), // positive?
-      margin: validateCSSPixel(options.tick.margin), // positive?
+      height: validateNonNegativeNumber(options.tick.height), // positive?
+      margin: validateNonNegativeNumber(options.tick.margin), // positive?
     },
     label: {
-      fontSize: validateCSSPixel(options.label.fontSize),
+      fontSize: validateNonNegativeNumber(options.label.fontSize),
       fontFamily: options.label.fontFamily,
     },
-    marginBottom: validateCSSPixel(options.marginBottom),
-    marginTop: validateCSSPixel(options.marginTop),
+    marginBottom: validateNonNegativeNumber(options.marginBottom),
+    marginTop: validateNonNegativeNumber(options.marginTop),
   };
 }
 
@@ -64,7 +62,7 @@ export function validateYOptions(options: YOptions): YOptionsValidated {
     color: validateColor(options.color),
     ticks: validateNonNegativeInt(options.ticks),
     label: {
-      fontSize: validateCSSPixel(options.label.fontSize),
+      fontSize: validateNonNegativeNumber(options.label.fontSize),
       fontFamily: options.label.fontFamily,
     },
   };
@@ -74,8 +72,8 @@ export function validateOverviewOptions(
   options: OverviewOptions
 ): OverviewOptionsValidated {
   return {
-    height: validateCSSPixel(options.height),
-    lineWidth: validateCSSPixel(options.lineWidth),
+    height: validateNonNegativeNumber(options.height),
+    lineWidth: validateNonNegativeInt(options.lineWidth),
     overlayColor: validateColor(options.overlayColor),
     edgeColor: validateColor(options.edgeColor),
   };

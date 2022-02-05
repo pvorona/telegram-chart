@@ -4,16 +4,12 @@ import {
   renderLineSeriesWithAreaGradient,
   setCanvasSize,
 } from "../renderers";
-import {
-  ChartContext,
-  ChartOptionsValidated,
-  NonNegativeNumber,
-} from "../../types";
+import { ChartContext, ChartOptionsValidated } from "../../types";
 import {
   ensureInBounds,
   handleDrag,
   interpolate,
-  cssToBitMap,
+  toBitMapSize,
 } from "../../util";
 import {
   MIN_VIEWBOX,
@@ -24,7 +20,7 @@ import {
 } from "../constants";
 import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
-import { validateNonNegativeNumber, validateCSSPixel } from "../../config";
+import { validateNonNegativeNumber } from "../../config";
 
 export const Series: Component<ChartOptionsValidated, ChartContext> = (
   options,
@@ -49,7 +45,7 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
   effect(
     [width, canvasHeight],
     (width, height) => {
-      setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
+      setCanvasSize(canvas, toBitMapSize(width), toBitMapSize(height));
       renderPoints(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
     },
     { fireImmediately: false }
@@ -60,8 +56,8 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
     (mainGraphPoints, inertOpacityStateByGraphName) => {
       clearRect(
         context,
-        cssToBitMap(width.get()),
-        cssToBitMap(canvasHeight.get())
+        toBitMapSize(width.get()),
+        toBitMapSize(canvasHeight.get())
       );
       renderPoints(mainGraphPoints, inertOpacityStateByGraphName);
     },
@@ -111,13 +107,13 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
 
     element.addEventListener("mouseenter", function (e) {
       isHovering.set(true);
-      mouseX.set(validateCSSPixel(e.clientX));
+      mouseX.set(e.clientX);
     });
     element.addEventListener("mouseleave", function () {
       isHovering.set(false);
     });
     element.addEventListener("mousemove", function (e) {
-      mouseX.set(validateCSSPixel(e.clientX));
+      mouseX.set(e.clientX);
     });
 
     let prevMouseX = 0;
@@ -133,17 +129,13 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
       );
 
       startIndex.set(
-        ensureInBounds(
-          newStartIndex,
-          0 as NonNegativeNumber,
-          (options.total - 1 - visibleIndexRange) as NonNegativeNumber
-        )
+        ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
       );
       endIndex.set(
         validateNonNegativeNumber(
           ensureInBounds(
             startIndex.get() + visibleIndexRange,
-            0 as NonNegativeNumber,
+            0,
             options.total - 1
           )
         )
