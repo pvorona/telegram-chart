@@ -9,7 +9,7 @@ import {
   Transition,
   resetWhenInactive,
 } from "@pvorona/observable";
-import { ChartOptions, CssPixel } from "../../types";
+import { ChartOptionsValidated, CssPixel } from "../../types";
 import {
   Cursor,
   cursor,
@@ -23,10 +23,10 @@ import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
 
-export const ChartContext = (options: ChartOptions) => {
-  const width = observable(options.width as CssPixel);
-  const height = observable(options.height as CssPixel);
-  const canvasHeight = observable(computeCanvasHeight(height.get()) as CssPixel);
+export const ChartContext = (options: ChartOptionsValidated) => {
+  const width = observable(options.width);
+  const height = observable(options.height);
+  const canvasHeight = observable(computeCanvasHeight(height.get()));
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
   const mouseX = observable(0 as CssPixel);
@@ -159,11 +159,11 @@ export const ChartContext = (options: ChartOptions) => {
             max,
             min,
             {
-              width: (width),
-              height: (canvasHeight),
+              width: width,
+              height: canvasHeight,
             },
             { startIndex, endIndex },
-            (options.lineWidth as CssPixel)
+            options.lineWidth as CssPixel
           ),
         }),
         {} as { [key: string]: Point[] }

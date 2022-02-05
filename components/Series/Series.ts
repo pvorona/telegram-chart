@@ -18,6 +18,7 @@ import { Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
 import { interpolate } from "../../util/interpolatePoint";
 import { cssToBitMap } from "../../util/cssToBitMap";
+import { validateNonNegativeNumber } from "../../config/validateNonNegativeNumber";
 
 export const Series = (
   options: ChartOptions,
@@ -135,13 +136,21 @@ export const Series = (
       );
 
       startIndex.set(
-        ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
+        validateNonNegativeNumber(
+          ensureInBounds(
+            newStartIndex,
+            0,
+            options.total - 1 - visibleIndexRange
+          )
+        )
       );
       endIndex.set(
-        ensureInBounds(
-          startIndex.get() + visibleIndexRange,
-          0,
-          options.total - 1
+        validateNonNegativeNumber(
+          ensureInBounds(
+            startIndex.get() + visibleIndexRange,
+            0,
+            options.total - 1
+          )
         )
       );
 
@@ -189,32 +198,40 @@ export const Series = (
       ) {
         const center = (endIndex.get() + startIndex.get()) / 2;
         startIndex.set(
-          ensureInBounds(
-            center - MIN_VIEWBOX / 2,
-            0,
-            options.total - 1 - MIN_VIEWBOX
+          validateNonNegativeNumber(
+            ensureInBounds(
+              center - MIN_VIEWBOX / 2,
+              0,
+              options.total - 1 - MIN_VIEWBOX
+            )
           )
         );
         endIndex.set(
-          ensureInBounds(
-            center + MIN_VIEWBOX / 2,
-            MIN_VIEWBOX,
-            options.total - 1
+          validateNonNegativeNumber(
+            ensureInBounds(
+              center + MIN_VIEWBOX / 2,
+              MIN_VIEWBOX,
+              options.total - 1
+            )
           )
         );
       } else {
         startIndex.set(
-          ensureInBounds(
-            startIndex.get() - deltaY * dynamicFactor,
-            0,
-            options.total - 1 - MIN_VIEWBOX
+          validateNonNegativeNumber(
+            ensureInBounds(
+              startIndex.get() - deltaY * dynamicFactor,
+              0,
+              options.total - 1 - MIN_VIEWBOX
+            )
           )
         );
         endIndex.set(
-          ensureInBounds(
-            endIndex.get() + deltaY * dynamicFactor,
-            startIndex.get() + MIN_VIEWBOX,
-            options.total - 1
+          validateNonNegativeNumber(
+            ensureInBounds(
+              endIndex.get() + deltaY * dynamicFactor,
+              startIndex.get() + MIN_VIEWBOX,
+              options.total - 1
+            )
           )
         );
       }
@@ -223,17 +240,21 @@ export const Series = (
       angle <= DEVIATION_FROM_STRAIGHT_LINE_DEGREES // left, right
     ) {
       startIndex.set(
-        ensureInBounds(
-          startIndex.get() + e.deltaX * dynamicFactor,
-          0,
-          options.total - 1 - viewBoxWidth
+        validateNonNegativeNumber(
+          ensureInBounds(
+            startIndex.get() + e.deltaX * dynamicFactor,
+            0,
+            options.total - 1 - viewBoxWidth
+          )
         )
       );
       endIndex.set(
-        ensureInBounds(
-          startIndex.get() + viewBoxWidth,
-          MIN_VIEWBOX,
-          options.total - 1
+        validateNonNegativeNumber(
+          ensureInBounds(
+            startIndex.get() + viewBoxWidth,
+            MIN_VIEWBOX,
+            options.total - 1
+          )
         )
       );
     } else {

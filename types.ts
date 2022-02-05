@@ -15,56 +15,134 @@ export interface Data {
   [key: string]: number[];
 }
 
-export interface ChartOptions {
-  x: {
-    color: string;
-    ticks: number;
-    tick: {
-      height: number;
-      margin: number;
-    };
-    label: {
-      fontSize: number;
-      fontFamily: string;
-    };
-    marginBottom: number;
-    marginTop: number;
+export type XOptions = {
+  color: string;
+  ticks: number;
+  tick: {
+    height: number;
+    margin: number;
   };
-  y: {
-    color: string;
-    ticks: number;
-    label: {
-      fontSize: number;
-      fontFamily: string;
-    };
+  label: {
+    fontSize: number;
+    fontFamily: string;
   };
+  marginBottom: number;
+  marginTop: number;
+};
+
+export type XOptionsValidated = {
+  color: Color;
+  ticks: NonNegativeInt;
+  tick: {
+    height: CssPixel; // positive?
+    margin: CssPixel; // positive?
+  };
+  label: {
+    fontSize: CssPixel;
+    fontFamily: string;
+  };
+  marginBottom: CssPixel;
+  marginTop: CssPixel;
+};
+
+export type YOptions = {
+  color: string;
+  ticks: number;
+  label: {
+    fontSize: number;
+    fontFamily: string;
+  };
+};
+
+export type YOptionsValidated = {
+  color: Color;
+  ticks: NonNegativeInt;
+  label: {
+    fontSize: CssPixel;
+    fontFamily: string;
+  };
+};
+
+export type OverviewOptions = {
+  height: number;
+  lineWidth: number;
+  overlayColor: string;
+  edgeColor: string;
+};
+
+export type OverviewOptionsValidated = {
+  height: CssPixel; // positive
+  lineWidth: CssPixel;
+  overlayColor: Color;
+  edgeColor: Color;
+};
+
+export type TooltipOptions = {
+  lineColor: string;
+  backgroundColor: string;
+  color: string;
+};
+
+export type TooltipOptionsValidated = {
+  lineColor: Color;
+  backgroundColor: Color;
+  color: Color;
+};
+
+export type ViewBoxOptions = {
+  startIndex: number;
+  endIndex: number;
+};
+
+export type ViewBoxOptionsValidated = {
+  startIndex: NonNegativeNumber;
+  endIndex: NonNegativeNumber;
+};
+
+export type ColorsOptions = { [key: string]: string };
+
+export type ColorsOptionsValidated = { [key: string]: Color };
+
+export type LineJoinOptions = {
+  [series: string]: CanvasLineJoin;
+};
+
+export type ChartOptionsValidated = {
+  x: XOptionsValidated;
+  y: YOptionsValidated;
+  overview: OverviewOptionsValidated;
+  tooltip: TooltipOptionsValidated;
+  viewBox: ViewBoxOptionsValidated;
+  visibility: VisibilityState;
+  total: NonNegativeInt;
+  width: CssPixel;
+  height: CssPixel;
+  lineWidth: CssPixel;
+  colors: ColorsOptionsValidated;
+  
+  data: Data;
+  lineJoin: LineJoinOptions;
   domain: number[];
   graphNames: string[];
+};
+
+export interface ChartOptions {
+  x: XOptions;
+  y: YOptions;
+  overview: OverviewOptions;
+  tooltip: TooltipOptions;
+  viewBox: ViewBoxOptions;
+  visibility: VisibilityState;
+  total: number;
   width: number;
   height: number;
   lineWidth: number;
-  overview: {
-    height: number;
-    lineWidth: number;
-    overlayColor: string;
-    edgeColor: string;
-  };
-  colors: { [key: string]: string };
+  colors: ColorsOptions;
   data: Data;
-  total: number;
-  visibility: VisibilityState;
-  viewBox: {
-    startIndex: number;
-    endIndex: number;
-  };
-  tooltip: {
-    lineColor: string;
-    backgroundColor: string;
-    color: string;
-  };
-  lineJoin: {
-    [series: string]: CanvasLineJoin;
-  };
+  lineJoin: LineJoinOptions;
+
+  domain: number[];
+  graphNames: string[];
 }
 
 // type Series = {
@@ -103,5 +181,10 @@ export type Nominal<Source, Label extends string> = Source & {
 
 export type CssPixel = Nominal<number, "CssPixel">;
 export type BitMapPixel = Nominal<number, "BitMapPixel">;
+export type Color = Nominal<string, "Color">;
+export type PositiveInt = Nominal<number, "PositiveInt">;
+export type NonNegativeInt = Nominal<number, "NotNegativeInt">;
+export type NonNegativeNumber = Nominal<number, "NonNegativeNumber">;
+export type PositiveNumber = Nominal<number, "PositiveNumber">;
 
 export type ChartContext = ReturnType<typeof ChartContext>;

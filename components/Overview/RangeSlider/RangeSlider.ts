@@ -1,4 +1,5 @@
 import { effect, observable, observe } from "@pvorona/observable";
+import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
 import { ChartContext, ChartOptions } from "../../../types";
 import { handleDrag, ensureInBounds, areNumbersClose } from "../../../util";
 import {
@@ -62,7 +63,9 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   });
 
   observe([left], (left) => {
-    const newStartIndex = (left / width.get()) * (options.total - 1);
+    const newStartIndex = validateNonNegativeNumber(
+      (left / width.get()) * (options.total - 1)
+    );
 
     if (!areNumbersClose(startIndex.get(), newStartIndex)) {
       startIndex.set(newStartIndex);
@@ -70,9 +73,8 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
   });
 
   observe([right], (right) => {
-    const newEndIndex = Math.min(
-      (right / width.get()) * (options.total - 1),
-      options.total - 1
+    const newEndIndex = validateNonNegativeNumber(
+      Math.min((right / width.get()) * (options.total - 1), options.total - 1)
     );
 
     if (!areNumbersClose(endIndex.get(), newEndIndex)) {
@@ -220,32 +222,40 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
       ) {
         const center = (endIndex.get() + startIndex.get()) / 2;
         startIndex.set(
-          ensureInBounds(
-            center - MIN_VIEWBOX / 2,
-            0,
-            options.total - 1 - MIN_VIEWBOX
+          validateNonNegativeNumber(
+            ensureInBounds(
+              center - MIN_VIEWBOX / 2,
+              0,
+              options.total - 1 - MIN_VIEWBOX
+            )
           )
         );
         endIndex.set(
-          ensureInBounds(
-            center + MIN_VIEWBOX / 2,
-            MIN_VIEWBOX,
-            options.total - 1
+          validateNonNegativeNumber(
+            ensureInBounds(
+              center + MIN_VIEWBOX / 2,
+              MIN_VIEWBOX,
+              options.total - 1
+            )
           )
         );
       } else {
         startIndex.set(
-          ensureInBounds(
-            startIndex.get() - deltaY * dynamicFactor,
-            0,
-            options.total - 1 - MIN_VIEWBOX
+          validateNonNegativeNumber(
+            ensureInBounds(
+              startIndex.get() - deltaY * dynamicFactor,
+              0,
+              options.total - 1 - MIN_VIEWBOX
+            )
           )
         );
         endIndex.set(
-          ensureInBounds(
-            endIndex.get() + deltaY * dynamicFactor,
-            startIndex.get() + MIN_VIEWBOX,
-            options.total - 1
+          validateNonNegativeNumber(
+            ensureInBounds(
+              endIndex.get() + deltaY * dynamicFactor,
+              startIndex.get() + MIN_VIEWBOX,
+              options.total - 1
+            )
           )
         );
       }
@@ -254,17 +264,21 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
       angle <= DEVIATION_FROM_STRAIGHT_LINE_DEGREES // left, right
     ) {
       startIndex.set(
-        ensureInBounds(
-          startIndex.get() + e.deltaX * dynamicFactor,
-          0,
-          options.total - 1 - viewBoxWidth
+        validateNonNegativeNumber(
+          ensureInBounds(
+            startIndex.get() + e.deltaX * dynamicFactor,
+            0,
+            options.total - 1 - viewBoxWidth
+          )
         )
       );
       endIndex.set(
-        ensureInBounds(
-          startIndex.get() + viewBoxWidth,
-          MIN_VIEWBOX,
-          options.total - 1
+        validateNonNegativeNumber(
+          ensureInBounds(
+            startIndex.get() + viewBoxWidth,
+            MIN_VIEWBOX,
+            options.total - 1
+          )
         )
       );
     } else {

@@ -14,6 +14,7 @@ import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
 import { cssToBitMap } from "../../../util/cssToBitMap";
+import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
@@ -29,8 +30,10 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     inertOpacityStateByGraphName,
   } = context;
 
-  const globalStartIndex = observable(0);
-  const globalEndIndex = observable(options.total - 1);
+  const globalStartIndex = observable(validateNonNegativeNumber(0));
+  const globalEndIndex = observable(
+    validateNonNegativeNumber(options.total - 1)
+  );
   const canvasCssHeight = (options.overview.height -
     2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH) as CssPixel;
   const { max: globalMax, min: globalMin } = createMinMaxView(
