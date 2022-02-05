@@ -9,10 +9,11 @@ import {
 import { renderLineSeriesWithAreaGradient } from "../../renderers";
 import { ChartContext, ChartOptions } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, getMaxValue, getMinValue } from "../../../util";
+import { mapDataToCoords } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
+import { createMinMaxView } from "../../../util/createMinMaxView";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
@@ -31,30 +32,12 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   const canvasCssHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
-  const overallMax = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    if (enabledGraphNames.length === 0) return prevOverallMax.get();
-
-    // can remove unnecessary abstraction
-    return getMaxValueInRange(0, options.total - 1, enabledGraphNames);
-  });
-
-  const prevOverallMax = observable(Infinity);
-
-  effect([overallMax], (overallMax) => {
-    prevOverallMax.set(overallMax);
-  });
-
-  const overallMin = computeLazy([enabledGraphNames], (enabledGraphNames) => {
-    if (enabledGraphNames.length === 0) return prevOverallMin.get();
-
-    return getMinValueInRange(0, options.total - 1, enabledGraphNames);
-  });
-
-  const prevOverallMin = observable(-Infinity);
-
-  effect([overallMin], (overallMin) => {
-    prevOverallMin.set(overallMin);
-  });
+  const { visibleMax: overallMax, visibleMin: overallMin } = createMinMaxView(
+    observable(0),
+    observable(options.total - 1),
+    enabledGraphNames,
+    options.data
+  );
 
   const inertOverallMax = animationObservable(
     overallMax,
@@ -146,26 +129,6 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
       // Use `miter` line join in overview?
       lineJoinByName: options.lineJoin,
     });
-  }
-
-  function getMaxValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMaxValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getMinValueInRange(
-    startIndex: number,
-    endIndex: number,
-    graphNames: string[]
-  ) {
-    return getMinValue({ startIndex, endIndex }, getValues(graphNames));
-  }
-
-  function getValues(graphNames: string[]) {
-    return graphNames.map((graphName) => options.data[graphName]);
   }
 
   return { element: graphs.element };
