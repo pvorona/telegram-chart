@@ -20,7 +20,6 @@ import {
 } from "../constants";
 import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
-import { validateNonNegativeNumber } from "../../config";
 
 export const Series: Component<ChartOptions, ChartContext> = (
   options,
@@ -132,12 +131,10 @@ export const Series: Component<ChartOptions, ChartContext> = (
         ensureInBounds(newStartIndex, 0, options.total - 1 - visibleIndexRange)
       );
       endIndex.set(
-        validateNonNegativeNumber(
-          ensureInBounds(
-            startIndex.get() + visibleIndexRange,
-            0,
-            options.total - 1
-          )
+        ensureInBounds(
+          startIndex.get() + visibleIndexRange,
+          0,
+          options.total - 1
         )
       );
 
@@ -185,40 +182,32 @@ export const Series: Component<ChartOptions, ChartContext> = (
       ) {
         const center = (endIndex.get() + startIndex.get()) / 2;
         startIndex.set(
-          validateNonNegativeNumber(
-            ensureInBounds(
-              center - MIN_VIEWBOX / 2,
-              0,
-              options.total - 1 - MIN_VIEWBOX
-            )
+          ensureInBounds(
+            center - MIN_VIEWBOX / 2,
+            0,
+            options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
-          validateNonNegativeNumber(
-            ensureInBounds(
-              center + MIN_VIEWBOX / 2,
-              MIN_VIEWBOX,
-              options.total - 1
-            )
+          ensureInBounds(
+            center + MIN_VIEWBOX / 2,
+            MIN_VIEWBOX,
+            options.total - 1
           )
         );
       } else {
         startIndex.set(
-          validateNonNegativeNumber(
-            ensureInBounds(
-              startIndex.get() - deltaY * dynamicFactor,
-              0,
-              options.total - 1 - MIN_VIEWBOX
-            )
+          ensureInBounds(
+            startIndex.get() - deltaY * dynamicFactor,
+            0,
+            options.total - 1 - MIN_VIEWBOX
           )
         );
         endIndex.set(
-          validateNonNegativeNumber(
-            ensureInBounds(
-              endIndex.get() + deltaY * dynamicFactor,
-              startIndex.get() + MIN_VIEWBOX,
-              options.total - 1
-            )
+          ensureInBounds(
+            endIndex.get() + deltaY * dynamicFactor,
+            startIndex.get() + MIN_VIEWBOX,
+            options.total - 1
           )
         );
       }
@@ -227,21 +216,17 @@ export const Series: Component<ChartOptions, ChartContext> = (
       angle <= DEVIATION_FROM_STRAIGHT_LINE_DEGREES // left, right
     ) {
       startIndex.set(
-        validateNonNegativeNumber(
-          ensureInBounds(
-            startIndex.get() + e.deltaX * dynamicFactor,
-            0,
-            options.total - 1 - viewBoxWidth
-          )
+        ensureInBounds(
+          startIndex.get() + e.deltaX * dynamicFactor,
+          0,
+          options.total - 1 - viewBoxWidth
         )
       );
       endIndex.set(
-        validateNonNegativeNumber(
-          ensureInBounds(
-            startIndex.get() + viewBoxWidth,
-            MIN_VIEWBOX,
-            options.total - 1
-          )
+        ensureInBounds(
+          startIndex.get() + viewBoxWidth,
+          MIN_VIEWBOX,
+          options.total - 1
         )
       );
     }
