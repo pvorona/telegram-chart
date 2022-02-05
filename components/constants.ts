@@ -1,3 +1,5 @@
+import { CssPixel } from "../types";
+
 export const MONTHS = [
   "Jan",
   "Feb",
@@ -31,7 +33,7 @@ export const DOT_BORDER_SIZE = 0;
 export const DOT_SIZE = 10;
 export const CENTER_OFFSET = -DOT_SIZE / 2 - DOT_BORDER_SIZE;
 
-export const MIN_HEIGHT = 0;
+export const MIN_HEIGHT = 0 as CssPixel;
 
 export const WHEEL_CLEAR_TIMEOUT = 50;
 export const WHEEL_MULTIPLIER = 3 / 16;

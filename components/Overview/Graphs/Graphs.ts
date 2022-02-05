@@ -6,14 +6,19 @@ import {
   observe,
   transition,
 } from "@pvorona/observable";
-import { renderLineSeriesWithAreaGradient } from "../../renderers";
-import { ChartContext, ChartOptionsValidated, CssPixel } from "../../../types";
+import {
+  clearRect,
+  renderLineSeriesWithAreaGradient,
+  setCanvasSize,
+} from "../../renderers";
+import { ChartContext, ChartOptionsValidated } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
 import { mapDataToCoords, createMinMaxView, cssToBitMap } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
 import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
+import { validateCssPixel } from "../../../config/validateCssPixel";
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
@@ -33,8 +38,9 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
   const globalEndIndex = observable(
     validateNonNegativeNumber(options.total - 1)
   );
-  const canvasCssHeight = (options.overview.height -
-    2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH) as CssPixel;
+  const canvasCssHeight = validateCssPixel(
+    options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH
+  );
   const { max: globalMax, min: globalMin } = createMinMaxView(
     globalStartIndex,
     globalEndIndex,
@@ -42,17 +48,17 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
     options.data
   );
 
-  const inertOverallMax = animationObservable(
+  const inertGlobalMax = animationObservable(
     globalMax,
     transition(globalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
-  const inertOverallMin = animationObservable(
+  const inertGlobalMin = animationObservable(
     globalMin,
     transition(globalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   const overviewGraphPoints = computeLazy(
-    [globalStartIndex, globalEndIndex, inertOverallMax, inertOverallMin, width],
+    [globalStartIndex, globalEndIndex, inertGlobalMax, inertGlobalMin, width],
     (
       globalStartIndex,
       globalEndIndex,
@@ -73,7 +79,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
               height: canvasCssHeight,
             },
             { startIndex: globalStartIndex, endIndex: globalEndIndex },
-            options.lineWidth as CssPixel
+            options.lineWidth
           ),
         }),
         {} as { [key: string]: Point[] }
@@ -83,43 +89,53 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
 
   observe([isDragging, isWheeling], (isDragging, isWheeling) => {
     if (isDragging || isWheeling) {
-      inertOverallMax.setTransition(
-        transition(inertOverallMax.get(), FAST_TRANSITIONS_TIME, linear)
+      inertGlobalMax.setTransition(
+        transition(inertGlobalMax.get(), FAST_TRANSITIONS_TIME, linear)
       );
-      inertOverallMin.setTransition(
-        transition(inertOverallMin.get(), FAST_TRANSITIONS_TIME, linear)
+      inertGlobalMin.setTransition(
+        transition(inertGlobalMin.get(), FAST_TRANSITIONS_TIME, linear)
       );
     } else {
-      inertOverallMax.setTransition(
-        transition(inertOverallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+      inertGlobalMax.setTransition(
+        transition(inertGlobalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
       );
-      inertOverallMin.setTransition(
-        transition(inertOverallMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+      inertGlobalMin.setTransition(
+        transition(inertGlobalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
       );
     }
   });
 
   const graphs = createDOM();
 
-  effect([width], (width) => {
-    graphs.canvas.width = cssToBitMap(width);
-    graphs.canvas.height = cssToBitMap(canvasCssHeight);
+  updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
 
-    updatePoints(overviewGraphPoints.get(), inertOpacityStateByGraphName.get());
-  });
+  effect(
+    [width],
+    (width) => {
+      setCanvasSize(
+        graphs.canvas,
+        cssToBitMap(width),
+        cssToBitMap(canvasCssHeight)
+      );
+      updatePoints(
+        overviewGraphPoints.get(),
+        inertOpacityStateByGraphName.get()
+      );
+    },
+    { fireImmediately: false }
+  );
 
   effect(
     [overviewGraphPoints, inertOpacityStateByGraphName],
     (overviewGraphPoints, inertOpacityStateByGraphName) => {
-      graphs.context.clearRect(
-        0,
-        0,
+      clearRect(
+        graphs.context,
         cssToBitMap(width.get()),
         cssToBitMap(canvasCssHeight)
       );
-
       updatePoints(overviewGraphPoints, inertOpacityStateByGraphName);
-    }
+    },
+    { fireImmediately: false }
   );
 
   function updatePoints(
@@ -131,7 +147,7 @@ export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
       points: overviewGraphPoints,
       context: graphs.context,
       graphNames: options.graphNames,
-      lineWidth: options.overview.lineWidth as CssPixel,
+      lineWidth: options.overview.lineWidth,
       strokeStyles: options.colors,
       height: canvasCssHeight,
       width: width.get(),

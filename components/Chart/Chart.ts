@@ -1,5 +1,5 @@
 import { Controls } from "../Controls";
-import { ChartOptions, CssPixel } from "../../types";
+import { ChartOptions } from "../../types";
 import { Overview } from "../Overview";
 import { XAxis } from "../XAxis";
 // import { YAxis } from "../YAxisV2";
@@ -8,17 +8,18 @@ import { Series } from "../Series";
 import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
 import { validate } from "../../config";
+import { validateCssPixel } from "../../config/validateCssPixel";
 
 export const Chart = (options: ChartOptions) => {
-  const validatedOptions = validate(options)
+  const validatedOptions = validate(options);
   const context = ChartContext(validatedOptions);
   const { width, height } = context;
   const { element } = createDom();
 
   const resizeListener = createScheduleTaskWithCleanup(
     function measureContainerSize() {
-      width.set(element.offsetWidth as CssPixel);
-      height.set(element.offsetHeight as CssPixel);
+      width.set(validateCssPixel(element.offsetWidth));
+      height.set(validateCssPixel(element.offsetHeight));
     },
     PRIORITY.READ
   );

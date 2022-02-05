@@ -26,8 +26,12 @@ export function createGraphs({
   canvas.style.height = `100%`;
   canvas.width = cssToBitMap(width);
   canvas.height = cssToBitMap(height);
-  const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+  const context = canvas.getContext("2d");
   element.appendChild(canvas);
+
+  if (context === null) {
+    throw new Error("Failed to acquire canvas context");
+  }
 
   return { element, context, canvas };
 }

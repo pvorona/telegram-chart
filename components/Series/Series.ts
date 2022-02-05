@@ -1,10 +1,13 @@
 import { effect } from "@pvorona/observable";
-import { renderLineSeriesWithAreaGradient } from "../renderers";
+import {
+  clearRect,
+  renderLineSeriesWithAreaGradient,
+  setCanvasSize,
+} from "../renderers";
 import {
   ChartContext,
-  ChartOptions,
-  CssPixel,
-  CssPixel as CSSPixel,
+  ChartOptionsValidated,
+  NonNegativeNumber,
 } from "../../types";
 import {
   ensureInBounds,
@@ -19,12 +22,13 @@ import {
   cursor,
   MIN_HEIGHT,
 } from "../constants";
-import { Point } from "../types";
+import { Component, Point } from "../types";
 import { createGraphs } from "../Graphs/createGraphs";
 import { validateNonNegativeNumber } from "../../config/validateNonNegativeNumber";
+import { validateCssPixel } from "../../config/validateCssPixel";
 
-export const Series = (
-  options: ChartOptions,
+export const Series: Component<ChartOptionsValidated, ChartContext> = (
+  options,
   {
     width,
     mainGraphPoints,
@@ -37,7 +41,7 @@ export const Series = (
     mouseX,
     isWheeling,
     canvasHeight,
-  }: ChartContext
+  }
 ) => {
   const { element, canvas, context } = createDom();
 
@@ -46,9 +50,7 @@ export const Series = (
   effect(
     [width, canvasHeight],
     (width, height) => {
-      canvas.width = cssToBitMap(width);
-      canvas.height = cssToBitMap(height);
-
+      setCanvasSize(canvas, cssToBitMap(width), cssToBitMap(height));
       renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
     },
     { fireImmediately: false }
@@ -57,13 +59,11 @@ export const Series = (
   effect(
     [mainGraphPoints, inertOpacityStateByGraphName],
     (mainGraphPoints, inertOpacityStateByGraphName) => {
-      context.clearRect(
-        0,
-        0,
+      clearRect(
+        context,
         cssToBitMap(width.get()),
         cssToBitMap(canvasHeight.get())
       );
-
       renderSeries(mainGraphPoints, inertOpacityStateByGraphName);
     },
     { fireImmediately: false }
@@ -78,7 +78,7 @@ export const Series = (
       opacityState,
       context: context,
       graphNames: options.graphNames,
-      lineWidth: options.lineWidth as CssPixel,
+      lineWidth: options.lineWidth,
       strokeStyles: options.colors,
       height: canvasHeight.get(),
       width: width.get(),
@@ -96,18 +96,14 @@ export const Series = (
 
   initDragListeners();
 
-  // const getGraphsBoundingRect = memoizeOne(function getGraphsBoundingRect() {
-  //   return element.getBoundingClientRect();
-  // });
-
   return { element };
 
   function createDom() {
     return createGraphs({
-      width: options.width as CSSPixel,
+      width: options.width,
       height: canvasHeight.get(),
       containerHeight: canvasHeight.get(),
-      containerMinHeight: MIN_HEIGHT as CSSPixel,
+      containerMinHeight: MIN_HEIGHT,
     });
   }
 
@@ -116,14 +112,13 @@ export const Series = (
 
     element.addEventListener("mouseenter", function (e) {
       isHovering.set(true);
-      // mouseX.set(e.clientX - getGraphsBoundingRect().left);
-      mouseX.set(e.clientX as CSSPixel);
+      mouseX.set(validateCssPixel(e.clientX));
     });
     element.addEventListener("mouseleave", function () {
       isHovering.set(false);
     });
     element.addEventListener("mousemove", function (e) {
-      mouseX.set(e.clientX as CSSPixel);
+      mouseX.set(validateCssPixel(e.clientX));
     });
 
     let prevMouseX = 0;
@@ -139,19 +134,17 @@ export const Series = (
       );
 
       startIndex.set(
-        validateNonNegativeNumber(
-          ensureInBounds(
-            newStartIndex,
-            0,
-            options.total - 1 - visibleIndexRange
-          )
+        ensureInBounds(
+          newStartIndex,
+          0 as NonNegativeNumber,
+          (options.total - 1 - visibleIndexRange) as NonNegativeNumber
         )
       );
       endIndex.set(
         validateNonNegativeNumber(
           ensureInBounds(
             startIndex.get() + visibleIndexRange,
-            0,
+            0 as NonNegativeNumber,
             options.total - 1
           )
         )
@@ -260,20 +253,6 @@ export const Series = (
           )
         )
       );
-    } else {
-      // if (
-      //   (angle > DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle < (90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top left centered, bottom right centered
-      //   || (angle < -DEVIATION_FROM_STRAIGT_LINE_DEGREES && angle > -(90 - DEVIATION_FROM_STRAIGT_LINE_DEGREES)) // top right centered, bottom left centered
-      // ) {
-      //   if (
-      //     (e.deltaX <= 0 && e.deltaY <= 0)
-      //     || (e.deltaX > 0 && e.deltaY > 0)
-      //   ) {
-      //     left.set(keepInBounds(left.get() + e.deltaX * WHEEL_MULTIPLIER, 0, right.get() - minimalPixelsBetweenResizers))
-      //   } else {
-      //     right.set(keepInBounds(right.get() + e.deltaX * WHEEL_MULTIPLIER, left.get() + minimalPixelsBetweenResizers, width.get()))
-      //   }
-      // }
     }
   }
 };
