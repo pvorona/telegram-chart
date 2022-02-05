@@ -6,7 +6,7 @@ import {
   observable,
   effect,
 } from "@pvorona/observable";
-import { getMinMax, max, min } from ".";
+import { getMinMax } from "./getMinMax";
 
 export function createMinMaxView(
   startIndex: Observable<number> & Gettable<number> & Settable<number>,
@@ -14,7 +14,7 @@ export function createMinMaxView(
   enabledGraphNames: Observable<string[]> & Gettable<string[]>,
   dataByGraphName: { [graphName: string]: number[] }
 ) {
-  const visibleMinMaxByGraphName = computeLazy(
+  const minMaxByGraphName = computeLazy(
     [startIndex, endIndex, enabledGraphNames],
     (startIndex, endIndex, enabledGraphNames) => {
       const result: { [graphName: string]: { min: number; max: number } } = {};
@@ -33,30 +33,30 @@ export function createMinMaxView(
     }
   );
 
-  const visibleMax = computeLazy(
-    [visibleMinMaxByGraphName, enabledGraphNames],
+  const max = computeLazy(
+    [minMaxByGraphName, enabledGraphNames],
     (visibleMinMaxByGraphName, enabledGraphNames) => {
       if (enabledGraphNames.length === 0) return prevVisibleMax.get();
 
       let result = -Infinity;
 
       for (const graphName of enabledGraphNames) {
-        result = max(result, visibleMinMaxByGraphName[graphName].max);
+        result = Math.max(result, visibleMinMaxByGraphName[graphName].max);
       }
 
       return result;
     }
   );
 
-  const visibleMin = computeLazy(
-    [visibleMinMaxByGraphName, enabledGraphNames],
+  const min = computeLazy(
+    [minMaxByGraphName, enabledGraphNames],
     (visibleMinMaxByGraphName, enabledGraphNames) => {
       if (enabledGraphNames.length === 0) return prevVisibleMin.get();
 
       let result = +Infinity;
 
       for (const graphName of enabledGraphNames) {
-        result = min(result, visibleMinMaxByGraphName[graphName].min);
+        result = Math.min(result, visibleMinMaxByGraphName[graphName].min);
       }
 
       return result;
@@ -65,15 +65,15 @@ export function createMinMaxView(
 
   const prevVisibleMax = observable(+Infinity);
 
-  effect([visibleMax], (visibleMax) => {
+  effect([max], (visibleMax) => {
     prevVisibleMax.set(visibleMax);
   });
 
   const prevVisibleMin = observable(-Infinity);
 
-  effect([visibleMin], (visibleMin) => {
+  effect([min], (visibleMin) => {
     prevVisibleMin.set(visibleMin);
   });
 
-  return { visibleMinMaxByGraphName, visibleMin, visibleMax };
+  return { minMaxByGraphName, min, max };
 }

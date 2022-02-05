@@ -32,7 +32,7 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   const canvasCssHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
 
-  const { visibleMax: overallMax, visibleMin: overallMin } = createMinMaxView(
+  const { max, min } = createMinMaxView(
     observable(0),
     observable(options.total - 1),
     enabledGraphNames,
@@ -40,12 +40,12 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
   );
 
   const inertOverallMax = animationObservable(
-    overallMax,
-    transition(overallMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+    max,
+    transition(max.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
   const inertOverallMin = animationObservable(
-    overallMin,
-    transition(overallMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
+    min,
+    transition(min.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
   );
 
   const overviewGraphPoints = computeLazy(

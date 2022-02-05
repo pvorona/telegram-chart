@@ -88,12 +88,11 @@ export const ChartContext = (options: ChartOptions) => {
     transition(endIndex.get(), VERY_FAST_TRANSITIONS_TIME, linear)
   );
 
-  const { visibleMinMaxByGraphName, visibleMin, visibleMax } = createMinMaxView(
-    startIndex,
-    endIndex,
-    enabledGraphNames,
-    options.data
-  );
+  const {
+    minMaxByGraphName: visibleMinMaxByGraphName,
+    min: visibleMin,
+    max: visibleMax,
+  } = createMinMaxView(startIndex, endIndex, enabledGraphNames, options.data);
 
   const inertVisibleMax = animationObservable(
     visibleMax,
