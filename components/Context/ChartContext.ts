@@ -22,6 +22,7 @@ import {
 import { OpacityState, Point, EnabledGraphNames } from "../types";
 import { mapDataToCoords, createMinMaxView } from "../../util";
 import { easeInOutQuart, linear } from "../../easings";
+import { validateCssPixel } from "../../config/validateCssPixel";
 
 export const ChartContext = (options: ChartOptionsValidated) => {
   const width = observable(options.width);
@@ -29,7 +30,7 @@ export const ChartContext = (options: ChartOptionsValidated) => {
   const canvasHeight = observable(computeCanvasHeight(height.get()));
   const startIndex = observable(options.viewBox.startIndex);
   const endIndex = observable(options.viewBox.endIndex);
-  const mouseX = observable(0 as CssPixel);
+  const mouseX = observable(validateCssPixel(0));
   const isHovering = observable(false);
   const isDragging = observable(false);
   const isWheeling = resetWhenInactive({ delay: WHEEL_CLEAR_TIMEOUT })(
@@ -48,16 +49,18 @@ export const ChartContext = (options: ChartOptionsValidated) => {
   );
 
   function computeCanvasHeight(containerHeight: number) {
-    return Math.max(
-      containerHeight -
-        options.overview.height -
-        options.x.tick.height -
-        options.x.tick.margin -
-        options.x.label.fontSize -
-        options.x.marginBottom -
-        options.x.marginTop,
-      MIN_HEIGHT
-    ) as CssPixel;
+    return validateCssPixel(
+      Math.max(
+        containerHeight -
+          options.overview.height -
+          options.x.tick.height -
+          options.x.tick.margin -
+          options.x.label.fontSize -
+          options.x.marginBottom -
+          options.x.marginTop,
+        MIN_HEIGHT
+      )
+    );
   }
 
   observe([height], (height) => {
@@ -163,7 +166,7 @@ export const ChartContext = (options: ChartOptionsValidated) => {
               height: canvasHeight,
             },
             { startIndex, endIndex },
-            options.lineWidth as CssPixel
+            options.lineWidth
           ),
         }),
         {} as { [key: string]: Point[] }
