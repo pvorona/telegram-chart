@@ -7,7 +7,7 @@ import { Tooltip } from "../Tooltip";
 import { Series } from "../Series";
 import { ChartContext } from "../Context";
 import { createScheduleTaskWithCleanup, PRIORITY } from "@pvorona/scheduling";
-import { validateConfig,validateCSSPixel } from "../../config";
+import { validateConfig, validateCSSPixel } from "../../config";
 
 export const Chart = (options: ChartOptions) => {
   const validatedOptions = validateConfig(options);

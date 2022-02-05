@@ -107,7 +107,7 @@ export type LineJoinOptions = {
   [series: string]: CanvasLineJoin;
 };
 
-export type ChartOptionsValidated = {
+export type ChartOptionsValidated = Readonly<{
   x: XOptionsValidated;
   y: YOptionsValidated;
   overview: OverviewOptionsValidated;
@@ -119,14 +119,14 @@ export type ChartOptionsValidated = {
   height: CSSPixel;
   lineWidth: CSSPixel;
   colors: ColorsOptionsValidated;
-  
+
   data: Data;
   lineJoin: LineJoinOptions;
   domain: number[];
   graphNames: string[];
-};
+}>;
 
-export interface ChartOptions {
+export type ChartOptions = Readonly<{
   x: XOptions;
   y: YOptions;
   overview: OverviewOptions;
@@ -143,7 +143,7 @@ export interface ChartOptions {
 
   domain: number[];
   graphNames: string[];
-}
+}>;
 
 // type Series = {
 //   title?: string
