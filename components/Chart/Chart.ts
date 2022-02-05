@@ -42,7 +42,7 @@ export const Chart = (uncheckedOptions: ChartOptions) => {
     const controls = Controls(options, context);
     const tooltip = Tooltip(options, context);
     const xAxis = XAxis(options, context);
-    // const yAxis = YAxis(validatedOptions, context);
+    // const yAxis = YAxis(options, context);
 
     series.element.appendChild(tooltip.element);
     // element.appendChild(yAxis.element);
