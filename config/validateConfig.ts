@@ -18,8 +18,6 @@ import { assertColor } from "./assertColor";
 import { assertNonNegativeNumber } from "./assertNonNegativeNumber";
 import { assertNonNegativeInt } from "./assertNonNegativeInt";
 
-// - [ ] Check for non existent graph name or missing options for some graph names
-
 export function validateConfig(options: UncheckedChartOptions): ChartOptions {
   return {
     x: validateXOptions(options.x),
