@@ -14,7 +14,7 @@ export const Chart = (options: ChartOptions) => {
   const validatedOptions = validate(options);
   const context = ChartContext(validatedOptions);
   const { width, height } = context;
-  const { element } = createDom();
+  const { element } = createDOM();
 
   const resizeListener = createScheduleTaskWithCleanup(
     function measureContainerSize() {
@@ -32,7 +32,7 @@ export const Chart = (options: ChartOptions) => {
     window.removeEventListener("resize", resizeListener);
   }
 
-  function createDom() {
+  function createDOM() {
     const element = document.createElement("div");
 
     element.style.display = "flex";

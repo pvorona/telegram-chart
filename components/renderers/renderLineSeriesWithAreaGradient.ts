@@ -1,8 +1,8 @@
-import { CssPixel } from "../../types";
+import { CSSPixel } from "../../types";
 import { hexToRGB, cssToBitMap } from "../../util";
 import { Point } from "../types";
 
-const MARGIN_OVERSHOOT = 1 as CssPixel;
+const MARGIN_OVERSHOOT = 1 as CSSPixel;
 const TRANSPARENT = `rgba(0,0,0,0)`;
 
 export function renderLineSeriesWithAreaGradient({
@@ -19,12 +19,12 @@ export function renderLineSeriesWithAreaGradient({
   context: CanvasRenderingContext2D;
   points: { [key: string]: Point[] };
   graphNames: string[];
-  lineWidth: CssPixel;
+  lineWidth: CSSPixel;
   strokeStyles: { [key: string]: string };
   opacityState: { [key: string]: number };
   lineJoinByName: { [series: string]: CanvasLineJoin };
-  width: CssPixel;
-  height: CssPixel;
+  width: CSSPixel;
+  height: CSSPixel;
 }) {
   for (let i = 0; i < graphNames.length; i++) {
     const graphName = graphNames[i];
@@ -61,19 +61,19 @@ export function renderLineSeriesWithAreaGradient({
         gradient.addColorStop(1, TRANSPARENT);
 
         context.lineTo(
-          cssToBitMap((width + MARGIN_OVERSHOOT) as CssPixel),
+          cssToBitMap((width + MARGIN_OVERSHOOT) as CSSPixel),
           cssToBitMap(y)
         );
         context.lineTo(
-          cssToBitMap((width + MARGIN_OVERSHOOT) as CssPixel),
-          cssToBitMap((height + MARGIN_OVERSHOOT) as CssPixel)
+          cssToBitMap((width + MARGIN_OVERSHOOT) as CSSPixel),
+          cssToBitMap((height + MARGIN_OVERSHOOT) as CSSPixel)
         );
         context.lineTo(
-          cssToBitMap((0 - MARGIN_OVERSHOOT) as CssPixel),
-          cssToBitMap((height + MARGIN_OVERSHOOT) as CssPixel)
+          cssToBitMap((0 - MARGIN_OVERSHOOT) as CSSPixel),
+          cssToBitMap((height + MARGIN_OVERSHOOT) as CSSPixel)
         );
         context.lineTo(
-          cssToBitMap((0 - MARGIN_OVERSHOOT) as CssPixel),
+          cssToBitMap((0 - MARGIN_OVERSHOOT) as CSSPixel),
           cssToBitMap(points[graphName][0].y)
         );
         context.fillStyle = gradient;

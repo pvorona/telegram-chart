@@ -1,5 +1,5 @@
-import { BitMapPixel, CssPixel } from "../types";
+import { BitMapPixel, CSSPixel } from "../types";
 
-export function cssToBitMap(n: CssPixel): BitMapPixel {
+export function cssToBitMap(n: CSSPixel): BitMapPixel {
   return (n * devicePixelRatio) as BitMapPixel;
 }

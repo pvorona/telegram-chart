@@ -1,5 +1,5 @@
-import { CssPixel } from "../types";
+import { CSSPixel } from "../types";
 
-export const validateCssPixel = (n: number): CssPixel => {
-  return n as CssPixel;
+export const validateCssPixel = (n: number): CSSPixel => {
+  return n as CSSPixel;
 };

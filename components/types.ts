@@ -1,4 +1,4 @@
-import { CssPixel } from "../types";
+import { CSSPixel } from "../types";
 
 export interface EnabledGraphNames {
   [key: string]: boolean;
@@ -9,8 +9,8 @@ export interface OpacityState {
 }
 
 export interface Point {
-  x: CssPixel;
-  y: CssPixel;
+  x: CSSPixel;
+  y: CSSPixel;
 }
 
 export type Component<Props, Context> = (

@@ -8,7 +8,7 @@ export const YAxis = (
   options: ChartOptions,
   { width, canvasHeight: height, visibleMin, visibleMax }: ChartContext
 ) => {
-  const { element, context } = createDom(
+  const { element, context } = createDOM(
     width.get(),
     height.get(),
     options.y.color
@@ -55,7 +55,7 @@ export const YAxis = (
   return { element };
 };
 
-function createDom(width: number, height: number, color: string) {
+function createDOM(width: number, height: number, color: string) {
   const element = document.createElement("canvas");
   const context = element.getContext("2d");
 

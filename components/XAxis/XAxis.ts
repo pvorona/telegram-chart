@@ -1,5 +1,5 @@
 import { computeLazy, effect } from "@pvorona/observable";
-import { ChartContext, ChartOptionsValidated, CssPixel } from "../../types";
+import { ChartContext, ChartOptionsValidated, CSSPixel } from "../../types";
 import { createCache } from "../../util/createCache";
 import { toScreenX, cssToBitMap } from "../../util";
 import { Component } from "../types";
@@ -45,7 +45,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
       label: { fontSize, fontFamily },
     },
   } = options;
-  const height = (fontSize + tickHeight + tickMargin) as CssPixel;
+  const height = (fontSize + tickHeight + tickMargin) as CSSPixel;
   const factor = computeLazy(
     [inertStartIndex, inertEndIndex],
     (inertStartIndex, inertEndIndex) =>
@@ -77,7 +77,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
         0,
         0,
         cssToBitMap(width.get()),
-        cssToBitMap(height as CssPixel)
+        cssToBitMap(height as CSSPixel)
       );
 
       renderLabels(inertStartIndex, inertEndIndex, factor);
@@ -124,7 +124,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
     marginBottom,
     marginTop,
   }: {
-    height: CssPixel;
+    height: CSSPixel;
     marginBottom: number;
     marginTop: number;
   }) {
@@ -143,8 +143,8 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
 
   function setCanvasSize(
     canvas: HTMLCanvasElement,
-    width: CssPixel,
-    height: CssPixel
+    width: CSSPixel,
+    height: CSSPixel
   ) {
     canvas.width = cssToBitMap(width);
     canvas.height = cssToBitMap(height);
@@ -152,7 +152,7 @@ export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
 
   function setCanvasStyle(context: CanvasRenderingContext2D) {
     context.fillStyle = color;
-    context.font = `${cssToBitMap(fontSize as CssPixel)}px ${fontFamily}`;
+    context.font = `${cssToBitMap(fontSize as CSSPixel)}px ${fontFamily}`;
     context.textBaseline = "top";
     context.textAlign = "center";
     context.strokeStyle = color;

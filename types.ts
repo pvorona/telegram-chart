@@ -34,15 +34,15 @@ export type XOptionsValidated = {
   color: Color;
   ticks: NonNegativeInt;
   tick: {
-    height: CssPixel; // positive?
-    margin: CssPixel; // positive?
+    height: CSSPixel; // positive?
+    margin: CSSPixel; // positive?
   };
   label: {
-    fontSize: CssPixel;
+    fontSize: CSSPixel;
     fontFamily: string;
   };
-  marginBottom: CssPixel;
-  marginTop: CssPixel;
+  marginBottom: CSSPixel;
+  marginTop: CSSPixel;
 };
 
 export type YOptions = {
@@ -58,7 +58,7 @@ export type YOptionsValidated = {
   color: Color;
   ticks: NonNegativeInt;
   label: {
-    fontSize: CssPixel;
+    fontSize: CSSPixel;
     fontFamily: string;
   };
 };
@@ -71,8 +71,8 @@ export type OverviewOptions = {
 };
 
 export type OverviewOptionsValidated = {
-  height: CssPixel; // positive
-  lineWidth: CssPixel;
+  height: CSSPixel; // positive
+  lineWidth: CSSPixel;
   overlayColor: Color;
   edgeColor: Color;
 };
@@ -115,9 +115,9 @@ export type ChartOptionsValidated = {
   viewBox: ViewBoxOptionsValidated;
   visibility: VisibilityState;
   total: NonNegativeInt;
-  width: CssPixel;
-  height: CssPixel;
-  lineWidth: CssPixel;
+  width: CSSPixel;
+  height: CSSPixel;
+  lineWidth: CSSPixel;
   colors: ColorsOptionsValidated;
   
   data: Data;
@@ -179,7 +179,7 @@ export type Nominal<Source, Label extends string> = Source & {
   __kind__: Label;
 };
 
-export type CssPixel = Nominal<number, "CssPixel">;
+export type CSSPixel = Nominal<number, "CssPixel">;
 export type BitMapPixel = Nominal<number, "BitMapPixel">;
 export type Color = Nominal<string, "Color">;
 export type PositiveInt = Nominal<number, "PositiveInt">;

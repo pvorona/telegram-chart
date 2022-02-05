@@ -43,7 +43,7 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
     canvasHeight,
   }
 ) => {
-  const { element, canvas, context } = createDom();
+  const { element, canvas, context } = createDOM();
 
   renderSeries(mainGraphPoints.get(), inertOpacityStateByGraphName.get());
 
@@ -98,7 +98,7 @@ export const Series: Component<ChartOptionsValidated, ChartContext> = (
 
   return { element };
 
-  function createDom() {
+  function createDOM() {
     return createGraphs({
       width: options.width,
       height: canvasHeight.get(),

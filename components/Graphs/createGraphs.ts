@@ -1,4 +1,4 @@
-import { CssPixel } from "../../types";
+import { CSSPixel } from "../../types";
 import { cssToBitMap } from "../../util";
 import "./Graphs.css";
 
@@ -8,10 +8,10 @@ export function createGraphs({
   containerHeight,
   containerMinHeight,
 }: {
-  width: CssPixel;
-  height: CssPixel;
-  containerHeight?: CssPixel;
-  containerMinHeight?: CssPixel;
+  width: CSSPixel;
+  height: CSSPixel;
+  containerHeight?: CSSPixel;
+  containerMinHeight?: CSSPixel;
 }) {
   const containerClassName = "graphs";
   const element = document.createElement("div");
