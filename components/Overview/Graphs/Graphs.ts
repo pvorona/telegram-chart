@@ -7,7 +7,7 @@ import {
   transition,
 } from "@pvorona/observable";
 import { renderLineSeriesWithAreaGradient } from "../../renderers";
-import { ChartContext, ChartOptions, CssPixel } from "../../../types";
+import { ChartContext, ChartOptionsValidated, CssPixel } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
 import { mapDataToCoords, createMinMaxView, cssToBitMap } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
@@ -17,7 +17,7 @@ import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNu
 
 const VIEWBOX_TOP_BOTTOM_BORDER_WIDTH = 2;
 
-export const Graphs: Component<ChartOptions, ChartContext> = (
+export const Graphs: Component<ChartOptionsValidated, ChartContext> = (
   options,
   context
 ) => {

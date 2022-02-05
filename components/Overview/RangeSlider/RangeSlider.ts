@@ -1,6 +1,6 @@
 import { effect, observable, observe } from "@pvorona/observable";
 import { validateNonNegativeNumber } from "../../../config/validateNonNegativeNumber";
-import { ChartContext, ChartOptions } from "../../../types";
+import { ChartContext, ChartOptionsValidated } from "../../../types";
 import { handleDrag, ensureInBounds, areNumbersClose } from "../../../util";
 import {
   cursor,
@@ -15,7 +15,7 @@ import "./overview-viewbox.css";
 
 const minimalPixelsBetweenResizeHandlers = 10;
 
-export const RangeSlider: Component<ChartOptions, ChartContext> = (
+export const RangeSlider: Component<ChartOptionsValidated, ChartContext> = (
   options,
   context
 ) => {

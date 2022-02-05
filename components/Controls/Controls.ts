@@ -1,7 +1,7 @@
-import { ChartContext, ChartOptions } from "../../types";
+import { ChartContext, ChartOptionsValidated } from "../../types";
 import { Component } from "../types";
 
-export const Controls: Component<ChartOptions, ChartContext> = (
+export const Controls: Component<ChartOptionsValidated, ChartContext> = (
   config,
   { enabledStateByGraphName }
 ) => {

@@ -1,11 +1,11 @@
-import { ChartContext, ChartOptions } from "../../../types";
+import { ChartContext, ChartOptionsValidated } from "../../../types";
 import { Component } from "../../types";
 import { Graphs } from "../Graphs";
 import { RangeSlider } from "../RangeSlider";
 
 import "./overview.css";
 
-export const Overview: Component<ChartOptions, ChartContext> = (
+export const Overview: Component<ChartOptionsValidated, ChartContext> = (
   options,
   context
 ) => {

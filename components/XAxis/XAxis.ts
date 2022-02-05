@@ -1,5 +1,5 @@
 import { computeLazy, effect } from "@pvorona/observable";
-import { ChartContext, ChartOptions, CssPixel } from "../../types";
+import { ChartContext, ChartOptionsValidated, CssPixel } from "../../types";
 import { createCache } from "../../util/createCache";
 import { toScreenX, cssToBitMap } from "../../util";
 import { Component } from "../types";
@@ -31,7 +31,7 @@ import { Component } from "../types";
 //       opacity -> progress between int factors
 //       animating multiple factor groups?
 
-export const XAxis: Component<ChartOptions, ChartContext> = (
+export const XAxis: Component<ChartOptionsValidated, ChartContext> = (
   options,
   { inertStartIndex, inertEndIndex, width }
 ) => {
