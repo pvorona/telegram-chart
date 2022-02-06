@@ -2,7 +2,7 @@ import { Controls } from "../Controls";
 import { ChartOptions } from "../../types";
 import { Overview } from "../Overview";
 import { XAxis } from "../XAxis";
-// import { YAxis } from "../YAxisV2";
+import { YAxis } from "../YAxisV2";
 import { Tooltip } from "../Tooltip";
 import { Series } from "../Series";
 import { ChartContext } from "../Context";
@@ -42,12 +42,12 @@ export const Chart = (uncheckedOptions: ChartOptions) => {
     const controls = Controls(options, context);
     const tooltip = Tooltip(options, context);
     const xAxis = XAxis(options, context);
-    // const yAxis = YAxis(options, context);
+    const yAxis = YAxis(options, context);
 
     series.element.appendChild(tooltip.element);
-    // element.appendChild(yAxis.element);
     element.appendChild(series.element);
     element.appendChild(xAxis.element);
+    element.appendChild(yAxis.element);
     element.appendChild(overview.element);
     element.appendChild(controls.element);
 

@@ -1,6 +1,6 @@
 import { computeLazy, effect } from "@pvorona/observable";
 import { ChartContext, ChartOptions } from "../../types";
-import { toScreenX, toBitMapSize, createCache } from "../../util";
+import { toScreenX, toBitMapSize, createCache, getClosestGreaterOrEqualDivisibleInt } from "../../util";
 import { clearRect, setCanvasSize } from "../renderers";
 import { Component } from "../types";
 
@@ -165,25 +165,3 @@ const formatTimestamp = (timestamp: number) => {
   ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
 };
 
-function getClosestGreaterOrEqualDivisibleInt(
-  n: number,
-  divisor: number
-): number {
-  const closestSmallerOrEqualDivisibleInt =
-    getClosestSmallerOrEqualDivisibleInt(n, divisor);
-
-  return closestSmallerOrEqualDivisibleInt >= n
-    ? closestSmallerOrEqualDivisibleInt
-    : getClosestGreaterDivisibleInt(n, divisor);
-}
-
-function getClosestSmallerOrEqualDivisibleInt(
-  n: number,
-  divisor: number
-): number {
-  return n - (n % divisor);
-}
-
-function getClosestGreaterDivisibleInt(n: number, divisor: number): number {
-  return n + divisor - (n % divisor);
-}

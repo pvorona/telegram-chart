@@ -1,11 +1,4 @@
-import {
-  animationObservable,
-  effect,
-  computeLazy,
-  observable,
-  observe,
-  transition,
-} from "@pvorona/observable";
+import { effect, computeLazy, observe, transition } from "@pvorona/observable";
 import {
   clearRect,
   renderLineSeriesWithAreaGradient,
@@ -13,7 +6,7 @@ import {
 } from "../../renderers";
 import { ChartContext, ChartOptions } from "../../../types";
 import { easeInOutQuart, linear } from "../../../easings";
-import { mapDataToCoords, createMinMaxView, toBitMapSize } from "../../../util";
+import { mapDataToCoords, toBitMapSize } from "../../../util";
 import { FAST_TRANSITIONS_TIME, LONG_TRANSITIONS_TIME } from "../../constants";
 import { Point, Component } from "../../types";
 import { createGraphs } from "../../Graphs/createGraphs";
@@ -28,37 +21,23 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
     isDragging,
     isWheeling,
     width,
-    enabledGraphNames,
+    globalStartIndex,
+    globalEndIndex,
+    inertGlobalMax,
+    inertGlobalMin,
     inertOpacityStateByGraphName,
   } = context;
 
-  const globalStartIndex = observable(0);
-  const globalEndIndex = observable(options.total - 1);
   const canvasHeight =
     options.overview.height - 2 * VIEWBOX_TOP_BOTTOM_BORDER_WIDTH;
-  const { max: globalMax, min: globalMin } = createMinMaxView(
-    globalStartIndex,
-    globalEndIndex,
-    enabledGraphNames,
-    options.data
-  );
-
-  const inertGlobalMax = animationObservable(
-    globalMax,
-    transition(globalMax.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
-  );
-  const inertGlobalMin = animationObservable(
-    globalMin,
-    transition(globalMin.get(), LONG_TRANSITIONS_TIME, easeInOutQuart)
-  );
 
   const overviewGraphPoints = computeLazy(
     [globalStartIndex, globalEndIndex, inertGlobalMax, inertGlobalMin, width],
     (
       globalStartIndex,
       globalEndIndex,
-      inertOverallMax,
-      inertOverallMin,
+      inertGlobalMax,
+      inertGlobalMin,
       width
     ) => {
       return options.graphNames.reduce(
@@ -67,8 +46,8 @@ export const Graphs: Component<ChartOptions, ChartContext> = (
           [graphName]: mapDataToCoords(
             options.data[graphName],
             options.domain,
-            inertOverallMax,
-            inertOverallMin,
+            inertGlobalMax,
+            inertGlobalMin,
             {
               width: width,
               height: canvasHeight,

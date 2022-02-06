@@ -18,9 +18,12 @@ type Theme = {
   tooltipColor: string;
   x: string;
   y: string;
+  yLabel: string;
 };
 
 const tooltipAlpha = 0.5;
+const yLineAlpha = 0.15;
+const yLabelAlpha = 1;
 const dark = {
   overviewEdgeAlpha: 0.3,
   overviewEdgeLightness: 65,
@@ -35,8 +38,9 @@ const themes: Theme[] = [
     tooltipBackgroundColor: `hsla(150, 6%, 30%, 0.5)`,
     tooltipColor: "#afb3b1",
     series: ["#7ab885", "#e75a5a"],
-    x: "#afb3b1",
-    y: "#afb3b180",
+    x: "hsl(150, 3%, 69%)",
+    y: `hsla(150, 3%, 69%, ${yLineAlpha})`,
+    yLabel: `hsla(150, 3%, 69%, ${yLabelAlpha})`,
   },
   {
     body: "linear-gradient(0deg, hsl(0, 0%, 20%), hsl(0, 0%, 30%))",
@@ -48,7 +52,8 @@ const themes: Theme[] = [
     tooltipBackgroundColor: `hsla(240,0%,30%,0.5)`,
     tooltipColor: "#FFBD69",
     x: "hsl(34, 40%, 85%)",
-    y: "hsl(34, 40%, 85%)",
+    y: `hsla(34, 40%, 85%, ${yLineAlpha})`,
+    yLabel: `hsla(34, 40%, 85%, ${yLabelAlpha})`,
   },
   {
     background: "hsl(222, 20%, 22%)",
@@ -59,7 +64,8 @@ const themes: Theme[] = [
     tooltipLine: `hsla(222, 20%, 77%, ${tooltipAlpha})`,
     tooltipColor: "hsl(222, 20%, 77%)",
     x: "hsl(222, 20%, 77%)",
-    y: "hsl(222, 20%, 77%)",
+    y: `hsla(222, 20%, 77%, ${yLineAlpha})`,
+    yLabel: `hsla(222, 20%, 77%, ${yLabelAlpha})`,
   },
   {
     body: "linear-gradient(0deg, hsl(200deg 18% 15%), hsl(200deg 18% 20%) 50%, hsl(200deg 18% 23%) 100%)",
@@ -71,7 +77,8 @@ const themes: Theme[] = [
     tooltipLine: `hsla(198, 17%, 77%, ${tooltipAlpha})`,
     tooltipColor: "hsl(198, 17%, 77%)",
     x: "hsl(198, 17%, 77%)",
-    y: "hsl(198, 17%, 77%)",
+    y: `hsla(198, 17%, 77%, ${yLineAlpha})`,
+    yLabel: `hsla(198, 17%, 77%, ${yLabelAlpha})`,
   },
   {
     body: "linear-gradient(0deg, hsl(224, 8%, 26%), hsl(224, 8%, 32%))",
@@ -84,7 +91,8 @@ const themes: Theme[] = [
     tooltipLine: `hsla(198, 17%, 77%, ${tooltipAlpha})`,
     tooltipColor: "hsl(224, 8%, 77%)",
     x: "hsl(224, 8%, 77%)",
-    y: "hsl(224, 8%, 77%)",
+    y: `hsla(224, 8%, 77%, ${yLineAlpha})`,
+    yLabel: `hsla(224, 8%, 77%, ${yLabelAlpha})`,
   },
   {
     background: "hsl(0, 0%, 100%)",
@@ -94,7 +102,8 @@ const themes: Theme[] = [
     tooltipLine: `hsla(0, 0%, 77%, ${tooltipAlpha})`,
     tooltipBackgroundColor: `hsla(0, 0%, 100%, 0.75)`,
     x: "hsl(0, 0%, 35%)",
-    y: "hsl(0, 0%, 35%)",
+    y: `hsla(0, 0%, 35%, ${yLineAlpha})`,
+    yLabel: `hsla(0, 0%, 35%, ${yLabelAlpha})`,
     tooltipColor: "hsl(0, 0%, 35%)",
     lineWidth: 2,
     overviewBoxShadow: "inset 0px 0 0 1px hsl(0deg 0% 75%)",
@@ -148,10 +157,13 @@ async function startApp() {
         },
         y: {
           color: theme.y,
-          ticks: 5,
+          ticks: 6,
           label: {
+            color: theme.yLabel,
             fontSize: 12,
             fontFamily: "system-ui, sans-serif",
+            marginBottom: 7,
+            marginLeft: 10,
           },
         },
         width: chartContainer.offsetWidth,

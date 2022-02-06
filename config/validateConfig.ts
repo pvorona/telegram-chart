@@ -53,8 +53,11 @@ export function validateYOptions(options: YOptions): YOptions {
     color: assertColor(options.color),
     ticks: assertNonNegativeInt(options.ticks),
     label: {
+      color: assertColor(options.label.color),
       fontSize: assertNonNegativeNumber(options.label.fontSize),
       fontFamily: options.label.fontFamily,
+      marginBottom: options.label.marginBottom,
+      marginLeft: options.label.marginLeft,
     },
   };
 }
