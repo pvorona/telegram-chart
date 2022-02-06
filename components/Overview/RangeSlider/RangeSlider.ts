@@ -22,6 +22,7 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
     context;
 
   const {
+    container,
     viewBoxElement,
     leftResizeHandler,
     rightResizeHandler,
@@ -38,6 +39,35 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
     // interpolate
     (endIndex.get() / (options.total - 1)) * width.get()
   );
+
+  observe(
+    [startIndex, endIndex, left, right, width],
+    (startIndex, endIndex, left, right, width) => {
+      const indexViewBox = (endIndex - startIndex) / options.total;
+      const sliderViewBox = (right - left) / width;
+      const indexOffset = startIndex / options.total;
+      const sliderOffset = left / width;
+
+      console.log({
+        // startIndex,
+        // endIndex,
+        // left,
+        // right,
+        indexViewBox,
+        sliderViewBox,
+        indexOffset,
+        sliderOffset,
+      });
+    }
+  );
+
+  effect([left, width], (left, width) => {
+    leftSide.style.transform = `scaleX(${left / width})`;
+  });
+
+  effect([right, width], (right, width) => {
+    rightSide.style.transform = `scaleX(${(width - right) / width})`;
+  });
 
   effect([left], (left) => {
     viewBoxElement.style.left = `${left}px`;
@@ -276,9 +306,15 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
     }
   }
 
-  return { element: viewBoxElement };
+  return { element: container };
 
   function createDOM() {
+    const container = document.createElement("div");
+    container.style.cssText =
+      "position: absolute; top: 0; right: 0; bottom: 0; left: 0;";
+    // container.style.width = "100%";
+    // container.style.position = 'absolute'
+
     const leftResizeHandler = document.createElement("div");
     leftResizeHandler.style.backgroundColor = options.overview.edgeColor;
     leftResizeHandler.className =
@@ -298,10 +334,14 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
     rightSide.style.backgroundColor = options.overview.overlayColor;
     rightSide.className = "overview__right";
 
-    viewBoxElement.appendChild(leftSide);
-    viewBoxElement.appendChild(rightSide);
+    // viewBoxElement.appendChild(leftSide);
+    // viewBoxElement.appendChild(rightSide);
     viewBoxElement.appendChild(leftResizeHandler);
     viewBoxElement.appendChild(rightResizeHandler);
+
+    container.appendChild(leftSide);
+    container.appendChild(viewBoxElement);
+    container.appendChild(rightSide);
 
     return {
       viewBoxElement,
@@ -309,6 +349,7 @@ export const RangeSlider: Component<ChartOptions, ChartContext> = (
       rightResizeHandler,
       leftSide,
       rightSide,
+      container,
     };
   }
 };
