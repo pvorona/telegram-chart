@@ -1,8 +1,4 @@
-import {
-  compute,
-  // computeLazy,
-  effect,
-} from "@pvorona/observable";
+import { computeLazy, effect } from "@pvorona/observable";
 import { BitMapSize, ChartContext, ChartOptions } from "../../types";
 import {
   getClosestGreaterOrEqualDivisibleInt,
@@ -26,7 +22,7 @@ export const YAxis = (
     options.y.color
   );
 
-  const factor = compute(
+  const factor = computeLazy(
     [inertVisibleMin, inertVisibleMax],
     (inertVisibleMin, inertVisibleMax) => {
       const yRange = inertVisibleMax - inertVisibleMin;
