@@ -35,41 +35,83 @@ export const YAxis = (
     }
   );
 
+  renderLabelsAndGrid(
+    inertVisibleMin.get(),
+    inertVisibleMax.get(),
+    factor.get(),
+    width.get(),
+    height.get()
+  );
+
   effect(
-    [height, width, inertVisibleMin, inertVisibleMax, factor],
-    (height, width, inertVisibleMin, inertVisibleMax, factor) => {
-      clearRect(context, toBitMapSize(width), toBitMapSize(height));
+    [width, height],
+    (width, height) => {
+      setCanvasSize(element, toBitMapSize(width), toBitMapSize(height));
+      setCanvasStyle(
+        context,
+        options.y.label.color,
+        options.y.color,
+        options.y.label.fontSize,
+        options.y.label.fontFamily
+      );
+      renderLabelsAndGrid(
+        inertVisibleMin.get(),
+        inertVisibleMax.get(),
+        factor.get(),
+        width,
+        height
+      );
+    },
+    { fireImmediately: false }
+  );
 
-      context.beginPath();
-      for (
-        let i = getClosestGreaterOrEqualDivisibleInt(inertVisibleMin, factor);
-        i <= inertVisibleMax;
-        i += factor
-      ) {
-        const screenY = toBitMapSize(
-          interpolate(inertVisibleMin, inertVisibleMax, height, 0, i)
-        );
-        const x1 = 0 as BitMapSize;
-        const y1 = screenY;
-        const x2 = toBitMapSize(width);
-        const y2 = screenY;
-        const textY = screenY - toBitMapSize(options.y.label.marginBottom);
-        const label = `${i}`;
-
-        if (textY - toBitMapSize(options.y.label.fontSize) < 0) continue;
-
-        context.fillText(
-          label,
-          toBitMapSize(options.y.label.marginLeft),
-          textY
-        );
-        line(context, x1, y1, x2, y2);
-      }
-      context.stroke();
-    }
+  effect(
+    [inertVisibleMin, inertVisibleMax, factor],
+    (inertVisibleMin, inertVisibleMax, factor) => {
+      clearRect(context, toBitMapSize(width.get()), toBitMapSize(height.get()));
+      renderLabelsAndGrid(
+        inertVisibleMin,
+        inertVisibleMax,
+        factor,
+        width.get(),
+        height.get()
+      );
+    },
+    { fireImmediately: false }
   );
 
   return { element };
+
+  function renderLabelsAndGrid(
+    inertVisibleMin: number,
+    inertVisibleMax: number,
+    factor: number,
+    width: number,
+    height: number
+  ) {
+    context.beginPath();
+    for (
+      let i = getClosestGreaterOrEqualDivisibleInt(inertVisibleMin, factor);
+      i <= inertVisibleMax;
+      i += factor
+    ) {
+      const screenY = toBitMapSize(
+        interpolate(inertVisibleMin, inertVisibleMax, height, 0, i)
+      );
+      const x1 = 0 as BitMapSize;
+      const y1 = screenY;
+      const x2 = toBitMapSize(width);
+      const y2 = screenY;
+      const textY = screenY - toBitMapSize(options.y.label.marginBottom);
+      const label = `${i}`;
+
+      if (textY - toBitMapSize(options.y.label.fontSize) < 0) continue;
+
+      context.fillText(label, toBitMapSize(options.y.label.marginLeft), textY);
+      line(context, x1, y1, x2, y2);
+    }
+    context.stroke();
+  }
 
   function createDOM(width: number, height: number, color: string) {
     const element = document.createElement("canvas");
@@ -80,6 +122,7 @@ export const YAxis = (
     element.style.height = `${height}px`;
     element.style.position = "absolute";
     element.style.width = `100%`;
+    element.style.pointerEvents = "none";
     setCanvasSize(element, toBitMapSize(width), toBitMapSize(height));
     setCanvasStyle(
       context,

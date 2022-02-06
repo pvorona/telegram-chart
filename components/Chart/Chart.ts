@@ -45,9 +45,9 @@ export const Chart = (uncheckedOptions: ChartOptions) => {
     const yAxis = YAxis(options, context);
 
     series.element.appendChild(tooltip.element);
-    element.appendChild(yAxis.element);
     element.appendChild(series.element);
     element.appendChild(xAxis.element);
+    element.appendChild(yAxis.element);
     element.appendChild(overview.element);
     element.appendChild(controls.element);
 
