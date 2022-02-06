@@ -109,13 +109,17 @@ export const YAxis = (
   }
 };
 
+const PREFERRED_FACTORS = [
+  1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000,
+];
+
 function computeScaleFactor(number: number, ticks: number) {
-  let factor = 1;
+  let factorIndex = -1;
   while (true) {
-    if (number / factor <= ticks) {
+    if (number / PREFERRED_FACTORS[factorIndex] <= ticks) {
       break;
     }
-    factor *= 2;
+    factorIndex++;
   }
-  return factor;
+  return PREFERRED_FACTORS[factorIndex];
 }
