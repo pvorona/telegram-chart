@@ -22,7 +22,7 @@ type Theme = {
 };
 
 const tooltipAlpha = 0.5;
-const yLineAlpha = 0.35;
+const yLineAlpha = 0.15;
 const yLabelAlpha = 1;
 const dark = {
   overviewEdgeAlpha: 0.3,

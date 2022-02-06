@@ -53,11 +53,15 @@ export const YAxis = (
         const y1 = screenY;
         const x2 = toBitMapSize(width);
         const y2 = screenY;
+        const textY = screenY - toBitMapSize(options.y.label.marginBottom);
+        const label = `${i}`;
+
+        if (textY - toBitMapSize(options.y.label.fontSize) < 0) continue;
 
         context.fillText(
-          `${i}`,
+          label,
           toBitMapSize(options.y.label.marginLeft),
-          screenY - toBitMapSize(options.y.label.marginBottom)
+          textY
         );
         line(context, x1, y1, x2, y2);
       }
